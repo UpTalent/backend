@@ -29,8 +29,8 @@ public class TalentDataLoader implements CommandLineRunner {
         return Talent.builder()
                 .lastname(faker.name().lastName())
                 .firstname(faker.name().firstName())
-                .photo(faker.avatar().image())
-                .banner(faker.avatar().image())
+                .photo(null)
+                .banner(null)
                 .skills(List.of("Java", "React", "Js"))
                 .build();
     }
