@@ -1,6 +1,9 @@
-package com.uptalent.talent;
+package com.uptalent.talent.controller;
 
+import com.uptalent.talent.TalentService;
+import com.uptalent.talent.model.request.TalentRegistrationRequest;
 import com.uptalent.talent.model.res.TalentDTO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -18,4 +21,11 @@ public class TalentController {
                                          @RequestParam(defaultValue = "9") int size){
         return talentService.getAllTalents(page, size);
     }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public void registerTalent(@Valid @RequestBody TalentRegistrationRequest talent){
+        talentService.addTalent(talent);
+    }
+
 }
