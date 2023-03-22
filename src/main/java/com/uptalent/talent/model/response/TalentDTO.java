@@ -1,4 +1,4 @@
-package com.uptalent.talent.model.res;
+package com.uptalent.talent.model.response;
 
 import lombok.*;
 

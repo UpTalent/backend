@@ -1,7 +1,7 @@
 package com.uptalent.mapper;
 
 import com.uptalent.talent.model.entity.Talent;
-import com.uptalent.talent.model.res.TalentDTO;
+import com.uptalent.talent.model.response.TalentDTO;
 import org.mapstruct.Mapper;
 
 import java.util.List;
