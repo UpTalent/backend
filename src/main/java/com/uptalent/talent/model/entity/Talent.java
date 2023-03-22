@@ -1,4 +1,4 @@
-package com.uptalent.talent;
+package com.uptalent.talent.model.entity;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;

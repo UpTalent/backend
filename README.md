@@ -24,12 +24,12 @@ Next time the cached version will be used without redownloading.
 After the build is completed, the folder `/target` will be created with a compiled `.jar` ready to be launched.
 
 ## How to Run:
-Now you can launch the server following the command:
+Now you can launch the server at the default port `8080`
+(if the option `--server.port={PORT}` is not provided):
 ```bash
-java -jar ./target/*.jar --server.port=8085
+java -jar ./target/*.jar 
 ```
-It may take up to around 15 sec for the server to start. This will start the application on the default port (8080) and you can access the application by navigating to http://localhost:8080 in your web browser. 
-
+It may take up to around 15 sec for the server to start. This will start the application and you can access the application by navigating to http://localhost:8080 in your web browser.
 ### Configuring the application
 The application can be configured using the `application.properties` file. This file is located in the `src/main/resources` directory. Here, you can configure properties such as the server port, database settings, and logging.
 
