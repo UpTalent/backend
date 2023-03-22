@@ -6,7 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.*;
 
-import java.util.List;
+import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Setter
@@ -22,8 +23,12 @@ public class Talent {
     private String firstname;
     private String photo;
     private String banner;
-
     @ElementCollection
-    private List<String> skills;
+    private Set<String> skills;
+    private String location;
+    private String email;
+    private String password;
+    private Date birthday;
+    private String aboutMe;
 
 }
