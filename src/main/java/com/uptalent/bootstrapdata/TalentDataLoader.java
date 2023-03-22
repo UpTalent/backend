@@ -5,6 +5,7 @@ import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.TalentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -16,6 +17,7 @@ public class TalentDataLoader implements CommandLineRunner {
     public static final int SIZE = 20;
     private final TalentRepository talentRepository;
     private final Faker faker;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
@@ -29,6 +31,7 @@ public class TalentDataLoader implements CommandLineRunner {
         String firstname = faker.name().firstName();
         String email = firstname.toLowerCase() + "." + lastname.toLowerCase() + "@gmail.com";
         String location = faker.address().country() + ", " + faker.address().cityName();
+        String password = "12345";
 
         return Talent.builder()
                 .lastname(lastname)
@@ -36,7 +39,7 @@ public class TalentDataLoader implements CommandLineRunner {
                 .photo(faker.avatar().image())
                 .banner(faker.internet().image())
                 .email(email)
-                .password(faker.internet().password())
+                .password(passwordEncoder.encode(password))
                 .birthday(faker.date().birthday())
                 .aboutMe(faker.lebowski().quote())
                 .location(location)
