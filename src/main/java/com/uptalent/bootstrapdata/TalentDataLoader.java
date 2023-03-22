@@ -1,7 +1,7 @@
 package com.uptalent.bootstrapdata;
 
 import com.github.javafaker.Faker;
-import com.uptalent.talent.Talent;
+import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.TalentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;

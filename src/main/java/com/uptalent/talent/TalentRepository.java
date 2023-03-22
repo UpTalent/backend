@@ -1,6 +1,6 @@
 package com.uptalent.talent;
 
-import com.uptalent.talent.Talent;
+import com.uptalent.talent.model.entity.Talent;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
