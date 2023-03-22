@@ -2,7 +2,7 @@ package com.uptalent.talent.controller;
 
 import com.uptalent.talent.TalentService;
 import com.uptalent.talent.model.request.TalentRegistrationRequest;
-import com.uptalent.talent.model.res.TalentDTO;
+import com.uptalent.talent.model.response.TalentDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

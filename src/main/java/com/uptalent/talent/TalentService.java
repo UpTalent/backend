@@ -3,7 +3,7 @@ package com.uptalent.talent;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.request.TalentRegistrationRequest;
-import com.uptalent.talent.model.res.TalentDTO;
+import com.uptalent.talent.model.response.TalentDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -17,7 +17,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
