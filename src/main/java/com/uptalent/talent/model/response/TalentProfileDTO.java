@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.Set;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TalentProfileDTO {
@@ -20,8 +19,5 @@ public class TalentProfileDTO {
     private String banner;
     private Set<String> skills;
     private String location;
-    private String email;
-    private Date birthday;
     private String aboutMe;
-    private boolean isPersonalProfile;
 }
