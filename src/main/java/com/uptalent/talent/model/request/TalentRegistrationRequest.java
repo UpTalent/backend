@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Set;
 
 @Component
 @Getter
@@ -17,7 +17,7 @@ public class TalentRegistrationRequest {
     @NotBlank(message = "Blank firstname field")
     String firstname;
     @NotNull(message = "Empty skill list")
-    List<String> skills;
+    Set<String> skills;
     @NotBlank(message = "Blank email field")
     String email;
     @NotBlank(message = "Blank password field")
