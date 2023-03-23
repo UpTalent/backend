@@ -67,9 +67,10 @@ public class TalentController {
         return talentService.updateTalent(id, updatedTalent);
     }
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteTalent(@PathVariable Long id) {
+    @ResponseStatus(HttpStatus.OK)
+    public HttpResponse deleteTalent(@PathVariable Long id) {
         talentService.deleteTalent(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new HttpResponse("Talent profile deleted successfully");
     }
 
     private HttpHeaders setJwtToHeader(String token) {
