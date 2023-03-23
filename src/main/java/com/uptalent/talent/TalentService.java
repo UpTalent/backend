@@ -110,6 +110,15 @@ public class TalentService {
 
         return talentRepository.save(talentToUpdate);
     }
+    @Transactional
+    public void deleteTalent(Long id) {
+        Talent talentToDelete = getTalentById(id);
+        if (!isPersonalProfile(talentToDelete)) {
+            throw new DeniedAccessException("You are not allowed to delete this account");
+        } else {
+            talentRepository.delete(talentToDelete);
+        }
+    }
 
     private Talent getTalentById(Long id) {
         return talentRepository.findById(id)

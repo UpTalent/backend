@@ -66,6 +66,11 @@ public class TalentController {
                                @Valid @RequestBody TalentEditRequest updatedTalent){
         return talentService.updateTalent(id, updatedTalent);
     }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTalent(@PathVariable Long id) {
+        talentService.deleteTalent(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 
     private HttpHeaders setJwtToHeader(String token) {
         HttpHeaders headers = new HttpHeaders();
