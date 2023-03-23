@@ -2,24 +2,26 @@ package com.uptalent.talent.model.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.Set;
 
-@Component
 @Getter
 @Setter
-public class TalentRegistrationRequest {
+@AllArgsConstructor
+@NoArgsConstructor
+public class TalentEditRequest {
     @NotBlank(message = "Blank lastname field")
-    String lastname;
+    private String lastname;
     @NotBlank(message = "Blank firstname field")
-    String firstname;
+    private String firstname;
+    private Date birthday;
     @NotNull(message = "Empty skill list")
-    Set<String> skills;
-    @NotBlank(message = "Blank email field")
-    String email;
-    @NotBlank(message = "Blank password field")
-    String password;
+    private Set<String> skills;
+    private String location;
+    private String aboutMe;
 }

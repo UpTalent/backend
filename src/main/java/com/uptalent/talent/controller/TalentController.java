@@ -3,8 +3,11 @@ package com.uptalent.talent.controller;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.talent.TalentService;
+import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.talent.exception.TalentExistsException;
-import com.uptalent.talent.exception.TalentNoFoundException;
+import com.uptalent.talent.exception.TalentNotFoundException;
+import com.uptalent.talent.model.entity.Talent;
+import com.uptalent.talent.model.request.TalentEditRequest;
 import com.uptalent.talent.model.request.TalentLoginRequest;
 import com.uptalent.talent.model.request.TalentRegistrationRequest;
 import com.uptalent.talent.model.response.TalentDTO;
@@ -35,10 +38,10 @@ public class TalentController {
         return talentService.getAllTalents(page, size);
     }
 
-    @GetMapping("/{talent-id}")
+    @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public TalentProfileDTO getTalentProfile(@PathVariable("talent-id") Long talentId){
-        return talentService.getTalentProfileById(talentId);
+    public TalentProfileDTO getTalentProfile(@PathVariable Long id){
+        return talentService.getTalentProfileById(id);
     }
 
     @PostMapping
@@ -57,6 +60,13 @@ public class TalentController {
         return new ResponseEntity<>(response, headers, HttpStatus.OK);
     }
 
+    @PatchMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public Talent updateTalent(@PathVariable Long id,
+                               @Valid @RequestBody TalentEditRequest updatedTalent){
+        return talentService.updateTalent(id, updatedTalent);
+    }
+
     private HttpHeaders setJwtToHeader(String token) {
         HttpHeaders headers = new HttpHeaders();
 
@@ -65,15 +75,22 @@ public class TalentController {
         return headers;
     }
 
+    //TODO: create a separate class for exception handling
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(TalentNoFoundException.class)
-    public HttpResponse handlerNotFoundTalentException(Exception e) {
+    @ExceptionHandler(TalentNotFoundException.class)
+    public HttpResponse handlerNotFoundTalentException(TalentNotFoundException e) {
         return new HttpResponse(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(TalentExistsException.class)
-    public HttpResponse handlerExistsTalentException(Exception e) {
+    public HttpResponse handlerExistsTalentException(TalentExistsException e) {
+        return new HttpResponse(e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(DeniedAccessException.class)
+    public HttpResponse handlerExistsTalentException(DeniedAccessException e) {
         return new HttpResponse(e.getMessage());
     }
 
