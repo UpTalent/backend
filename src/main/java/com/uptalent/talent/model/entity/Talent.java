@@ -2,6 +2,7 @@ package com.uptalent.talent.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 import java.util.Set;
@@ -26,6 +27,7 @@ public class Talent {
     private String email;
     private String password;
     @Temporal(TemporalType.DATE)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date birthday;
     private String aboutMe;
 
