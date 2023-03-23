@@ -7,6 +7,7 @@ import com.uptalent.talent.model.request.TalentEditRequest;
 import com.uptalent.talent.model.request.TalentLoginRequest;
 import com.uptalent.talent.model.request.TalentRegistrationRequest;
 import com.uptalent.talent.model.response.TalentDTO;
+import com.uptalent.talent.model.response.TalentOwnProfileDTO;
 import com.uptalent.talent.model.response.TalentProfileDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,8 +55,8 @@ public class TalentController {
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Talent updateTalent(@PathVariable Long id,
-                               @Valid @RequestBody TalentEditRequest updatedTalent){
+    public TalentOwnProfileDTO updateTalent(@PathVariable Long id,
+                                            @Valid @RequestBody TalentEditRequest updatedTalent){
         return talentService.updateTalent(id, updatedTalent);
     }
     @DeleteMapping("/{id}")

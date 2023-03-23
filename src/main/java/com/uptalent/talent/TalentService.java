@@ -11,6 +11,7 @@ import com.uptalent.talent.model.request.TalentEditRequest;
 import com.uptalent.talent.model.request.TalentLoginRequest;
 import com.uptalent.talent.model.request.TalentRegistrationRequest;
 import com.uptalent.talent.model.response.TalentDTO;
+import com.uptalent.talent.model.response.TalentOwnProfileDTO;
 import com.uptalent.talent.model.response.TalentProfileDTO;
 import com.uptalent.talent.model.response.TalentResponse;
 import lombok.RequiredArgsConstructor;
@@ -81,14 +82,15 @@ public class TalentService {
     public TalentProfileDTO getTalentProfileById(Long id) {
         Talent foundTalent = getTalentById(id);
 
-        var talentProfile = talentMapper.toTalentProfileDTO(foundTalent);
-        talentProfile.setPersonalProfile(isPersonalProfile(foundTalent));
-
-        return talentProfile;
+        if (isPersonalProfile(foundTalent)) {
+            return talentMapper.toTalentOwnProfileDTO(foundTalent);
+        } else {
+            return talentMapper.toTalentProfileDTO(foundTalent);
+        }
     }
 
     @Transactional
-    public Talent updateTalent(Long id, TalentEditRequest updatedTalent) {
+    public TalentOwnProfileDTO updateTalent(Long id, TalentEditRequest updatedTalent) {
         Talent talentToUpdate = getTalentById(id);
         if(!isPersonalProfile(talentToUpdate)) {
             throw new DeniedAccessException("You are not allowed to edit this talent");
@@ -108,7 +110,9 @@ public class TalentService {
             talentToUpdate.setAboutMe(updatedTalent.getAboutMe());
         }
 
-        return talentRepository.save(talentToUpdate);
+        Talent savedTalent = talentRepository.save(talentToUpdate);
+
+        return talentMapper.toTalentOwnProfileDTO(savedTalent);
     }
     @Transactional
     public void deleteTalent(Long id) {
