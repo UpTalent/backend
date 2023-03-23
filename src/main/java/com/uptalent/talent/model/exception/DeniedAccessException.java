@@ -1,4 +1,4 @@
-package com.uptalent.talent.exception;
+package com.uptalent.talent.model.exception;
 
 public class DeniedAccessException extends RuntimeException{
     public DeniedAccessException(String message) {
