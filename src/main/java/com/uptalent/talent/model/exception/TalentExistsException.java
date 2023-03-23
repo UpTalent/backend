@@ -1,4 +1,4 @@
-package com.uptalent.talent.exception;
+package com.uptalent.talent.model.exception;
 
 public class TalentExistsException extends RuntimeException {
     public TalentExistsException(String message) {
