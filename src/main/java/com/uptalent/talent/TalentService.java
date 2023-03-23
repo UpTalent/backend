@@ -3,9 +3,11 @@ package com.uptalent.talent;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.talent.exception.TalentExistsException;
-import com.uptalent.talent.exception.TalentNoFoundException;
+import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
+import com.uptalent.talent.model.request.TalentEditRequest;
 import com.uptalent.talent.model.request.TalentLoginRequest;
 import com.uptalent.talent.model.request.TalentRegistrationRequest;
 import com.uptalent.talent.model.response.TalentDTO;
@@ -65,7 +67,7 @@ public class TalentService {
     public TalentResponse login(TalentLoginRequest loginRequest) {
         String email = loginRequest.email();
         Talent foundTalent = talentRepository.findByEmail(loginRequest.email())
-                .orElseThrow(() -> new TalentNoFoundException("Talent was not found by email [" + email + "]"));
+                .orElseThrow(() -> new TalentNotFoundException("Talent was not found by email [" + email + "]"));
 
         var authenticationToken = new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.password());
         var authentication = authenticationManager.authenticate(authenticationToken);
@@ -76,16 +78,46 @@ public class TalentService {
         return new TalentResponse(foundTalent.getId(), jwtToken);
     }
 
-    public TalentProfileDTO getTalentProfileById(Long talentId) {
-        Talent foundTalent = talentRepository.findById(talentId)
-                .orElseThrow(() -> new TalentNoFoundException("Talent was not found"));
-
-        String authEmail = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        boolean isPersonalProfile = authEmail.equalsIgnoreCase(foundTalent.getEmail());
+    public TalentProfileDTO getTalentProfileById(Long id) {
+        Talent foundTalent = getTalentById(id);
 
         var talentProfile = talentMapper.toTalentProfileDTO(foundTalent);
-        talentProfile.setPersonalProfile(isPersonalProfile);
+        talentProfile.setPersonalProfile(isPersonalProfile(foundTalent));
 
         return talentProfile;
+    }
+
+    @Transactional
+    public Talent updateTalent(Long id, TalentEditRequest updatedTalent) {
+        Talent talentToUpdate = getTalentById(id);
+        if(!isPersonalProfile(talentToUpdate)) {
+            throw new DeniedAccessException("You are not allowed to edit this talent");
+        }
+
+        talentToUpdate.setLastname(updatedTalent.getLastname());
+        talentToUpdate.setFirstname(updatedTalent.getFirstname());
+        talentToUpdate.setSkills(new LinkedHashSet<>(updatedTalent.getSkills()));
+
+        if(updatedTalent.getBirthday() != null) {
+            talentToUpdate.setBirthday(updatedTalent.getBirthday());
+        }
+        if(updatedTalent.getLocation() != null) {
+            talentToUpdate.setLocation(updatedTalent.getLocation());
+        }
+        if(updatedTalent.getAboutMe() != null) {
+            talentToUpdate.setAboutMe(updatedTalent.getAboutMe());
+        }
+
+        return talentRepository.save(talentToUpdate);
+    }
+
+    private Talent getTalentById(Long id) {
+        return talentRepository.findById(id)
+                .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
+    }
+
+    private boolean isPersonalProfile(Talent talent) {
+        String authEmail = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return authEmail.equalsIgnoreCase(talent.getEmail());
     }
 }
