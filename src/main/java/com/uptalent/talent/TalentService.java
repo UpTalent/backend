@@ -118,7 +118,7 @@ public class TalentService {
     public void deleteTalent(Long id) {
         Talent talentToDelete = getTalentById(id);
         if (!isPersonalProfile(talentToDelete)) {
-            throw new DeniedAccessException("You are not allowed to delete this account");
+            throw new DeniedAccessException("You are not allowed to delete this talent");
         } else {
             talentRepository.delete(talentToDelete);
         }
