@@ -4,11 +4,13 @@ package com.uptalent.talent.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uptalent.jwt.JwtTokenProvider;
 
+import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.talent.TalentService;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.exception.DeniedAccessException;
 import com.uptalent.talent.model.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEditRequest;
+import com.uptalent.talent.model.response.TalentDTO;
 import com.uptalent.talent.model.response.TalentOwnProfileDTO;
 import com.uptalent.talent.model.response.TalentProfileDTO;
 
@@ -28,6 +30,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import static org.mockito.BDDMockito.*;
@@ -65,6 +69,36 @@ class TalentControllerTest {
                 .skills(Set.of("Java", "Spring"))
                 .build();
 
+    }
+
+    @Test
+    @Order(1)
+    @DisplayName("[US-1] - Get all talents successfully")
+    void getAllTalentsSuccessfully() throws Exception {
+        List<TalentDTO> talentDTOs = Arrays.asList(
+                TalentDTO.builder()
+                        .id(talent.getId())
+                        .lastname(talent.getLastname())
+                        .firstname(talent.getFirstname())
+                        .skills(talent.getSkills()).build(),
+                TalentDTO.builder()
+                        .id(2L)
+                        .lastname("Himonov")
+                        .firstname("Mark")
+                        .skills(Set.of("Java", "Spring")).build()
+        );
+
+        given(talentService.getAllTalents(0, 9))
+                .willReturn(new PageWithMetadata<>(talentDTOs, 1));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.get("/api/v1/talents")
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content").exists());
     }
 
     @Test
