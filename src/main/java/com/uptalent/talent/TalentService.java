@@ -38,12 +38,9 @@ public class TalentService {
     private final JwtTokenProvider jwtTokenProvider;
 
     public PageWithMetadata<TalentDTO> getAllTalents(int page, int size){
-        Page<Talent> talentPage = talentRepository.findAll(PageRequest.of(page, size));
+        Page<Talent> talentPage = talentRepository.findAllByOrderByIdDesc(PageRequest.of(page, size));
         List<TalentDTO> talentDTOs = talentMapper.toTalentDTOs(talentPage.getContent());
-        return new PageWithMetadata<>(talentDTOs,
-                talentPage.getNumber(),
-                talentPage.getSize(),
-                talentPage.getTotalPages());
+        return new PageWithMetadata<>(talentDTOs, talentPage.getTotalPages());
     }
 
     @Transactional
@@ -118,7 +115,7 @@ public class TalentService {
     public void deleteTalent(Long id) {
         Talent talentToDelete = getTalentById(id);
         if (!isPersonalProfile(talentToDelete)) {
-            throw new DeniedAccessException("You are not allowed to delete this account");
+            throw new DeniedAccessException("You are not allowed to delete this talent");
         } else {
             talentRepository.delete(talentToDelete);
         }

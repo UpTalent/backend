@@ -10,7 +10,5 @@ import java.util.List;
 @AllArgsConstructor
 public class PageWithMetadata<T> {
     private List<T> content;
-    private int pageNumber;
-    private int pageSize;
     private int totalPages;
 }
