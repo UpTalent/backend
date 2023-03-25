@@ -1,23 +1,25 @@
 package com.uptalent.talent.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uptalent.jwt.JwtTokenProvider;
 
 import com.uptalent.talent.TalentService;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.exception.DeniedAccessException;
 import com.uptalent.talent.model.exception.TalentNotFoundException;
+import com.uptalent.talent.model.request.TalentEditRequest;
 import com.uptalent.talent.model.response.TalentOwnProfileDTO;
 import com.uptalent.talent.model.response.TalentProfileDTO;
 
 import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -25,7 +27,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Set;
 
 import static org.mockito.BDDMockito.*;
@@ -49,6 +51,8 @@ class TalentControllerTest {
     @Autowired
     MockMvc mockMvc;
     private Talent talent;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     public void setUp() {
@@ -85,7 +89,7 @@ class TalentControllerTest {
     @DisplayName("[US-2] - Get own profile successfully")
     void getOwnProfileSuccessfully() throws Exception {
         given(talentService.getTalentProfileById(talent.getId()))
-                .willReturn(new TalentOwnProfileDTO(talent.getEmail(), new Date()));
+                .willReturn(new TalentOwnProfileDTO(talent.getEmail(), LocalDate.now()));
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/v1/talents/{id}", talent.getId())
@@ -113,6 +117,89 @@ class TalentControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                         .value("Talent was not found"));
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("[US-3] - Edit own profile successfully")
+    void editOwnProfileSuccessfully() throws Exception {
+        TalentEditRequest editRequest = TalentEditRequest.builder()
+                .lastname("Himonov")
+                .firstname("Mark")
+                .skills(Set.of("Java", "Spring"))
+                .build();
+
+        TalentOwnProfileDTO expectedDto = new TalentOwnProfileDTO();
+        expectedDto.setLastname(editRequest.getLastname());
+        expectedDto.setFirstname(editRequest.getFirstname());
+        expectedDto.setEmail(talent.getEmail());
+        expectedDto.setBirthday(talent.getBirthday());
+        expectedDto.setSkills(editRequest.getSkills());
+
+        given(talentService.updateTalent(Mockito.anyLong(), Mockito.any(TalentEditRequest.class)))
+                .willReturn(expectedDto);
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{id}", talent.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(editRequest)));
+        response
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.email").exists())
+                .andReturn().getResponse().getContentAsString();
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("[US-3] - Try edit someone else's profile")
+    void tryEditSomeoneTalentProfile() throws Exception {
+        TalentEditRequest editRequest = TalentEditRequest.builder()
+                .lastname("Himonov")
+                .firstname("Mark")
+                .skills(Set.of("Java", "Spring"))
+                .build();
+
+        given(talentService.updateTalent(Mockito.anyLong(), Mockito.any(TalentEditRequest.class)))
+                .willThrow(new DeniedAccessException("You are not allowed to edit this talent"));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{id}", talent.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(editRequest))
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                        .value("You are not allowed to edit this talent"));
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("[US-3] - Fail editing own profile")
+    void failEditingOwnProfile() throws Exception {
+        TalentEditRequest editRequest = TalentEditRequest.builder()
+                .lastname("Himonov")
+                .firstname("Mark")
+                .build();
+
+        given(talentService.updateTalent(Mockito.anyLong(), Mockito.any(TalentEditRequest.class)))
+                .willThrow(NullPointerException.class);
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{id}", talent.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(editRequest))
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.skills")
+                        .value("Empty skill list"));
     }
 
     @Test

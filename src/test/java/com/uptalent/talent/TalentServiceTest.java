@@ -4,6 +4,7 @@ import com.uptalent.mapper.TalentMapper;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.exception.DeniedAccessException;
 import com.uptalent.talent.model.exception.TalentNotFoundException;
+import com.uptalent.talent.model.request.TalentEditRequest;
 import com.uptalent.talent.model.response.TalentOwnProfileDTO;
 import com.uptalent.talent.model.response.TalentProfileDTO;
 import org.junit.jupiter.api.*;
@@ -12,18 +13,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
+import java.time.LocalDate;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,7 +26,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.*;
-
 
 @ExtendWith({MockitoExtension.class})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -60,7 +54,6 @@ class TalentServiceTest {
                 .password("12345")
                 .skills(Set.of("Java", "Spring"))
                 .build();
-
     }
 
     @Test
@@ -69,10 +62,7 @@ class TalentServiceTest {
     void getTalentProfileSuccessfully() {
         securitySetUp();
 
-        given(talentRepository.findById(talent.getId()))
-                .willReturn(Optional.of(talent));
-        given(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-                .willReturn("john.doe@gmail.com");
+        willReturnProfile();
 
         when(talentMapper.toTalentProfileDTO(any()))
                 .thenReturn(new TalentProfileDTO());
@@ -88,14 +78,10 @@ class TalentServiceTest {
     void getOwnProfileSuccessfully() {
         securitySetUp();
 
-        given(talentRepository.findById(talent.getId()))
-                .willReturn(Optional.of(talent));
-        given(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-                .willReturn(talent.getEmail());
-
+        willReturnOwnProfile();
 
         when(talentMapper.toTalentOwnProfileDTO(any()))
-                .thenReturn(new TalentOwnProfileDTO(talent.getEmail(), new Date()));
+                .thenReturn(new TalentOwnProfileDTO(talent.getEmail(), LocalDate.now()));
 
         TalentOwnProfileDTO ownProfile = ((TalentOwnProfileDTO) talentService.getTalentProfileById(talent.getId()));
 
@@ -115,15 +101,77 @@ class TalentServiceTest {
     }
 
     @Test
+    @Order(10)
+    @DisplayName("[US-3] - Edit own profile successfully")
+    void editOwnProfileSuccessfully() {
+        securitySetUp();
+
+        willReturnOwnProfile();
+
+        TalentEditRequest editRequest = TalentEditRequest.builder()
+                .lastname("Himonov")
+                .firstname("Mark")
+                .skills(Set.of("Java", "Spring"))
+                .build();
+
+        Talent talentToBeSaved = Talent.builder()
+                .firstname(editRequest.getFirstname())
+                .lastname(editRequest.getLastname())
+                .skills(editRequest.getSkills())
+                .build();
+
+        when(talentRepository.save(any(Talent.class))).thenReturn(talentToBeSaved);
+
+        talentService.updateTalent(talent.getId(), editRequest);
+
+        verify(talentRepository, times(1)).save(talent);
+
+        assertThat(talent).isNotNull();
+        assertThat(talent.getLastname()).isEqualTo("Himonov");
+        assertThat(talent.getFirstname()).isEqualTo("Mark");
+        assertThat(talent.getSkills()).contains("Java", "Spring");
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("[US-3] - Try edit someone else's profile")
+    void tryEditSomeoneTalentProfile() {
+        securitySetUp();
+
+        willReturnProfile();
+
+        TalentEditRequest editRequest = TalentEditRequest.builder()
+                .lastname("Himonov")
+                .firstname("Mark")
+                .skills(Set.of("Java", "Spring"))
+                .build();
+
+        assertThrows(DeniedAccessException.class, () -> talentService.updateTalent(talent.getId(), editRequest));
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("[US-3] - Fail editing own profile")
+    void failEditingOwnProfile() {
+        securitySetUp();
+
+        willReturnOwnProfile();
+
+        TalentEditRequest editRequest = TalentEditRequest.builder()
+                .lastname("Himonov")
+                .firstname("Mark")
+                .build();
+
+        assertThrows(NullPointerException.class, () -> talentService.updateTalent(talent.getId(), editRequest));
+}
+
+    @Test
     @Order(13)
     @DisplayName("[US-4] - Delete own profile successfully")
     void deleteOwnProfileSuccessfully() {
         securitySetUp();
 
-        given(talentRepository.findById(talent.getId()))
-                .willReturn(Optional.of(talent));
-        given(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-                .willReturn(talent.getEmail());
+        willReturnOwnProfile();
 
         willDoNothing().given(talentRepository).delete(talent);
 
@@ -138,10 +186,7 @@ class TalentServiceTest {
     void tryDeleteSomeoneTalentProfile() {
         securitySetUp();
 
-        given(talentRepository.findById(talent.getId()))
-                .willReturn(Optional.of(talent));
-        given(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-                .willReturn("john.doe@gmail.com");
+        willReturnProfile();
 
         assertThrows(DeniedAccessException.class, () -> talentService.deleteTalent(talent.getId()));
 
@@ -164,5 +209,21 @@ class TalentServiceTest {
 
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
+    }
+
+    private void willReturnOwnProfile() {
+        given(talentRepository.findById(talent.getId()))
+                .willReturn(Optional.of(talent));
+
+        given(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+                .willReturn(talent.getEmail());
+    }
+
+    private void willReturnProfile() {
+        given(talentRepository.findById(talent.getId()))
+                .willReturn(Optional.of(talent));
+
+        given(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+                .willReturn("john.doe@gmail.com");
     }
 }
