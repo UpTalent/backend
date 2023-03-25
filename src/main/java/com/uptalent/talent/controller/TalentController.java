@@ -2,7 +2,6 @@ package com.uptalent.talent.controller;
 
 import com.uptalent.filestore.FileStoreOperation;
 import com.uptalent.pagination.PageWithMetadata;
-import com.uptalent.payload.HttpResponse;
 import com.uptalent.talent.TalentService;
 import com.uptalent.talent.model.request.TalentEditRequest;
 import com.uptalent.talent.model.request.TalentLoginRequest;
@@ -63,10 +62,9 @@ public class TalentController {
         return talentService.updateTalent(id, updatedTalent);
     }
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public HttpResponse deleteTalent(@PathVariable Long id) {
+    public ResponseEntity<?> deleteTalent(@PathVariable Long id) {
         talentService.deleteTalent(id);
-        return new HttpResponse("Talent profile deleted successfully");
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PostMapping(
