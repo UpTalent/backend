@@ -1,8 +1,9 @@
 package com.uptalent.talent.controller;
 
+import com.uptalent.filestore.FileStoreOperation;
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.payload.HttpResponse;
 import com.uptalent.talent.TalentService;
-import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.request.TalentEditRequest;
 import com.uptalent.talent.model.request.TalentLoginRequest;
 import com.uptalent.talent.model.request.TalentRegistrationRequest;
@@ -13,8 +14,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.uptalent.jwt.JwtConstant.JWT_TOKEN_HEADER_NAME;
 
@@ -64,6 +67,18 @@ public class TalentController {
     public HttpResponse deleteTalent(@PathVariable Long id) {
         talentService.deleteTalent(id);
         return new HttpResponse("Talent profile deleted successfully");
+    }
+
+    @PostMapping(
+            path = "/{id}/image/upload",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ResponseStatus(HttpStatus.OK)
+    public void uploadImage(@PathVariable Long id,
+                            @RequestParam MultipartFile image,
+                            @RequestParam FileStoreOperation operation){
+        talentService.uploadImage(id, image, operation);
     }
 
     private HttpHeaders setJwtToHeader(String token) {
