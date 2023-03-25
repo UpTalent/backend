@@ -1,10 +1,12 @@
 package com.uptalent.talent;
 
 import com.uptalent.mapper.TalentMapper;
+import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.exception.DeniedAccessException;
 import com.uptalent.talent.model.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEditRequest;
+import com.uptalent.talent.model.response.TalentDTO;
 import com.uptalent.talent.model.response.TalentOwnProfileDTO;
 import com.uptalent.talent.model.response.TalentProfileDTO;
 import org.junit.jupiter.api.*;
@@ -13,6 +15,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -54,6 +59,54 @@ class TalentServiceTest {
                 .password("12345")
                 .skills(Set.of("Java", "Spring"))
                 .build();
+    }
+
+    @Test
+    @Order(1)
+    @DisplayName("[US-1] - Get all talents successfully")
+    void getAllTalentsSuccessfully() {
+        List<Talent> talents = Arrays.asList(
+                talent,
+                Talent.builder()
+                        .id(2L)
+                        .lastname("Himonov")
+                        .firstname("Mark")
+                        .email("mark.himonov@gmail.com")
+                        .password("123")
+                        .skills(Set.of("Java", "Spring"))
+                        .build()
+        );
+
+        Page<Talent> talentsPage = new PageImpl<>(talents);
+
+        List<TalentDTO> talentDTOs = Arrays.asList(
+                TalentDTO.builder()
+                        .id(talent.getId())
+                        .lastname(talent.getLastname())
+                        .firstname(talent.getFirstname())
+                        .skills(talent.getSkills())
+                        .build(),
+                TalentDTO.builder()
+                        .id(2L)
+                        .lastname("Himonov")
+                        .firstname("Mark")
+                        .skills(Set.of("Java", "Spring"))
+                        .build()
+        );
+
+        when(talentMapper.toTalentDTOs(anyList())).thenReturn(talentDTOs);
+
+        when(talentRepository.findAllByOrderByIdDesc(any(PageRequest.class))).thenReturn(talentsPage);
+
+        PageWithMetadata<TalentDTO> result = talentService.getAllTalents(0, 9);
+
+        verify(talentRepository, times(1)).findAllByOrderByIdDesc(PageRequest.of(0, 9));
+
+        verify(talentMapper, times(1)).toTalentDTOs(talents);
+
+        assertThat(result.getContent()).isEqualTo(talentDTOs);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+        assertThat(result.getContent().get(0).getId()).isEqualTo(talentDTOs.get(0).getId());
     }
 
     @Test
