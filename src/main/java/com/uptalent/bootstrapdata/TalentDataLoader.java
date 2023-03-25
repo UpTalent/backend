@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Component
@@ -42,7 +43,7 @@ public class TalentDataLoader implements CommandLineRunner {
                 .banner(faker.internet().image())
                 .email(email)
                 .password(passwordEncoder.encode(password))
-                .birthday(faker.date().birthday())
+                .birthday(LocalDate.now())
                 .aboutMe(faker.lebowski().quote())
                 .location(location)
                 .skills(generateSkills())
