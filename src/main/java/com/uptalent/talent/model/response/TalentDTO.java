@@ -13,7 +13,7 @@ public class TalentDTO {
     private Long id;
     private String lastname;
     private String firstname;
-    private String photo;
+    private String avatar;
     private String banner;
     private Set<String> skills;
 }

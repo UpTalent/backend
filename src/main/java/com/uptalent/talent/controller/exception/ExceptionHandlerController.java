@@ -1,5 +1,6 @@
 package com.uptalent.talent.controller.exception;
 
+import com.uptalent.filestore.exception.FileStoreException;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.talent.model.exception.DeniedAccessException;
 import com.uptalent.talent.model.exception.TalentExistsException;
@@ -38,6 +39,12 @@ public class ExceptionHandlerController extends ResponseEntityExceptionHandler{
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(DeniedAccessException.class)
     public HttpResponse handlerExistsTalentException(DeniedAccessException e) {
+        return new HttpResponse(e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(FileStoreException.class)
+    public HttpResponse handlerFileStoreExceptions(FileStoreException e) {
         return new HttpResponse(e.getMessage());
     }
 

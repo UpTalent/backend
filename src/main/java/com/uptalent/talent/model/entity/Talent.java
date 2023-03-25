@@ -19,7 +19,7 @@ public class Talent {
     private Long id;
     private String lastname;
     private String firstname;
-    private String photo;
+    private String avatar;
     private String banner;
     @ElementCollection
     private Set<String> skills;

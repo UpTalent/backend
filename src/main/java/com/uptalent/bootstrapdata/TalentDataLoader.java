@@ -39,7 +39,7 @@ public class TalentDataLoader implements CommandLineRunner {
         return Talent.builder()
                 .lastname(lastname)
                 .firstname(firstname)
-                .photo(faker.avatar().image())
+                .avatar(faker.avatar().image())
                 .banner(faker.internet().image())
                 .email(email)
                 .password(passwordEncoder.encode(password))

@@ -1,5 +1,10 @@
 package com.uptalent.talent;
 
+import com.uptalent.filestore.FileStoreOperation;
+import com.uptalent.filestore.FileStoreService;
+import com.uptalent.filestore.exception.EmptyFileException;
+import com.uptalent.filestore.exception.FailedToUploadFileException;
+import com.uptalent.filestore.exception.IncorrectFileFormatException;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
@@ -15,6 +20,7 @@ import com.uptalent.talent.model.response.TalentOwnProfileDTO;
 import com.uptalent.talent.model.response.TalentProfileDTO;
 import com.uptalent.talent.model.response.TalentResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,9 +29,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
+
+import static org.apache.http.entity.ContentType.IMAGE_JPEG;
+import static org.apache.http.entity.ContentType.IMAGE_PNG;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +46,9 @@ public class TalentService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final FileStoreService fileStoreService;
+    @Value("${aws.bucket.name}")
+    private String BUCKET_NAME;
 
     public PageWithMetadata<TalentDTO> getAllTalents(int page, int size){
         Page<Talent> talentPage = talentRepository.findAllByOrderByIdDesc(PageRequest.of(page, size));
@@ -121,6 +134,37 @@ public class TalentService {
         }
     }
 
+    @Transactional
+    public void uploadImage(Long id, MultipartFile image, FileStoreOperation operation) {
+        Talent talent = getTalentById(id);
+        if(!isPersonalProfile(talent)) {
+            throw new DeniedAccessException("You are not allowed to edit this talent");
+        }
+
+        isFileEmpty(image);
+        isImage(image);
+
+        Map<String, String> metadata = extractMetadata(image);
+        String imageType = operation.equals(FileStoreOperation.UPLOAD_AVATAR) ? "avatar" : "banner";
+
+        String path = String.format("%s/%s", BUCKET_NAME, id);
+        String filename = String.format("%s.%s", imageType, getFileExtension(image));
+
+        String imageUrl = generateImageUrl(id, filename);
+
+        try {
+            fileStoreService.save(path, filename, Optional.of(metadata), image.getInputStream());
+            if(operation.equals(FileStoreOperation.UPLOAD_AVATAR)) {
+                talent.setAvatar(imageUrl);
+            } else {
+                talent.setBanner(imageUrl);
+            }
+        } catch (IOException e) {
+            throw new FailedToUploadFileException(e.getMessage());
+        }
+        talentRepository.save(talent);
+    }
+
     private Talent getTalentById(Long id) {
         return talentRepository.findById(id)
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
@@ -129,5 +173,40 @@ public class TalentService {
     private boolean isPersonalProfile(Talent talent) {
         String authEmail = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return authEmail.equalsIgnoreCase(talent.getEmail());
+    }
+
+    private static Map<String, String> extractMetadata(MultipartFile file) {
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("Content-Type", file.getContentType());
+        metadata.put("Content-Length", String.valueOf(file.getSize()));
+        return metadata;
+    }
+
+    private static void isImage(MultipartFile file) {
+        if(!Arrays.asList(IMAGE_JPEG.getMimeType(), IMAGE_PNG.getMimeType()).contains(file.getContentType())){
+            throw new IncorrectFileFormatException("File must be an image");
+        }
+    }
+
+    private static void isFileEmpty(MultipartFile file) {
+        if(file.isEmpty()){
+            throw new EmptyFileException("File must not be empty");
+        }
+    }
+
+    private String getFileExtension(MultipartFile file) {
+        String fileName = file.getOriginalFilename();
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex > 0 && dotIndex < fileName.length() - 1) {
+            return fileName.substring(dotIndex + 1);
+        } else {
+            return "";
+        }
+    }
+
+    private String generateImageUrl(Long id, String filename) {
+        // TODO: Refactor the imageUrl generation logic
+        return String.format("https://%s.s3.amazonaws.com/%s/%s",
+                BUCKET_NAME, id, filename);
     }
 }
