@@ -1,14 +1,17 @@
 package com.uptalent.talent;
 
+import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.exception.DeniedAccessException;
 import com.uptalent.talent.model.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEditRequest;
+import com.uptalent.talent.model.request.TalentLoginRequest;
 import com.uptalent.talent.model.response.TalentDTO;
 import com.uptalent.talent.model.response.TalentOwnProfileDTO;
 import com.uptalent.talent.model.response.TalentProfileDTO;
+import com.uptalent.talent.model.response.TalentResponse;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,9 +21,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -41,6 +47,12 @@ class TalentServiceTest {
 
     @Mock
     private TalentMapper talentMapper;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+    @Mock
+    private AuthenticationManager authenticationManager;
+    @Mock
+    private JwtTokenProvider jwtTokenProvider;
 
     @InjectMocks
     private TalentService talentService;
@@ -56,7 +68,7 @@ class TalentServiceTest {
                 .lastname("Teliukov")
                 .firstname("Dmytro")
                 .email("dmytro.teliukov@gmail.com")
-                .password("12345")
+                .password(passwordEncoder.encode("12345"))
                 .skills(Set.of("Java", "Spring"))
                 .build();
     }
@@ -151,6 +163,49 @@ class TalentServiceTest {
                 .thenThrow(new TalentNotFoundException("Talent was not found"));
 
         assertThrows(TalentNotFoundException.class, () -> talentService.getTalentProfileById(nonExistentTalentId));
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("[US-3] - Log in successfully")
+    void loginSuccessfully() {
+        securitySetUp();
+
+        TalentLoginRequest loginRequest = new TalentLoginRequest(talent.getEmail(), "12345");
+
+        when(talentRepository.findByEmail(loginRequest.email())).thenReturn(Optional.of(talent));
+
+        when(passwordEncoder.matches(loginRequest.password(), talent.getPassword())).thenReturn(true);
+
+        TalentResponse loggedInUser = talentService.login(loginRequest);
+
+        verify(talentRepository, times(1)).findByEmail(loginRequest.email());
+
+        assertThat(loggedInUser).isNotNull();
+        assertThat(loggedInUser.getTalentId()).isEqualTo(talent.getId());
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("[US-3] - Fail attempt of log in")
+    void failLoginWithBadCredentials() {
+        securitySetUp();
+
+        TalentLoginRequest loginRequestWithBadPassword =
+                new TalentLoginRequest(talent.getEmail(), "another_password");
+
+        when(talentRepository.findByEmail(loginRequestWithBadPassword.email())).thenReturn(Optional.of(talent));
+
+        when(passwordEncoder.matches(loginRequestWithBadPassword.password(), talent.getPassword())).thenReturn(false);
+
+        assertThrows(BadCredentialsException.class, () -> talentService.login(loginRequestWithBadPassword));
+
+        TalentLoginRequest loginRequestWithBadEmail =
+                new TalentLoginRequest("mark.gimonov@gmail.com", "12345");
+
+        when(talentRepository.findByEmail(loginRequestWithBadEmail.email())).thenReturn(Optional.empty());
+
+        assertThrows(TalentNotFoundException.class, () -> talentService.login(loginRequestWithBadEmail));
     }
 
     @Test
@@ -262,6 +317,7 @@ class TalentServiceTest {
 
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
+        assertThat(securityContext.getAuthentication()).isEqualTo(authentication);
     }
 
     private void willReturnOwnProfile() {
