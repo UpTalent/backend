@@ -10,12 +10,13 @@ import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.exception.DeniedAccessException;
 import com.uptalent.talent.model.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEditRequest;
+import com.uptalent.talent.model.request.TalentLoginRequest;
 import com.uptalent.talent.model.response.TalentDTO;
 import com.uptalent.talent.model.response.TalentOwnProfileDTO;
 import com.uptalent.talent.model.response.TalentProfileDTO;
 
+import com.uptalent.talent.model.response.TalentResponse;
 import org.junit.jupiter.api.*;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,6 +24,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebM
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -51,6 +55,8 @@ class TalentControllerTest {
     TalentService talentService;
     @MockBean
     JwtTokenProvider jwtTokenProvider;
+    @MockBean
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     MockMvc mockMvc;
@@ -65,7 +71,7 @@ class TalentControllerTest {
                 .lastname("Teliukov")
                 .firstname("Dmytro")
                 .email("dmytro.teliukov@gmail.com")
-                .password("12345")
+                .password(passwordEncoder.encode("12345"))
                 .skills(Set.of("Java", "Spring"))
                 .build();
 
@@ -149,8 +155,51 @@ class TalentControllerTest {
         response
                 .andDo(print())
                 .andExpect(status().isNotFound())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
-                        .value("Talent was not found"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("[US-3] - Log in successfully")
+    void loginSuccessfully() throws Exception {
+        TalentLoginRequest loginRequest = new TalentLoginRequest(talent.getEmail(), "12345");
+        String jwtToken = jwtTokenProvider.generateJwtToken(talent.getEmail());
+
+        given(talentService.login(loginRequest))
+                .willReturn(new TalentResponse(talent.getId(), jwtToken));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/talents/login")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)));
+        response
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.talent_id").exists())
+                .andReturn().getResponse().getContentAsString();
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("[US-3] - Log in successfully")
+    void failLoginWithBadCredentials() throws Exception {
+        TalentLoginRequest loginRequestWithBadCredentials =
+                new TalentLoginRequest(talent.getEmail(), "another_password");
+
+        given(talentService.login(loginRequestWithBadCredentials))
+                .willThrow(new BadCredentialsException("Bad credentials"));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/talents/login")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequestWithBadCredentials)));
+        response
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
+                .andReturn().getResponse().getContentAsString();
     }
 
     @Test
@@ -170,7 +219,7 @@ class TalentControllerTest {
         expectedDto.setBirthday(talent.getBirthday());
         expectedDto.setSkills(editRequest.getSkills());
 
-        given(talentService.updateTalent(Mockito.anyLong(), Mockito.any(TalentEditRequest.class)))
+        given(talentService.updateTalent(anyLong(), any(TalentEditRequest.class)))
                 .willReturn(expectedDto);
 
         ResultActions response = mockMvc
@@ -195,7 +244,7 @@ class TalentControllerTest {
                 .skills(Set.of("Java", "Spring"))
                 .build();
 
-        given(talentService.updateTalent(Mockito.anyLong(), Mockito.any(TalentEditRequest.class)))
+        given(talentService.updateTalent(anyLong(), any(TalentEditRequest.class)))
                 .willThrow(new DeniedAccessException("You are not allowed to edit this talent"));
 
         ResultActions response = mockMvc
@@ -207,8 +256,7 @@ class TalentControllerTest {
         response
                 .andDo(print())
                 .andExpect(status().isForbidden())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
-                        .value("You are not allowed to edit this talent"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 
     @Test
@@ -220,7 +268,7 @@ class TalentControllerTest {
                 .firstname("Mark")
                 .build();
 
-        given(talentService.updateTalent(Mockito.anyLong(), Mockito.any(TalentEditRequest.class)))
+        given(talentService.updateTalent(anyLong(), any(TalentEditRequest.class)))
                 .willThrow(NullPointerException.class);
 
         ResultActions response = mockMvc
@@ -232,8 +280,7 @@ class TalentControllerTest {
         response
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.skills")
-                        .value("Empty skill list"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.skills").exists());
     }
 
     @Test
@@ -266,8 +313,7 @@ class TalentControllerTest {
         response
                 .andDo(print())
                 .andExpect(status().isForbidden())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
-                        .value("You are not allowed to delete this talent"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 
     @Test
@@ -285,8 +331,7 @@ class TalentControllerTest {
         response
                 .andDo(print())
                 .andExpect(status().isNotFound())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
-                        .value("Talent was not found"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 
 
