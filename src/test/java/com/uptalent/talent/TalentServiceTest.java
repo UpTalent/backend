@@ -5,9 +5,11 @@ import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.exception.DeniedAccessException;
+import com.uptalent.talent.model.exception.TalentExistsException;
 import com.uptalent.talent.model.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEditRequest;
 import com.uptalent.talent.model.request.TalentLoginRequest;
+import com.uptalent.talent.model.request.TalentRegistrationRequest;
 import com.uptalent.talent.model.response.TalentDTO;
 import com.uptalent.talent.model.response.TalentOwnProfileDTO;
 import com.uptalent.talent.model.response.TalentProfileDTO;
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.exceptions.base.MockitoException;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -68,7 +71,7 @@ class TalentServiceTest {
                 .lastname("Teliukov")
                 .firstname("Dmytro")
                 .email("dmytro.teliukov@gmail.com")
-                .password(passwordEncoder.encode("12345"))
+                .password(passwordEncoder.encode("1234567890"))
                 .skills(Set.of("Java", "Spring"))
                 .build();
     }
@@ -163,6 +166,45 @@ class TalentServiceTest {
                 .thenThrow(new TalentNotFoundException("Talent was not found"));
 
         assertThrows(TalentNotFoundException.class, () -> talentService.getTalentProfileById(nonExistentTalentId));
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("[US-3] - Register new Talent successfully")
+    void registerNewTalentSuccessfully() {
+
+        when(talentRepository.save(any()))
+                .thenReturn(talent);
+
+        TalentResponse talentResponse = talentService.addTalent(generateRegistrationRequest());
+
+        assertThat(talentResponse).isNotNull();
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("[US-3] - Register new Talent with earlier occupied email")
+    void registerNewTalentWithEarlierOccupiedEmail() {
+
+        String exceptionMessage = "The talent has already exists with email [" + talent.getEmail() + "]";
+
+        when(talentRepository.save(any()))
+                .thenThrow(new TalentExistsException(exceptionMessage));
+
+        assertThrows(TalentExistsException.class, () -> talentService.addTalent(generateRegistrationRequest()));
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("[US-3] - Register new Talent and forget input some data")
+    void registerNewTalentAndForgetInputSomeData() {
+        TalentRegistrationRequest registrationRequest = generateRegistrationRequest();
+        registrationRequest.setFirstname(null);
+
+        when(talentRepository.save(any()))
+                .thenThrow(new MockitoException(""));
+
+        assertThrows(MockitoException.class, () -> talentService.addTalent(registrationRequest));
     }
 
     @Test
@@ -334,5 +376,17 @@ class TalentServiceTest {
 
         given(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
                 .willReturn("john.doe@gmail.com");
+    }
+
+    private TalentRegistrationRequest generateRegistrationRequest() {
+        TalentRegistrationRequest registrationRequest = new TalentRegistrationRequest();
+
+        registrationRequest.setLastname(talent.getLastname());
+        registrationRequest.setFirstname(talent.getFirstname());
+        registrationRequest.setEmail(talent.getEmail());
+        registrationRequest.setPassword(talent.getPassword());
+        registrationRequest.setSkills(talent.getSkills());
+
+        return registrationRequest;
     }
 }

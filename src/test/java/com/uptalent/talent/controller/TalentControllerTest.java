@@ -8,9 +8,11 @@ import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.talent.TalentService;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.exception.DeniedAccessException;
+import com.uptalent.talent.model.exception.TalentExistsException;
 import com.uptalent.talent.model.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEditRequest;
 import com.uptalent.talent.model.request.TalentLoginRequest;
+import com.uptalent.talent.model.request.TalentRegistrationRequest;
 import com.uptalent.talent.model.response.TalentDTO;
 import com.uptalent.talent.model.response.TalentOwnProfileDTO;
 import com.uptalent.talent.model.response.TalentProfileDTO;
@@ -71,7 +73,7 @@ class TalentControllerTest {
                 .lastname("Teliukov")
                 .firstname("Dmytro")
                 .email("dmytro.teliukov@gmail.com")
-                .password(passwordEncoder.encode("12345"))
+                .password("1234567890")
                 .skills(Set.of("Java", "Spring"))
                 .build();
 
@@ -159,10 +161,81 @@ class TalentControllerTest {
     }
 
     @Test
+    @Order(5)
+    @DisplayName("[US-3] - Register new Talent successfully")
+    void registerNewTalentSuccessfully() throws Exception {
+        TalentRegistrationRequest registrationRequest = generateRegistrationRequest();
+
+        when(talentService.addTalent(any(TalentRegistrationRequest.class)))
+                .thenReturn(new TalentResponse(talent.getId(), "token"));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/talents")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registrationRequest)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.jwt_token").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.talent_id").exists());
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("[US-3] - Register new Talent with earlier occupied email")
+    void registerNewTalentWithEarlierOccupiedEmail() throws Exception {
+        TalentRegistrationRequest registrationRequest = generateRegistrationRequest();
+
+        String exceptionMessage = "The talent has already exists with email [" + talent.getEmail() + "]";
+
+        when(talentService.addTalent(any(TalentRegistrationRequest.class)))
+                .thenThrow(new TalentExistsException(exceptionMessage));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/talents")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registrationRequest)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(exceptionMessage));
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("[US-3] - Register new Talent and forget input some data")
+    void registerNewTalentAndForgetInputSomeData() throws Exception {
+        TalentRegistrationRequest registrationRequest = generateRegistrationRequest();
+        registrationRequest.setLastname(null);
+        registrationRequest.setFirstname(null);
+
+        String exceptionMessage = "The talent has already exists with email [" + talent.getEmail() + "]";
+
+        when(talentService.addTalent(any(TalentRegistrationRequest.class)))
+                .thenThrow(new TalentExistsException(exceptionMessage));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/talents")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registrationRequest)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.firstname").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.lastname").exists());
+    }
+
+    @Test
     @Order(8)
     @DisplayName("[US-3] - Log in successfully")
     void loginSuccessfully() throws Exception {
-        TalentLoginRequest loginRequest = new TalentLoginRequest(talent.getEmail(), "12345");
+        TalentLoginRequest loginRequest = new TalentLoginRequest(talent.getEmail(), talent.getPassword());
         String jwtToken = jwtTokenProvider.generateJwtToken(talent.getEmail());
 
         given(talentService.login(loginRequest))
@@ -182,7 +255,7 @@ class TalentControllerTest {
 
     @Test
     @Order(9)
-    @DisplayName("[US-3] - Log in successfully")
+    @DisplayName("[US-3] - Fail attempt of log in")
     void failLoginWithBadCredentials() throws Exception {
         TalentLoginRequest loginRequestWithBadCredentials =
                 new TalentLoginRequest(talent.getEmail(), "another_password");
@@ -334,5 +407,15 @@ class TalentControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 
+    private TalentRegistrationRequest generateRegistrationRequest() {
+        TalentRegistrationRequest registrationRequest = new TalentRegistrationRequest();
 
+        registrationRequest.setLastname(talent.getLastname());
+        registrationRequest.setFirstname(talent.getFirstname());
+        registrationRequest.setEmail(talent.getEmail());
+        registrationRequest.setPassword(talent.getPassword());
+        registrationRequest.setSkills(talent.getSkills());
+
+        return registrationRequest;
+    }
 }
