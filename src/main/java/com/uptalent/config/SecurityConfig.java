@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
 import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -29,6 +30,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .httpBasic(withDefaults())
+                .csrf().disable()
+                .cors().configurationSource(request -> new CorsConfiguration().applyPermitDefaultValues())
+                .and()
+                .headers().frameOptions().disable()
+                .and()
                 .authorizeHttpRequests((authz) -> authz
                         .requestMatchers(GET, "/api/v1/talents").permitAll()
                         .requestMatchers(POST, "/api/v1/talents", "/api/v1/talents/login").permitAll()
@@ -38,11 +45,7 @@ public class SecurityConfig {
                 .exceptionHandling((exceptionHandling) -> exceptionHandling
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                )
-                .httpBasic(withDefaults())
-                .csrf().disable()
-                .cors().disable()
-                .headers().frameOptions().disable();
+                );
         return http.build();
     }
 
