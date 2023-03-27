@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -77,10 +78,14 @@ public class TalentService {
     @Transactional
     public TalentResponse login(TalentLoginRequest loginRequest) {
         String email = loginRequest.email();
-        Talent foundTalent = talentRepository.findByEmail(loginRequest.email())
+        Talent foundTalent = talentRepository.findByEmail(email)
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found by email [" + email + "]"));
 
-        var authenticationToken = new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.password());
+        if (!passwordEncoder.matches(loginRequest.password(), foundTalent.getPassword())) {
+            throw new BadCredentialsException("Invalid email or password");
+        }
+
+        var authenticationToken = new UsernamePasswordAuthenticationToken(email, loginRequest.password());
         var authentication = authenticationManager.authenticate(authenticationToken);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
