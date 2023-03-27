@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -39,6 +40,12 @@ public class ExceptionHandlerController extends ResponseEntityExceptionHandler{
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(DeniedAccessException.class)
     public HttpResponse handlerExistsTalentException(DeniedAccessException e) {
+        return new HttpResponse(e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(BadCredentialsException.class)
+    public HttpResponse handlerBadCredentialsException(BadCredentialsException e) {
         return new HttpResponse(e.getMessage());
     }
 
