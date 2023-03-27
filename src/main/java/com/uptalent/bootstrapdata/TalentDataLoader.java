@@ -34,7 +34,7 @@ public class TalentDataLoader implements CommandLineRunner {
         String firstname = faker.name().firstName();
         String email = firstname.toLowerCase() + "." + lastname.toLowerCase() + "@gmail.com";
         String location = faker.address().country() + ", " + faker.address().cityName();
-        String password = "12345";
+        String password = "1234567890";
 
         return Talent.builder()
                 .lastname(lastname)
