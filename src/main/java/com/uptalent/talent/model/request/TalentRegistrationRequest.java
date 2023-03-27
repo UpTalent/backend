@@ -2,6 +2,7 @@ package com.uptalent.talent.model.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -21,5 +22,6 @@ public class TalentRegistrationRequest {
     @NotBlank(message = "Blank email field")
     String email;
     @NotBlank(message = "Blank password field")
+    @Size(min = 5, message = "Password must be at least 5 characters long")
     String password;
 }
