@@ -22,6 +22,6 @@ public class TalentRegistrationRequest {
     @NotBlank(message = "Blank email field")
     String email;
     @NotBlank(message = "Blank password field")
-    @Size(min = 5, message = "Password must be at least 5 characters long")
+    @Size(min = 6, message = "Password must be at least 6 characters long")
     String password;
 }
