@@ -32,7 +32,13 @@ public class SecurityConfig {
         http
                 .httpBasic(withDefaults())
                 .csrf().disable()
-                .cors().configurationSource(request -> new CorsConfiguration().applyPermitDefaultValues())
+                .cors().configurationSource(request -> {
+                    CorsConfiguration corsConfiguration = new CorsConfiguration().applyPermitDefaultValues();
+                    corsConfiguration.addAllowedMethod(PATCH);
+                    corsConfiguration.addAllowedMethod(PUT);
+                    corsConfiguration.addAllowedMethod(DELETE);
+                    return corsConfiguration;
+                })
                 .and()
                 .headers().frameOptions().disable()
                 .and()
