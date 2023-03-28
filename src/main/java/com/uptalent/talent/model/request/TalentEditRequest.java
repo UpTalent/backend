@@ -20,7 +20,7 @@ public class TalentEditRequest {
     private String firstname;
     private LocalDate birthday;
     @NotNull(message = "Empty skill list")
-    private Set<String> skills;
+    private Set<@NotBlank(message = "Name of skill should not be blank") String> skills;
     private String location;
     private String aboutMe;
 }
