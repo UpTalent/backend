@@ -236,7 +236,7 @@ class TalentControllerTest {
     @DisplayName("[US-3] - Log in successfully")
     void loginSuccessfully() throws Exception {
         TalentLoginRequest loginRequest = new TalentLoginRequest(talent.getEmail(), talent.getPassword());
-        String jwtToken = jwtTokenProvider.generateJwtToken(talent.getEmail());
+        String jwtToken = jwtTokenProvider.generateJwtToken(talent);
 
         given(talentService.login(loginRequest))
                 .willReturn(new TalentResponse(talent.getId(), jwtToken));
