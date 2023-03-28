@@ -9,4 +9,6 @@ public class JwtConstant {
     public static final String FORBIDDEN_MESSAGE = "You need to log in to access this page";
     public static final String ACCESS_DENIED_MESSAGE = "You do not have permission to access this page";
     public static final String ROLE_CLAIM = "Role";
+    public static final String FIRSTNAME_CLAIM = "Firstname";
+
 }
