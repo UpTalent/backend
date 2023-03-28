@@ -5,6 +5,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.uptalent.principal.Role;
+import com.uptalent.talent.model.entity.Talent;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,17 +37,18 @@ public class JwtTokenProvider {
      * Generate JWT-token for authorization our talent
      * P.S.: In the future when we will have more than 1 role, we should change ROLE_CLAIM and add parameter role
      *
-     * @param email Talent email
+     * @param talent Talent
      *
      * @return jwt token
      * */
-    public String generateJwtToken(String email) {
+    public String generateJwtToken(Talent talent) {
         return JWT.create()
                 .withIssuer(TOKEN_ISSUE)
                 .withAudience()
                 .withIssuedAt(new Date())
-                .withSubject(email)
+                .withSubject(talent.getEmail())
                 .withClaim(ROLE_CLAIM, Role.TALENT.name())
+                .withClaim(FIRSTNAME_CLAIM, talent.getFirstname())
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .sign(Algorithm.HMAC512(secret.getBytes()));
     }
