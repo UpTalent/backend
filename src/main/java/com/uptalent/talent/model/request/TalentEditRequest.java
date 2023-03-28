@@ -2,6 +2,7 @@ package com.uptalent.talent.model.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -20,7 +21,8 @@ public class TalentEditRequest {
     private String firstname;
     private LocalDate birthday;
     @NotNull(message = "Empty skill list")
-    private Set<String> skills;
+    private Set<@NotBlank(message = "Name of skill should not be blank")
+    @Size(max = 20, message = "Name of skill must be less than 20 characters") String> skills;
     private String location;
     private String aboutMe;
 }

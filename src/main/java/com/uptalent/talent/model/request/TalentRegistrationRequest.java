@@ -18,7 +18,8 @@ public class TalentRegistrationRequest {
     @NotBlank(message = "Blank firstname field")
     String firstname;
     @NotNull(message = "Empty skill list")
-    Set<String> skills;
+    Set<@NotBlank(message = "Name of skill should not be blank")
+    @Size(max = 20, message = "Name of skill must be less than 20 characters") String> skills;
     @NotBlank(message = "Blank email field")
     String email;
     @NotBlank(message = "Blank password field")
