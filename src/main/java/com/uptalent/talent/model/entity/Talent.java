@@ -7,6 +7,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 import java.util.Set;
 
+import static jakarta.persistence.FetchType.EAGER;
+
 @Entity
 @Setter
 @Getter
@@ -21,7 +23,7 @@ public class Talent {
     private String firstname;
     private String avatar;
     private String banner;
-    @ElementCollection
+    @ElementCollection(fetch = EAGER)
     private Set<String> skills;
     private String location;
     private String email;
