@@ -71,7 +71,7 @@ public class TalentService {
                     .skills(new LinkedHashSet<>(talent.getSkills()))
                     .build());
 
-        String jwtToken = jwtTokenProvider.generateJwtToken(savedTalent.getEmail());
+        String jwtToken = jwtTokenProvider.generateJwtToken(savedTalent);
         return new TalentResponse(savedTalent.getId(), jwtToken);
     }
 
@@ -90,7 +90,7 @@ public class TalentService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String jwtToken = jwtTokenProvider.generateJwtToken(email);
+        String jwtToken = jwtTokenProvider.generateJwtToken(foundTalent);
         return new TalentResponse(foundTalent.getId(), jwtToken);
     }
 
