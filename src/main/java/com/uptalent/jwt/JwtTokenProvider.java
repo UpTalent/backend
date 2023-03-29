@@ -47,6 +47,7 @@ public class JwtTokenProvider {
                 .withAudience()
                 .withIssuedAt(new Date())
                 .withSubject(talent.getEmail())
+                .withClaim(TALENT_ID_CLAIM, talent.getId())
                 .withClaim(ROLE_CLAIM, Role.TALENT.name())
                 .withClaim(FIRSTNAME_CLAIM, talent.getFirstname())
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
