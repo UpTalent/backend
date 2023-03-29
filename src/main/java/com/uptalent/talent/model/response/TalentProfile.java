@@ -8,7 +8,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class TalentProfileDTO {
+public class TalentProfile {
     private Long id;
     private String lastname;
     private String firstname;
