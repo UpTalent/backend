@@ -12,12 +12,10 @@ public class TalentPrincipal implements UserDetails {
 
     private final String email;
     private final String password;
-    private final String firstname;
 
     public TalentPrincipal(Talent talent) {
         this.email = talent.getEmail();
         this.password = talent.getPassword();
-        this.firstname = talent.getFirstname();
     }
 
     @Override
@@ -55,7 +53,4 @@ public class TalentPrincipal implements UserDetails {
         return true;
     }
 
-    public String getFirstname() {
-        return firstname;
-    }
 }

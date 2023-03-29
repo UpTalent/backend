@@ -12,13 +12,13 @@ import com.uptalent.talent.model.exception.DeniedAccessException;
 import com.uptalent.talent.model.exception.TalentExistsException;
 import com.uptalent.talent.model.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
-import com.uptalent.talent.model.request.TalentEditRequest;
-import com.uptalent.talent.model.request.TalentLoginRequest;
-import com.uptalent.talent.model.request.TalentRegistrationRequest;
-import com.uptalent.talent.model.response.TalentDTO;
-import com.uptalent.talent.model.response.TalentOwnProfileDTO;
-import com.uptalent.talent.model.response.TalentProfileDTO;
-import com.uptalent.talent.model.response.TalentResponse;
+import com.uptalent.talent.model.request.TalentEdit;
+import com.uptalent.talent.model.request.TalentLogin;
+import com.uptalent.talent.model.request.TalentRegistration;
+import com.uptalent.talent.model.response.TalentGeneralInfo;
+import com.uptalent.talent.model.response.TalentOwnProfile;
+import com.uptalent.talent.model.response.TalentProfile;
+import com.uptalent.payload.AuthResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -51,14 +51,14 @@ public class TalentService {
     @Value("${aws.bucket.name}")
     private String BUCKET_NAME;
 
-    public PageWithMetadata<TalentDTO> getAllTalents(int page, int size){
+    public PageWithMetadata<TalentGeneralInfo> getAllTalents(int page, int size){
         Page<Talent> talentPage = talentRepository.findAllByOrderByIdDesc(PageRequest.of(page, size));
-        List<TalentDTO> talentDTOs = talentMapper.toTalentDTOs(talentPage.getContent());
-        return new PageWithMetadata<>(talentDTOs, talentPage.getTotalPages());
+        List<TalentGeneralInfo> talentGeneralInfos = talentMapper.toTalentDTOs(talentPage.getContent());
+        return new PageWithMetadata<>(talentGeneralInfos, talentPage.getTotalPages());
     }
 
     @Transactional
-    public TalentResponse addTalent(TalentRegistrationRequest talent){
+    public AuthResponse addTalent(TalentRegistration talent){
         if (talentRepository.existsByEmailIgnoreCase(talent.getEmail())){
             throw new TalentExistsException("The talent has already exists with email [" + talent.getEmail() + "]");
         }
@@ -72,11 +72,11 @@ public class TalentService {
                     .build());
 
         String jwtToken = jwtTokenProvider.generateJwtToken(savedTalent);
-        return new TalentResponse(jwtToken);
+        return new AuthResponse(jwtToken);
     }
 
     @Transactional
-    public TalentResponse login(TalentLoginRequest loginRequest) {
+    public AuthResponse login(TalentLogin loginRequest) {
         String email = loginRequest.email();
         Talent foundTalent = talentRepository.findByEmail(email)
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found by email [" + email + "]"));
@@ -91,10 +91,10 @@ public class TalentService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwtToken = jwtTokenProvider.generateJwtToken(foundTalent);
-        return new TalentResponse(jwtToken);
+        return new AuthResponse(jwtToken);
     }
 
-    public TalentProfileDTO getTalentProfileById(Long id) {
+    public TalentProfile getTalentProfileById(Long id) {
         Talent foundTalent = getTalentById(id);
 
         if (isPersonalProfile(foundTalent)) {
@@ -105,7 +105,7 @@ public class TalentService {
     }
 
     @Transactional
-    public TalentOwnProfileDTO updateTalent(Long id, TalentEditRequest updatedTalent) {
+    public TalentOwnProfile updateTalent(Long id, TalentEdit updatedTalent) {
         Talent talentToUpdate = getTalentById(id);
         if(!isPersonalProfile(talentToUpdate)) {
             throw new DeniedAccessException("You are not allowed to edit this talent");

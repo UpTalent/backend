@@ -7,13 +7,13 @@ import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.exception.DeniedAccessException;
 import com.uptalent.talent.model.exception.TalentExistsException;
 import com.uptalent.talent.model.exception.TalentNotFoundException;
-import com.uptalent.talent.model.request.TalentEditRequest;
-import com.uptalent.talent.model.request.TalentLoginRequest;
-import com.uptalent.talent.model.request.TalentRegistrationRequest;
-import com.uptalent.talent.model.response.TalentDTO;
-import com.uptalent.talent.model.response.TalentOwnProfileDTO;
-import com.uptalent.talent.model.response.TalentProfileDTO;
-import com.uptalent.talent.model.response.TalentResponse;
+import com.uptalent.talent.model.request.TalentEdit;
+import com.uptalent.talent.model.request.TalentLogin;
+import com.uptalent.talent.model.request.TalentRegistration;
+import com.uptalent.talent.model.response.TalentGeneralInfo;
+import com.uptalent.talent.model.response.TalentOwnProfile;
+import com.uptalent.talent.model.response.TalentProfile;
+import com.uptalent.payload.AuthResponse;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -94,14 +94,14 @@ class TalentServiceTest {
 
         Page<Talent> talentsPage = new PageImpl<>(talents);
 
-        List<TalentDTO> talentDTOs = Arrays.asList(
-                TalentDTO.builder()
+        List<TalentGeneralInfo> talentGeneralInfos = Arrays.asList(
+                TalentGeneralInfo.builder()
                         .id(talent.getId())
                         .lastname(talent.getLastname())
                         .firstname(talent.getFirstname())
                         .skills(talent.getSkills())
                         .build(),
-                TalentDTO.builder()
+                TalentGeneralInfo.builder()
                         .id(2L)
                         .lastname("Himonov")
                         .firstname("Mark")
@@ -109,19 +109,19 @@ class TalentServiceTest {
                         .build()
         );
 
-        when(talentMapper.toTalentDTOs(anyList())).thenReturn(talentDTOs);
+        when(talentMapper.toTalentDTOs(anyList())).thenReturn(talentGeneralInfos);
 
         when(talentRepository.findAllByOrderByIdDesc(any(PageRequest.class))).thenReturn(talentsPage);
 
-        PageWithMetadata<TalentDTO> result = talentService.getAllTalents(0, 9);
+        PageWithMetadata<TalentGeneralInfo> result = talentService.getAllTalents(0, 9);
 
         verify(talentRepository, times(1)).findAllByOrderByIdDesc(PageRequest.of(0, 9));
 
         verify(talentMapper, times(1)).toTalentDTOs(talents);
 
-        assertThat(result.getContent()).isEqualTo(talentDTOs);
+        assertThat(result.getContent()).isEqualTo(talentGeneralInfos);
         assertThat(result.getTotalPages()).isEqualTo(1);
-        assertThat(result.getContent().get(0).getId()).isEqualTo(talentDTOs.get(0).getId());
+        assertThat(result.getContent().get(0).getId()).isEqualTo(talentGeneralInfos.get(0).getId());
     }
 
     @Test
@@ -133,9 +133,9 @@ class TalentServiceTest {
         willReturnProfile();
 
         when(talentMapper.toTalentProfileDTO(any()))
-                .thenReturn(new TalentProfileDTO());
+                .thenReturn(new TalentProfile());
 
-        TalentProfileDTO talentProfile = talentService.getTalentProfileById(talent.getId());
+        TalentProfile talentProfile = talentService.getTalentProfileById(talent.getId());
 
         assertThat(talentProfile).isNotNull();
     }
@@ -149,9 +149,9 @@ class TalentServiceTest {
         willReturnOwnProfile();
 
         when(talentMapper.toTalentOwnProfileDTO(any()))
-                .thenReturn(new TalentOwnProfileDTO(talent.getEmail(), LocalDate.now()));
+                .thenReturn(new TalentOwnProfile(talent.getEmail(), LocalDate.now()));
 
-        TalentOwnProfileDTO ownProfile = ((TalentOwnProfileDTO) talentService.getTalentProfileById(talent.getId()));
+        TalentOwnProfile ownProfile = ((TalentOwnProfile) talentService.getTalentProfileById(talent.getId()));
 
         assertThat(ownProfile).isNotNull();
         assertThat(ownProfile.getEmail()).isEqualTo(talent.getEmail());
@@ -176,9 +176,9 @@ class TalentServiceTest {
         when(talentRepository.save(any()))
                 .thenReturn(talent);
 
-        TalentResponse talentResponse = talentService.addTalent(generateRegistrationRequest());
+        AuthResponse authResponse = talentService.addTalent(generateRegistrationRequest());
 
-        assertThat(talentResponse).isNotNull();
+        assertThat(authResponse).isNotNull();
     }
 
     @Test
@@ -198,7 +198,7 @@ class TalentServiceTest {
     @Order(7)
     @DisplayName("[US-3] - Register new Talent and forget input some data")
     void registerNewTalentAndForgetInputSomeData() {
-        TalentRegistrationRequest registrationRequest = generateRegistrationRequest();
+        TalentRegistration registrationRequest = generateRegistrationRequest();
         registrationRequest.setFirstname(null);
 
         when(talentRepository.save(any()))
@@ -213,13 +213,13 @@ class TalentServiceTest {
     void loginSuccessfully() {
         securitySetUp();
 
-        TalentLoginRequest loginRequest = new TalentLoginRequest(talent.getEmail(), "12345");
+        TalentLogin loginRequest = new TalentLogin(talent.getEmail(), "12345");
 
         when(talentRepository.findByEmail(loginRequest.email())).thenReturn(Optional.of(talent));
 
         when(passwordEncoder.matches(loginRequest.password(), talent.getPassword())).thenReturn(true);
 
-        TalentResponse loggedInUser = talentService.login(loginRequest);
+        AuthResponse loggedInUser = talentService.login(loginRequest);
 
         verify(talentRepository, times(1)).findByEmail(loginRequest.email());
 
@@ -232,8 +232,8 @@ class TalentServiceTest {
     void failLoginWithBadCredentials() {
         securitySetUp();
 
-        TalentLoginRequest loginRequestWithBadPassword =
-                new TalentLoginRequest(talent.getEmail(), "another_password");
+        TalentLogin loginRequestWithBadPassword =
+                new TalentLogin(talent.getEmail(), "another_password");
 
         when(talentRepository.findByEmail(loginRequestWithBadPassword.email())).thenReturn(Optional.of(talent));
 
@@ -241,8 +241,8 @@ class TalentServiceTest {
 
         assertThrows(BadCredentialsException.class, () -> talentService.login(loginRequestWithBadPassword));
 
-        TalentLoginRequest loginRequestWithBadEmail =
-                new TalentLoginRequest("mark.gimonov@gmail.com", "12345");
+        TalentLogin loginRequestWithBadEmail =
+                new TalentLogin("mark.gimonov@gmail.com", "12345");
 
         when(talentRepository.findByEmail(loginRequestWithBadEmail.email())).thenReturn(Optional.empty());
 
@@ -257,7 +257,7 @@ class TalentServiceTest {
 
         willReturnOwnProfile();
 
-        TalentEditRequest editRequest = TalentEditRequest.builder()
+        TalentEdit editRequest = TalentEdit.builder()
                 .lastname("Himonov")
                 .firstname("Mark")
                 .skills(Set.of("Java", "Spring"))
@@ -289,7 +289,7 @@ class TalentServiceTest {
 
         willReturnProfile();
 
-        TalentEditRequest editRequest = TalentEditRequest.builder()
+        TalentEdit editRequest = TalentEdit.builder()
                 .lastname("Himonov")
                 .firstname("Mark")
                 .skills(Set.of("Java", "Spring"))
@@ -306,7 +306,7 @@ class TalentServiceTest {
 
         willReturnOwnProfile();
 
-        TalentEditRequest editRequest = TalentEditRequest.builder()
+        TalentEdit editRequest = TalentEdit.builder()
                 .lastname("Himonov")
                 .firstname("Mark")
                 .build();
@@ -377,8 +377,8 @@ class TalentServiceTest {
                 .willReturn("john.doe@gmail.com");
     }
 
-    private TalentRegistrationRequest generateRegistrationRequest() {
-        TalentRegistrationRequest registrationRequest = new TalentRegistrationRequest();
+    private TalentRegistration generateRegistrationRequest() {
+        TalentRegistration registrationRequest = new TalentRegistration();
 
         registrationRequest.setLastname(talent.getLastname());
         registrationRequest.setFirstname(talent.getFirstname());

@@ -9,7 +9,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TalentDTO {
+public class TalentGeneralInfo {
     private Long id;
     private String lastname;
     private String firstname;

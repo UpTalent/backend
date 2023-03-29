@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TalentOwnProfileDTO extends TalentProfileDTO {
+public class TalentOwnProfile extends TalentProfile {
     private String email;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthday;
