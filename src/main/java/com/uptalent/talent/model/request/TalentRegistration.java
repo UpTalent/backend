@@ -12,7 +12,7 @@ import java.util.Set;
 @Component
 @Getter
 @Setter
-public class TalentRegistrationRequest {
+public class TalentRegistration {
     @NotBlank(message = "Blank lastname field")
     String lastname;
     @NotBlank(message = "Blank firstname field")
