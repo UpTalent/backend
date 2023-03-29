@@ -72,7 +72,7 @@ public class TalentService {
                     .build());
 
         String jwtToken = jwtTokenProvider.generateJwtToken(savedTalent);
-        return new TalentResponse(savedTalent.getId(), jwtToken);
+        return new TalentResponse(jwtToken);
     }
 
     @Transactional
@@ -91,7 +91,7 @@ public class TalentService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwtToken = jwtTokenProvider.generateJwtToken(foundTalent);
-        return new TalentResponse(foundTalent.getId(), jwtToken);
+        return new TalentResponse(jwtToken);
     }
 
     public TalentProfileDTO getTalentProfileById(Long id) {
