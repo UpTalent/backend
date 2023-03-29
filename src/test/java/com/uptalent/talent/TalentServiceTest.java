@@ -224,7 +224,6 @@ class TalentServiceTest {
         verify(talentRepository, times(1)).findByEmail(loginRequest.email());
 
         assertThat(loggedInUser).isNotNull();
-        assertThat(loggedInUser.getTalentId()).isEqualTo(talent.getId());
     }
 
     @Test

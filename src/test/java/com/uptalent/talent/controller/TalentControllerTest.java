@@ -166,8 +166,13 @@ class TalentControllerTest {
     void registerNewTalentSuccessfully() throws Exception {
         TalentRegistrationRequest registrationRequest = generateRegistrationRequest();
 
+        String jwtToken = "token";
+
+        given(jwtTokenProvider.generateJwtToken(any(Talent.class)))
+                .willReturn(jwtToken);
+
         when(talentService.addTalent(any(TalentRegistrationRequest.class)))
-                .thenReturn(new TalentResponse(talent.getId(), "token"));
+                .thenReturn(new TalentResponse(jwtToken));
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.post("/api/v1/talents")
@@ -179,7 +184,7 @@ class TalentControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.jwt_token").exists())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.talent_id").exists());
+                .andExpect(MockMvcResultMatchers.jsonPath("$.jwt_token").value(jwtToken));
     }
 
     @Test
@@ -236,10 +241,14 @@ class TalentControllerTest {
     @DisplayName("[US-3] - Log in successfully")
     void loginSuccessfully() throws Exception {
         TalentLoginRequest loginRequest = new TalentLoginRequest(talent.getEmail(), talent.getPassword());
-        String jwtToken = jwtTokenProvider.generateJwtToken(talent);
 
-        given(talentService.login(loginRequest))
-                .willReturn(new TalentResponse(talent.getId(), jwtToken));
+        String jwtToken = "token";
+
+        given(jwtTokenProvider.generateJwtToken(any(Talent.class)))
+                .willReturn(jwtToken);
+
+        given(talentService.login(any(TalentLoginRequest.class)))
+                .willReturn(new TalentResponse(jwtToken));
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.post("/api/v1/talents/login")
@@ -249,7 +258,8 @@ class TalentControllerTest {
         response
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.talent_id").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.jwt_token").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.jwt_token").value(jwtToken))
                 .andReturn().getResponse().getContentAsString();
     }
 
