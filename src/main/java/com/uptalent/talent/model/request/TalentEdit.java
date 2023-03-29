@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.Set;
 
 @Getter
@@ -14,7 +13,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TalentEditRequest {
+public class TalentEdit {
     @NotBlank(message = "Blank lastname field")
     private String lastname;
     @NotBlank(message = "Blank firstname field")
