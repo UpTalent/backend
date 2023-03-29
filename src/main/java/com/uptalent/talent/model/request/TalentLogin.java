@@ -2,7 +2,7 @@ package com.uptalent.talent.model.request;
 
 import jakarta.validation.constraints.*;
 
-public record TalentLoginRequest(
+public record TalentLogin(
         @NotBlank
         @Email
         String email,
