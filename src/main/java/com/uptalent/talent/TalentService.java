@@ -53,7 +53,7 @@ public class TalentService {
 
     public PageWithMetadata<TalentGeneralInfo> getAllTalents(int page, int size){
         Page<Talent> talentPage = talentRepository.findAllByOrderByIdDesc(PageRequest.of(page, size));
-        List<TalentGeneralInfo> talentGeneralInfos = talentMapper.toTalentDTOs(talentPage.getContent());
+        List<TalentGeneralInfo> talentGeneralInfos = talentMapper.toTalentGeneralInfos(talentPage.getContent());
         return new PageWithMetadata<>(talentGeneralInfos, talentPage.getTotalPages());
     }
 
@@ -98,9 +98,9 @@ public class TalentService {
         Talent foundTalent = getTalentById(id);
 
         if (isPersonalProfile(foundTalent)) {
-            return talentMapper.toTalentOwnProfileDTO(foundTalent);
+            return talentMapper.toTalentOwnProfile(foundTalent);
         } else {
-            return talentMapper.toTalentProfileDTO(foundTalent);
+            return talentMapper.toTalentProfile(foundTalent);
         }
     }
 
@@ -127,7 +127,7 @@ public class TalentService {
 
         Talent savedTalent = talentRepository.save(talentToUpdate);
 
-        return talentMapper.toTalentOwnProfileDTO(savedTalent);
+        return talentMapper.toTalentOwnProfile(savedTalent);
     }
     @Transactional
     public void deleteTalent(Long id) {

@@ -10,7 +10,7 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface TalentMapper {
-    List<TalentGeneralInfo> toTalentDTOs(List<Talent> talents);
-    TalentProfile toTalentProfileDTO(Talent talent);
-    TalentOwnProfile toTalentOwnProfileDTO(Talent talent);
+    List<TalentGeneralInfo> toTalentGeneralInfos(List<Talent> talents);
+    TalentProfile toTalentProfile(Talent talent);
+    TalentOwnProfile toTalentOwnProfile(Talent talent);
 }
