@@ -9,6 +9,7 @@ import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.talent.model.exception.DeniedAccessException;
+import com.uptalent.talent.model.exception.EmptySkillsException;
 import com.uptalent.talent.model.exception.TalentExistsException;
 import com.uptalent.talent.model.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
@@ -63,6 +64,10 @@ public class TalentService {
             throw new TalentExistsException("The talent has already exists with email [" + talent.getEmail() + "]");
         }
 
+        if(talent.getSkills().isEmpty()){
+            throw new EmptySkillsException("Skills should not be empty");
+        }
+
         var savedTalent = talentRepository.save(Talent.builder()
                     .password(passwordEncoder.encode(talent.getPassword()))
                     .email(talent.getEmail())
@@ -109,6 +114,10 @@ public class TalentService {
         Talent talentToUpdate = getTalentById(id);
         if(!isPersonalProfile(talentToUpdate)) {
             throw new DeniedAccessException("You are not allowed to edit this talent");
+        }
+
+        if(updatedTalent.getSkills().isEmpty()){
+            throw new EmptySkillsException("Skills should not be empty");
         }
 
         talentToUpdate.setLastname(updatedTalent.getLastname());
