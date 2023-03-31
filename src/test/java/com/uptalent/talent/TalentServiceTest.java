@@ -109,7 +109,7 @@ class TalentServiceTest {
                         .build()
         );
 
-        when(talentMapper.toTalentDTOs(anyList())).thenReturn(talentGeneralInfos);
+        when(talentMapper.toTalentGeneralInfos(anyList())).thenReturn(talentGeneralInfos);
 
         when(talentRepository.findAllByOrderByIdDesc(any(PageRequest.class))).thenReturn(talentsPage);
 
@@ -117,7 +117,7 @@ class TalentServiceTest {
 
         verify(talentRepository, times(1)).findAllByOrderByIdDesc(PageRequest.of(0, 9));
 
-        verify(talentMapper, times(1)).toTalentDTOs(talents);
+        verify(talentMapper, times(1)).toTalentGeneralInfos(talents);
 
         assertThat(result.getContent()).isEqualTo(talentGeneralInfos);
         assertThat(result.getTotalPages()).isEqualTo(1);
@@ -132,7 +132,7 @@ class TalentServiceTest {
 
         willReturnProfile();
 
-        when(talentMapper.toTalentProfileDTO(any()))
+        when(talentMapper.toTalentProfile(any()))
                 .thenReturn(new TalentProfile());
 
         TalentProfile talentProfile = talentService.getTalentProfileById(talent.getId());
@@ -148,7 +148,7 @@ class TalentServiceTest {
 
         willReturnOwnProfile();
 
-        when(talentMapper.toTalentOwnProfileDTO(any()))
+        when(talentMapper.toTalentOwnProfile(any()))
                 .thenReturn(new TalentOwnProfile(talent.getEmail(), LocalDate.now()));
 
         TalentOwnProfile ownProfile = ((TalentOwnProfile) talentService.getTalentProfileById(talent.getId()));

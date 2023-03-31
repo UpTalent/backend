@@ -3,6 +3,7 @@ package com.uptalent.talent.controller.exception;
 import com.uptalent.filestore.exception.FileStoreException;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.talent.model.exception.DeniedAccessException;
+import com.uptalent.talent.model.exception.EmptySkillsException;
 import com.uptalent.talent.model.exception.TalentExistsException;
 import com.uptalent.talent.model.exception.TalentNotFoundException;
 import org.springframework.core.Ordered;
@@ -50,8 +51,9 @@ public class ExceptionHandlerController extends ResponseEntityExceptionHandler{
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(FileStoreException.class)
-    public HttpResponse handlerFileStoreExceptions(FileStoreException e) {
+    @ExceptionHandler({FileStoreException.class,
+            EmptySkillsException.class})
+    public HttpResponse handlerFileStoreExceptions(RuntimeException e) {
         return new HttpResponse(e.getMessage());
     }
 
