@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +52,9 @@ public class ExceptionHandlerController extends ResponseEntityExceptionHandler{
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({FileStoreException.class,
+    @ExceptionHandler({
+            FileStoreException.class,
+            MaxUploadSizeExceededException.class,
             EmptySkillsException.class})
     public HttpResponse handlerFileStoreExceptions(RuntimeException e) {
         return new HttpResponse(e.getMessage());
