@@ -5,11 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uptalent.jwt.JwtTokenProvider;
 
 import com.uptalent.pagination.PageWithMetadata;
-import com.uptalent.talent.TalentService;
+import com.uptalent.talent.service.TalentService;
 import com.uptalent.talent.model.entity.Talent;
-import com.uptalent.talent.model.exception.DeniedAccessException;
-import com.uptalent.talent.model.exception.TalentExistsException;
-import com.uptalent.talent.model.exception.TalentNotFoundException;
+import com.uptalent.talent.exception.DeniedAccessException;
+import com.uptalent.talent.exception.TalentExistsException;
+import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEdit;
 import com.uptalent.talent.model.request.TalentLogin;
 import com.uptalent.talent.model.request.TalentRegistration;
