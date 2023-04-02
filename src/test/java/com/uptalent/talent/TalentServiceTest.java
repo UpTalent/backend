@@ -4,9 +4,9 @@ import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.talent.model.entity.Talent;
-import com.uptalent.talent.model.exception.DeniedAccessException;
-import com.uptalent.talent.model.exception.TalentExistsException;
-import com.uptalent.talent.model.exception.TalentNotFoundException;
+import com.uptalent.talent.exception.DeniedAccessException;
+import com.uptalent.talent.exception.TalentExistsException;
+import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEdit;
 import com.uptalent.talent.model.request.TalentLogin;
 import com.uptalent.talent.model.request.TalentRegistration;
@@ -14,6 +14,8 @@ import com.uptalent.talent.model.response.TalentGeneralInfo;
 import com.uptalent.talent.model.response.TalentOwnProfile;
 import com.uptalent.talent.model.response.TalentProfile;
 import com.uptalent.payload.AuthResponse;
+import com.uptalent.talent.repository.TalentRepository;
+import com.uptalent.talent.service.TalentService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -215,13 +217,13 @@ class TalentServiceTest {
 
         TalentLogin loginRequest = new TalentLogin(talent.getEmail(), "12345");
 
-        when(talentRepository.findByEmail(loginRequest.email())).thenReturn(Optional.of(talent));
+        when(talentRepository.findByEmail(loginRequest.getEmail())).thenReturn(Optional.of(talent));
 
-        when(passwordEncoder.matches(loginRequest.password(), talent.getPassword())).thenReturn(true);
+        when(passwordEncoder.matches(loginRequest.getPassword(), talent.getPassword())).thenReturn(true);
 
         AuthResponse loggedInUser = talentService.login(loginRequest);
 
-        verify(talentRepository, times(1)).findByEmail(loginRequest.email());
+        verify(talentRepository, times(1)).findByEmail(loginRequest.getEmail());
 
         assertThat(loggedInUser).isNotNull();
     }
@@ -235,16 +237,16 @@ class TalentServiceTest {
         TalentLogin loginRequestWithBadPassword =
                 new TalentLogin(talent.getEmail(), "another_password");
 
-        when(talentRepository.findByEmail(loginRequestWithBadPassword.email())).thenReturn(Optional.of(talent));
+        when(talentRepository.findByEmail(loginRequestWithBadPassword.getEmail())).thenReturn(Optional.of(talent));
 
-        when(passwordEncoder.matches(loginRequestWithBadPassword.password(), talent.getPassword())).thenReturn(false);
+        when(passwordEncoder.matches(loginRequestWithBadPassword.getPassword(), talent.getPassword())).thenReturn(false);
 
         assertThrows(BadCredentialsException.class, () -> talentService.login(loginRequestWithBadPassword));
 
         TalentLogin loginRequestWithBadEmail =
                 new TalentLogin("mark.gimonov@gmail.com", "12345");
 
-        when(talentRepository.findByEmail(loginRequestWithBadEmail.email())).thenReturn(Optional.empty());
+        when(talentRepository.findByEmail(loginRequestWithBadEmail.getEmail())).thenReturn(Optional.empty());
 
         assertThrows(TalentNotFoundException.class, () -> talentService.login(loginRequestWithBadEmail));
     }

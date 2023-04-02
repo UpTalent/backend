@@ -1,4 +1,4 @@
-package com.uptalent.talent.model.exception;
+package com.uptalent.talent.exception;
 
 public class EmptySkillsException extends RuntimeException {
     public EmptySkillsException(String message) {

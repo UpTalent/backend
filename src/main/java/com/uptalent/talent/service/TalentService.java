@@ -1,4 +1,4 @@
-package com.uptalent.talent;
+package com.uptalent.talent.service;
 
 import com.uptalent.filestore.FileStoreOperation;
 import com.uptalent.filestore.FileStoreService;
@@ -8,10 +8,10 @@ import com.uptalent.filestore.exception.IncorrectFileFormatException;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
-import com.uptalent.talent.model.exception.DeniedAccessException;
-import com.uptalent.talent.model.exception.EmptySkillsException;
-import com.uptalent.talent.model.exception.TalentExistsException;
-import com.uptalent.talent.model.exception.TalentNotFoundException;
+import com.uptalent.talent.exception.DeniedAccessException;
+import com.uptalent.talent.exception.EmptySkillsException;
+import com.uptalent.talent.exception.TalentExistsException;
+import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.request.TalentEdit;
 import com.uptalent.talent.model.request.TalentLogin;
@@ -20,6 +20,7 @@ import com.uptalent.talent.model.response.TalentGeneralInfo;
 import com.uptalent.talent.model.response.TalentOwnProfile;
 import com.uptalent.talent.model.response.TalentProfile;
 import com.uptalent.payload.AuthResponse;
+import com.uptalent.talent.repository.TalentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -82,15 +83,15 @@ public class TalentService {
 
     @Transactional
     public AuthResponse login(TalentLogin loginRequest) {
-        String email = loginRequest.email();
+        String email = loginRequest.getEmail();
         Talent foundTalent = talentRepository.findByEmail(email)
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found by email [" + email + "]"));
 
-        if (!passwordEncoder.matches(loginRequest.password(), foundTalent.getPassword())) {
+        if (!passwordEncoder.matches(loginRequest.getPassword(), foundTalent.getPassword())) {
             throw new BadCredentialsException("Invalid email or password");
         }
 
-        var authenticationToken = new UsernamePasswordAuthenticationToken(email, loginRequest.password());
+        var authenticationToken = new UsernamePasswordAuthenticationToken(email, loginRequest.getPassword());
         var authentication = authenticationManager.authenticate(authenticationToken);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);

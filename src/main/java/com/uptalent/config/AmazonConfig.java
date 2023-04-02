@@ -23,6 +23,7 @@ public class AmazonConfig {
 
     @Value("${aws.bucket.secret-key}")
     private String SECRET_KEY;
+
     @Value("${aws.bucket.region}")
     private String BUCKET_REGION;
 

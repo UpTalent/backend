@@ -1,11 +1,11 @@
-package com.uptalent.talent.controller.exception;
+package com.uptalent.talent.exception.handler;
 
 import com.uptalent.filestore.exception.FileStoreException;
 import com.uptalent.payload.HttpResponse;
-import com.uptalent.talent.model.exception.DeniedAccessException;
-import com.uptalent.talent.model.exception.EmptySkillsException;
-import com.uptalent.talent.model.exception.TalentExistsException;
-import com.uptalent.talent.model.exception.TalentNotFoundException;
+import com.uptalent.talent.exception.EmptySkillsException;
+import com.uptalent.talent.exception.DeniedAccessException;
+import com.uptalent.talent.exception.TalentExistsException;
+import com.uptalent.talent.exception.TalentNotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;

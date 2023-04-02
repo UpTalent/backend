@@ -1,4 +1,4 @@
-package com.uptalent.talent;
+package com.uptalent.talent.repository;
 
 import com.uptalent.talent.model.entity.Talent;
 import org.springframework.data.domain.Pageable;
