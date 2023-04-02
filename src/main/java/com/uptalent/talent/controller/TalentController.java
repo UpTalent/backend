@@ -2,7 +2,7 @@ package com.uptalent.talent.controller;
 
 import com.uptalent.filestore.FileStoreOperation;
 import com.uptalent.pagination.PageWithMetadata;
-import com.uptalent.talent.TalentService;
+import com.uptalent.talent.service.TalentService;
 import com.uptalent.talent.model.request.TalentEdit;
 import com.uptalent.talent.model.request.TalentLogin;
 import com.uptalent.talent.model.request.TalentRegistration;
