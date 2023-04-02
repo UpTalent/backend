@@ -1,6 +1,6 @@
 package com.uptalent.principal;
 
-import com.uptalent.talent.TalentRepository;
+import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.talent.model.entity.Talent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
