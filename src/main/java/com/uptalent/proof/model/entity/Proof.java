@@ -22,7 +22,10 @@ public class Proof {
     @Column(nullable = false)
     private String title;
 
-    @Column(length = 5000)
+    @Column(nullable = false)
+    private String summary;
+
+    @Column(length = 5000, nullable = false)
     private String content;
 
     @Temporal(TemporalType.TIMESTAMP)
