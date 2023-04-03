@@ -1,6 +1,9 @@
 package com.uptalent.bootstrapdata;
 
 import com.github.javafaker.Faker;
+import com.uptalent.proof.model.entity.Proof;
+import com.uptalent.proof.model.entity.ProofStatus;
+import com.uptalent.proof.repository.ProofRepository;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.repository.TalentRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
@@ -19,13 +23,20 @@ public class TalentDataLoader implements CommandLineRunner {
 
     public static final int SIZE = 20;
     private final TalentRepository talentRepository;
+    private final ProofRepository proofRepository;
     private final Faker faker;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
         for (int i = 0; i < SIZE; i++) {
-            talentRepository.save(generateOneTalent());
+            Talent talent = generateOneTalent();
+            talentRepository.save(talent);
+
+            Proof proof = generateOneProof(talent);
+            talent.setProofs(List.of(proof));
+
+            talentRepository.save(talent);
         }
     }
 
@@ -48,6 +59,18 @@ public class TalentDataLoader implements CommandLineRunner {
                 .location(location)
                 .skills(generateSkills())
                 .build();
+    }
+
+    private Proof generateOneProof(Talent talent) {
+        Proof proof = Proof.builder()
+                .title("Proof of " + talent.getFirstname() + " " + talent.getLastname())
+                .summary("Summary of " + talent.getFirstname() + " " + talent.getLastname())
+                .content(faker.lorem().paragraph())
+                .published(LocalDateTime.now())
+                .status(ProofStatus.PUBLISHED)
+                .talent(talent)
+                .build();
+        return proofRepository.save(proof);
     }
 
     private Set<String> generateSkills() {
