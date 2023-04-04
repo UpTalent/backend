@@ -2,9 +2,7 @@ package com.uptalent.talent.service;
 
 import com.uptalent.filestore.FileStoreOperation;
 import com.uptalent.filestore.FileStoreService;
-import com.uptalent.filestore.exception.EmptyFileException;
 import com.uptalent.filestore.exception.FailedToUploadFileException;
-import com.uptalent.filestore.exception.IncorrectFileFormatException;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
@@ -35,10 +33,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
-import static org.apache.http.entity.ContentType.IMAGE_JPEG;
-import static org.apache.http.entity.ContentType.IMAGE_PNG;
+import static com.uptalent.utils.ImageUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +48,7 @@ public class TalentService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final FileStoreService fileStoreService;
+
     @Value("${aws.bucket.name}")
     private String BUCKET_NAME;
 
@@ -161,14 +160,12 @@ public class TalentService {
 
         Map<String, String> metadata = extractMetadata(image);
         String imageType = operation.equals(FileStoreOperation.UPLOAD_AVATAR) ? "avatar" : "banner";
-
         String path = String.format("%s/%s", BUCKET_NAME, id);
         String filename = String.format("%s.%s", imageType, getFileExtension(image));
-
         String imageUrl = generateImageUrl(id, filename);
 
-        try {
-            fileStoreService.save(path, filename, Optional.of(metadata), image.getInputStream());
+        try(InputStream is = resizeImage(image)) {
+            fileStoreService.save(path, filename, Optional.of(metadata), is);
             if(operation.equals(FileStoreOperation.UPLOAD_AVATAR)) {
                 talent.setAvatar(imageUrl);
             } else {
@@ -195,28 +192,6 @@ public class TalentService {
         metadata.put("Content-Type", file.getContentType());
         metadata.put("Content-Length", String.valueOf(file.getSize()));
         return metadata;
-    }
-
-    private static void isImage(MultipartFile file) {
-        if(!Arrays.asList(IMAGE_JPEG.getMimeType(), IMAGE_PNG.getMimeType()).contains(file.getContentType())){
-            throw new IncorrectFileFormatException("File must be an image");
-        }
-    }
-
-    private static void isFileEmpty(MultipartFile file) {
-        if(file.isEmpty()){
-            throw new EmptyFileException("File must not be empty");
-        }
-    }
-
-    private String getFileExtension(MultipartFile file) {
-        String fileName = file.getOriginalFilename();
-        int dotIndex = fileName.lastIndexOf('.');
-        if (dotIndex > 0 && dotIndex < fileName.length() - 1) {
-            return fileName.substring(dotIndex + 1);
-        } else {
-            return "";
-        }
     }
 
     private String generateImageUrl(Long id, String filename) {
