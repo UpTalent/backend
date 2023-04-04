@@ -1,10 +1,11 @@
-package com.uptalent.talent.controller;
+package com.uptalent.talent;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uptalent.jwt.JwtTokenProvider;
 
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.talent.controller.TalentController;
 import com.uptalent.talent.service.TalentService;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.exception.DeniedAccessException;
