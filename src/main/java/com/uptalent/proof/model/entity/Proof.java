@@ -19,6 +19,8 @@ public class Proof {
     @GeneratedValue
     private Long id;
 
+    private int iconNumber;
+
     @Column(nullable = false)
     private String title;
 
