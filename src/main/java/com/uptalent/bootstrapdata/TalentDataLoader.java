@@ -63,6 +63,7 @@ public class TalentDataLoader implements CommandLineRunner {
 
     private Proof generateOneProof(Talent talent) {
         Proof proof = Proof.builder()
+                .iconNumber(faker.random().nextInt(5) + 1)
                 .title("Proof of " + talent.getFirstname() + " " + talent.getLastname())
                 .summary("Summary of " + talent.getFirstname() + " " + talent.getLastname())
                 .content(faker.lorem().paragraph())
