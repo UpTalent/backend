@@ -43,6 +43,7 @@ public class Talent {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthday;
 
+    @Column(length = 2250)
     private String aboutMe;
 
     @OneToMany(mappedBy = "talent",
