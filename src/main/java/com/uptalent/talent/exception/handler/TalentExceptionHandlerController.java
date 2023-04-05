@@ -6,26 +6,19 @@ import com.uptalent.talent.exception.EmptySkillsException;
 import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.talent.exception.TalentExistsException;
 import com.uptalent.talent.exception.TalentNotFoundException;
+import com.uptalent.util.exception.handler.ExceptionHandlerController;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import java.util.HashMap;
-import java.util.Map;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
-public class ExceptionHandlerController extends ResponseEntityExceptionHandler{
+public class TalentExceptionHandlerController extends ExceptionHandlerController {
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(TalentNotFoundException.class)
@@ -60,11 +53,4 @@ public class ExceptionHandlerController extends ResponseEntityExceptionHandler{
         return new HttpResponse(e.getMessage());
     }
 
-    @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException e, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        Map<String, String> errors = new HashMap<>();
-        e.getFieldErrors()
-                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-        return new ResponseEntity<>(errors, status);
-    }
 }

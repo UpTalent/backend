@@ -2,7 +2,7 @@ package com.uptalent.bootstrapdata;
 
 import com.github.javafaker.Faker;
 import com.uptalent.proof.model.entity.Proof;
-import com.uptalent.proof.model.entity.ProofStatus;
+import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.repository.ProofRepository;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.repository.TalentRepository;
@@ -67,8 +67,7 @@ public class TalentDataLoader implements CommandLineRunner {
                 .title("Proof of " + talent.getFirstname() + " " + talent.getLastname())
                 .summary("Summary of " + talent.getFirstname() + " " + talent.getLastname())
                 .content(faker.lorem().paragraph())
-                .published(LocalDateTime.now())
-                .status(ProofStatus.PUBLISHED)
+                .status(ProofStatus.DRAFT)
                 .talent(talent)
                 .build();
         return proofRepository.save(proof);

@@ -1,7 +1,9 @@
 package com.uptalent.proof.controller;
 
+import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.service.ProofService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -17,5 +19,13 @@ public class ProofController {
     public ProofDetailInfo getProofDetailInfo(@PathVariable Long talentId,
                                               @PathVariable Long proofId) {
         return proofService.getProofDetailInfo(talentId, proofId);
+    }
+
+    @PatchMapping("/talents/{talentId}/proofs/{proofId}")
+    @ResponseStatus(HttpStatus.OK)
+    public ProofDetailInfo editProof(@Valid @RequestBody ProofModify proofModify,
+                                     @PathVariable Long talentId,
+                                     @PathVariable Long proofId) {
+        return proofService.editProof(proofModify, talentId, proofId);
     }
 }
