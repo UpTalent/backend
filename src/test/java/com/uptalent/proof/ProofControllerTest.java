@@ -6,7 +6,7 @@ import com.uptalent.proof.controller.ProofController;
 import com.uptalent.proof.exception.ProofNotFoundException;
 import com.uptalent.proof.exception.UnrelatedProofException;
 import com.uptalent.proof.model.entity.Proof;
-import com.uptalent.proof.model.entity.ProofStatus;
+import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.service.ProofService;
 import com.uptalent.talent.exception.TalentNotFoundException;
@@ -171,7 +171,7 @@ public class ProofControllerTest {
 
         response
                 .andDo(print())
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isForbidden())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 }
