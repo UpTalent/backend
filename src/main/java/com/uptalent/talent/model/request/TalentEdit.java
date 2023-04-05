@@ -32,6 +32,6 @@ public class TalentEdit {
     @Size(max = 255, message = "Location should be less than 255 characters")
     private String location;
 
-    @Size(max = 255, message = "About me should be less than 255 characters")
+    @Size(max = 2250, message = "About me should be less than 2250 characters")
     private String aboutMe;
 }
