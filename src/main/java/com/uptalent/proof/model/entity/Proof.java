@@ -1,5 +1,6 @@
 package com.uptalent.proof.model.entity;
 
+import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.talent.model.entity.Talent;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,7 +20,7 @@ public class Proof {
     @GeneratedValue
     private Long id;
 
-    private int iconNumber;
+    private Integer iconNumber;
 
     @Column(nullable = false)
     private String title;
@@ -31,7 +32,6 @@ public class Proof {
     private String content;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false)
     private LocalDateTime published;
 
     @Enumerated(EnumType.STRING)
