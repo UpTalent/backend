@@ -18,7 +18,7 @@ public class ProofExceptionHandler extends ExceptionHandlerController {
         return new HttpResponse(e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(UnrelatedProofException.class)
     public HttpResponse handlerUnrelatedProofException(UnrelatedProofException e) {
         return new HttpResponse(e.getMessage());
