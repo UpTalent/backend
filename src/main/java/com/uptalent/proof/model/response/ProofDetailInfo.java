@@ -1,6 +1,6 @@
 package com.uptalent.proof.model.response;
 
-import com.uptalent.proof.model.entity.ProofStatus;
+import com.uptalent.proof.model.enums.ProofStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class ProofDetailInfo {
     private Long id;
 
-    private int iconNumber;
+    private Integer iconNumber;
 
     private String title;
 
