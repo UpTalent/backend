@@ -7,8 +7,10 @@ import com.uptalent.proof.repository.ProofRepository;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.repository.TalentRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +21,7 @@ import java.util.*;
 @Component
 @Profile("dev")
 @RequiredArgsConstructor
+@Slf4j
 public class TalentDataLoader implements CommandLineRunner {
 
     public static final int SIZE = 20;
@@ -26,6 +29,7 @@ public class TalentDataLoader implements CommandLineRunner {
     private final ProofRepository proofRepository;
     private final Faker faker;
     private final PasswordEncoder passwordEncoder;
+    private final Environment env;
 
     @Override
     public void run(String... args) {
@@ -38,6 +42,10 @@ public class TalentDataLoader implements CommandLineRunner {
 
             talentRepository.save(talent);
         }
+        log.info("Bucket name: {}", env.getProperty("aws.bucket.name"));
+        log.info("Bucket region: {}", env.getProperty("aws.bucket.region"));
+        log.info("Bucket access key: {}", env.getProperty("aws.bucket.access-key"));
+        log.info("Bucket secret key: {}", env.getProperty("aws.bucket.secret-key"));
     }
 
     private Talent generateOneTalent() {
