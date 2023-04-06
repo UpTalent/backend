@@ -4,7 +4,10 @@ import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
+import com.uptalent.proof.model.response.ProofGeneralInfo;
 import org.mapstruct.Mapper;
+
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface ProofMapper {
@@ -18,5 +21,7 @@ public interface ProofMapper {
                 .status(ProofStatus.valueOf(proofModify.getStatus()))
                 .build();
     }
+    List<ProofGeneralInfo> toProofGeneralInfos(List<Proof> content);
+
 
 }
