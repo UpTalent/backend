@@ -41,7 +41,8 @@ public class TalentDataLoader implements CommandLineRunner {
             talentRepository.save(talent);
 
             Proof proof = generateOneProof(talent);
-            talent.setProofs(List.of(proof));
+            Proof anotherProof = generateOneProof(talent);
+            talent.setProofs(List.of(proof, anotherProof));
 
             talentRepository.save(talent);
         }
