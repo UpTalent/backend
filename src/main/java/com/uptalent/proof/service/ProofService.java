@@ -1,6 +1,7 @@
 package com.uptalent.proof.service;
 
 import com.uptalent.mapper.ProofMapper;
+import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.proof.exception.IllegalProofModifyingException;
 import com.uptalent.proof.exception.ProofNotFoundException;
 import com.uptalent.proof.exception.UnrelatedProofException;
@@ -9,14 +10,16 @@ import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.repository.ProofRepository;
-import com.uptalent.talent.exception.TalentNotFoundException;
+import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.repository.TalentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -39,6 +42,34 @@ public class ProofService {
 
         return mapper.toProofDetailInfo(proof);
     }
+ // set talant to proof
+    @Transactional
+    public URI createProof(ProofModify proofModify, Long talentId) {
+        Proof proof = mapper.toProof(proofModify);
+        Talent talent = talentRepository.findById(talentId)
+                .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
+        proof.setTalent(talent);
+        proofRepository.save(proof);
+        List<Proof> proofsList = talent.getProofs();
+        proofsList.add(proof);
+        talent.setProofs(proofsList);
+        talentRepository.save(talent);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(proof.getId())
+                .toUri();
+        return location;
+    }
+    @Transactional
+    public void deleteProof(Long proofId, Long talentId) {
+        Proof proofToDelete = getProofById(proofId);
+        verifyTalentContainProof(talentId, proofToDelete);
+        proofRepository.delete(proofToDelete);
+
+    }
+
+
 
     @Transactional
     public ProofDetailInfo editProof(ProofModify proofModify, Long talentId, Long proofId) {
