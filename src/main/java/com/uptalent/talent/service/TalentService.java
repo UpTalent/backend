@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-import static com.uptalent.utils.ImageUtils.*;
+import static com.uptalent.util.ImageUtils.*;
 
 @Service
 @RequiredArgsConstructor

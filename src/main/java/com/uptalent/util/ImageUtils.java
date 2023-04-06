@@ -1,4 +1,4 @@
-package com.uptalent.utils;
+package com.uptalent.util;
 
 import com.uptalent.filestore.exception.EmptyFileException;
 import com.uptalent.filestore.exception.IncorrectFileFormatException;
