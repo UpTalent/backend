@@ -1,9 +1,7 @@
 package com.uptalent.proof.exception.handler;
 
 import com.uptalent.payload.HttpResponse;
-import com.uptalent.proof.exception.IllegalProofModifyingException;
-import com.uptalent.proof.exception.ProofNotFoundException;
-import com.uptalent.proof.exception.UnrelatedProofException;
+import com.uptalent.proof.exception.*;
 import com.uptalent.proof.exception.WrongSortOrderException;
 import com.uptalent.util.exception.handler.ExceptionHandlerController;
 import org.springframework.http.HttpStatus;
@@ -34,6 +32,12 @@ public class ProofExceptionHandler extends ExceptionHandlerController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(WrongSortOrderException.class)
     public HttpResponse handlerWrongSortOrderException(WrongSortOrderException e) {
+        return new HttpResponse(e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(WrongStatusInputException.class)
+    public HttpResponse handlerWrongStatusInputException(WrongStatusInputException e) {
         return new HttpResponse(e.getMessage());
     }
 }

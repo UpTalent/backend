@@ -23,5 +23,5 @@ public interface ProofMapper {
     }
     List<ProofGeneralInfo> toProofGeneralInfos(List<Proof> content);
 
-
+    List<ProofDetailInfo> toProofDetailInfos(List<Proof> content);
 }

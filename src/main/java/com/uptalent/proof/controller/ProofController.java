@@ -2,6 +2,7 @@ package com.uptalent.proof.controller;
 
 
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.model.response.ProofGeneralInfo;
@@ -28,6 +29,15 @@ public class ProofController {
                                                            @RequestParam(defaultValue = "9") int size,
                                                            @RequestParam(defaultValue = "desc") String sort) {
         return proofService.getProofs(page, size, sort);
+    }
+    @GetMapping("/talents/{talent-id}/proofs")
+    @ResponseStatus(HttpStatus.OK)
+    public PageWithMetadata<ProofDetailInfo> getAllTalentProofs(@RequestParam(defaultValue = "0") int page,
+                                                                @RequestParam(defaultValue = "9") int size,
+                                                                @RequestParam(defaultValue = "published") String status,
+                                                                @RequestParam(defaultValue = "desc") String sort,
+                                                                @PathVariable("talent-id") Long talentId) {
+        return proofService.getTalentProofs(page, size, sort, talentId, status);
     }
     @GetMapping("/talents/{talentId}/proofs/{proofId}")
     @ResponseStatus(HttpStatus.OK)
