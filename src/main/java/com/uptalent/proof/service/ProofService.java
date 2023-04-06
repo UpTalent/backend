@@ -42,25 +42,24 @@ public class ProofService {
 
         return mapper.toProofDetailInfo(proof);
     }
- // set talant to proof
+
     @Transactional
     public URI createProof(ProofModify proofModify, Long talentId) {
         Proof proof = mapper.toProof(proofModify);
         Talent talent = talentRepository.findById(talentId)
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
+
         proof.setTalent(talent);
         proofRepository.save(proof);
-        List<Proof> proofsList = talent.getProofs();
-        proofsList.add(proof);
-        talent.setProofs(proofsList);
-        talentRepository.save(talent);
-        URI location = ServletUriComponentsBuilder
+        talent.getProofs().add(proof);
+
+        return ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(proof.getId())
                 .toUri();
-        return location;
     }
+
     @Transactional
     public void deleteProof(Long proofId, Long talentId) {
         Proof proofToDelete = getProofById(proofId);
