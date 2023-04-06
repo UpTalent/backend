@@ -56,7 +56,7 @@ public class ProofServiceTest {
     private ProofModify proofModify;
     private Proof publishedProof;
     private Proof hiddenProof;
-    private Proof drartProof;
+    private Proof draftProof;
     private ProofModify editProofCase;
     private ProofModify publishProofCase;
     private ProofModify hideProofCase;
@@ -85,7 +85,7 @@ public class ProofServiceTest {
                 .talent(talent)
                 .build();
 
-        drartProof = Proof.builder()
+        draftProof = Proof.builder()
                 .id(20L)
                 .title("Proof title")
                 .summary("Proof summary")
@@ -140,81 +140,6 @@ public class ProofServiceTest {
     }
 
     @Test
-    public void getProofDetailInfoSuccessfully() {
-        // given
-        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
-
-        ProofDetailInfo mappedProof = ProofDetailInfo.builder()
-                .id(proof.getId())
-                .title(proof.getTitle())
-                .summary(proof.getSummary())
-                .content(proof.getContent())
-                .published(proof.getPublished())
-                .status(proof.getStatus())
-                .build();
-
-        // when
-        when(talentRepository.existsById(talent.getId())).thenReturn(true);
-        when(mapper.toProofDetailInfo(proof)).thenReturn(mappedProof);
-
-        ProofDetailInfo proofDetailInfo = proofService.getProofDetailInfo(talent.getId(),
-                proof.getId());
-
-        // then
-        assertThat(proofDetailInfo).isNotNull();
-        assertThat(proofDetailInfo.getId()).isEqualTo(proof.getId());
-        assertThat(proofDetailInfo.getTitle()).isEqualTo(proof.getTitle());
-        assertThat(proofDetailInfo.getSummary()).isEqualTo(proof.getSummary());
-        assertThat(proofDetailInfo.getContent()).isEqualTo(proof.getContent());
-        assertThat(proofDetailInfo.getPublished()).isEqualTo(proof.getPublished());
-        assertThat(proofDetailInfo.getStatus()).isEqualTo(proof.getStatus());
-    }
-
-    @Test
-    public void getProofDetailInfoFromNonExistentTalent() {
-        // when
-        when(talentRepository.existsById(nonExistentTalentId)).thenReturn(false);
-
-        // then
-        assertThrows(TalentNotFoundException.class,
-                () -> proofService.getProofDetailInfo(nonExistentTalentId, proof.getId()));
-    }
-
-    @Test
-    public void getProofDetailInfoFromNonExistentProof() {
-        // when
-        when(talentRepository.existsById(talent.getId())).thenReturn(true);
-        when(proofRepository.findById(nonExistentProofId)).thenReturn(Optional.empty());
-
-        // then
-        assertThrows(ProofNotFoundException.class,
-                () -> proofService.getProofDetailInfo(talent.getId(), nonExistentProofId));
-    }
-
-    @Test
-    public void getUnrelatedProof() {
-        Proof unrelatedProof = Proof.builder()
-                .id(2L)
-                .title("Proof title")
-                .summary("Proof summary")
-                .content("Proof content")
-                .published(LocalDateTime.now())
-                .iconNumber(2)
-                .status(ProofStatus.PUBLISHED)
-                .talent(anotherTalent)
-                .build();
-        // given
-        given(proofRepository.findById(unrelatedProof.getId())).willReturn(Optional.of(unrelatedProof));
-
-        // when
-        when(talentRepository.existsById(talent.getId())).thenReturn(true);
-
-        // then
-        assertThrows(UnrelatedProofException.class,
-                () -> proofService.getProofDetailInfo(talent.getId(), unrelatedProof.getId()));
-    }
-
-    @Test
     @DisplayName("[Stage-2] [US-4] - edit not exist proof")
     void updateNotExistsProof() {
         given(proofRepository.findById(proof.getId())).willReturn(Optional.empty());
@@ -240,23 +165,23 @@ public class ProofServiceTest {
     @DisplayName("[Stage-2] [US-4] - edit data in proof with draft status")
     void updateDataInProofWithDraftStatus() {
         ProofDetailInfo resultProof = ProofDetailInfo.builder()
-                .id(drartProof.getId())
+                .id(draftProof.getId())
                 .title(editProofCase.getTitle())
                 .summary(editProofCase.getSummary())
                 .content(editProofCase.getContent())
                 .iconNumber(editProofCase.getIconNumber())
-                .published(drartProof.getPublished())
-                .status(drartProof.getStatus())
+                .published(draftProof.getPublished())
+                .status(draftProof.getStatus())
                 .build();
 
-        given(proofRepository.findById(drartProof.getId()))
-                .willReturn(Optional.of(drartProof));
+        given(proofRepository.findById(draftProof.getId()))
+                .willReturn(Optional.of(draftProof));
 
         given(talentRepository.existsById(talent.getId())).willReturn(true);
 
         doReturn(resultProof).when(mapper).toProofDetailInfo(any(Proof.class));
 
-        ProofDetailInfo proofDetailInfo = proofService.editProof(editProofCase, talent.getId(), drartProof.getId());
+        ProofDetailInfo proofDetailInfo = proofService.editProof(editProofCase, talent.getId(), draftProof.getId());
 
         assertThat(editProofCase.getTitle()).isEqualTo(proofDetailInfo.getTitle());
         assertThat(editProofCase.getSummary()).isEqualTo(proofDetailInfo.getSummary());
@@ -280,23 +205,23 @@ public class ProofServiceTest {
     @DisplayName("[Stage-2] [US-5] - publish proof with draft status")
     void publishProofWithDraftStatus() {
         ProofDetailInfo resultProof = ProofDetailInfo.builder()
-                .id(drartProof.getId())
-                .title(drartProof.getTitle())
-                .summary(drartProof.getSummary())
-                .content(drartProof.getContent())
-                .iconNumber(drartProof.getIconNumber())
+                .id(draftProof.getId())
+                .title(draftProof.getTitle())
+                .summary(draftProof.getSummary())
+                .content(draftProof.getContent())
+                .iconNumber(draftProof.getIconNumber())
                 .published(LocalDateTime.now())
                 .status(ProofStatus.PUBLISHED)
                 .build();
 
-        given(proofRepository.findById(drartProof.getId()))
-                .willReturn(Optional.of(drartProof));
+        given(proofRepository.findById(draftProof.getId()))
+                .willReturn(Optional.of(draftProof));
 
         given(talentRepository.existsById(talent.getId())).willReturn(true);
 
         doReturn(resultProof).when(mapper).toProofDetailInfo(any(Proof.class));
 
-        ProofDetailInfo proofDetailInfo = proofService.editProof(publishProofCase, talent.getId(), drartProof.getId());
+        ProofDetailInfo proofDetailInfo = proofService.editProof(publishProofCase, talent.getId(), draftProof.getId());
 
         assertThat(proofDetailInfo.getPublished()).isNotNull();
         assertThat(proofDetailInfo.getStatus()).isEqualTo(ProofStatus.PUBLISHED);
@@ -342,13 +267,13 @@ public class ProofServiceTest {
     @Test
     @DisplayName("[Stage-2] [US-5] - hide proof with other status")
     void hideProofWithOtherStatus() {
-        given(proofRepository.findById(drartProof.getId()))
-                .willReturn(Optional.of(drartProof));
+        given(proofRepository.findById(draftProof.getId()))
+                .willReturn(Optional.of(draftProof));
 
         given(talentRepository.existsById(talent.getId())).willReturn(true);
 
         assertThrows(IllegalProofModifyingException.class,
-                () -> proofService.editProof(hideProofCase, talent.getId(), drartProof.getId()));
+                () -> proofService.editProof(hideProofCase, talent.getId(), draftProof.getId()));
     }
 
     @Test
@@ -386,5 +311,82 @@ public class ProofServiceTest {
 
         assertThrows(IllegalProofModifyingException.class,
                 () -> proofService.editProof(reopenProofCase, talent.getId(), publishedProof.getId()));
+    }
+
+    @Test
+    @DisplayName("[Stage-2] [US-6] - Get proof detail info successfully")
+    public void getProofDetailInfoSuccessfully() {
+        // given
+        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
+
+        ProofDetailInfo mappedProof = ProofDetailInfo.builder()
+                .id(proof.getId())
+                .title(proof.getTitle())
+                .summary(proof.getSummary())
+                .content(proof.getContent())
+                .published(proof.getPublished())
+                .status(proof.getStatus())
+                .build();
+
+        // when
+        when(talentRepository.existsById(talent.getId())).thenReturn(true);
+        when(mapper.toProofDetailInfo(proof)).thenReturn(mappedProof);
+
+        ProofDetailInfo proofDetailInfo = proofService.getProofDetailInfo(talent.getId(),
+                proof.getId());
+
+        // then
+        assertThat(proofDetailInfo).isNotNull();
+        assertThat(proofDetailInfo.getId()).isEqualTo(proof.getId());
+        assertThat(proofDetailInfo.getTitle()).isEqualTo(proof.getTitle());
+        assertThat(proofDetailInfo.getSummary()).isEqualTo(proof.getSummary());
+        assertThat(proofDetailInfo.getContent()).isEqualTo(proof.getContent());
+        assertThat(proofDetailInfo.getPublished()).isEqualTo(proof.getPublished());
+        assertThat(proofDetailInfo.getStatus()).isEqualTo(proof.getStatus());
+    }
+
+    @Test
+    @DisplayName("[Stage-2] [US-6] - Try to get proof detail info when talent is not found")
+    public void getProofDetailInfoFromNonExistentTalent() {
+        // when
+        when(talentRepository.existsById(nonExistentTalentId)).thenReturn(false);
+
+        // then
+        assertThrows(TalentNotFoundException.class,
+                () -> proofService.getProofDetailInfo(nonExistentTalentId, proof.getId()));
+    }
+
+    @Test
+    @DisplayName("[Stage-2] [US-6] - Try to get proof detail info when proof is not found")
+    public void getProofDetailInfoFromNonExistentProof() {
+        // when
+        when(talentRepository.existsById(talent.getId())).thenReturn(true);
+        when(proofRepository.findById(nonExistentProofId)).thenReturn(Optional.empty());
+
+        // then
+        assertThrows(ProofNotFoundException.class,
+                () -> proofService.getProofDetailInfo(talent.getId(), nonExistentProofId));
+    }
+
+    @Test
+    @DisplayName("[Stage-2] [US-6] - Try to get unrelated proof")
+    public void getUnrelatedProof() {
+        Proof unrelatedProof = Proof.builder()
+                .id(2L)
+                .title("Proof title")
+                .summary("Proof summary")
+                .content("Proof content")
+                .published(LocalDateTime.now())
+                .iconNumber(2)
+                .status(ProofStatus.PUBLISHED)
+                .talent(anotherTalent)
+                .build();
+
+        given(proofRepository.findById(unrelatedProof.getId())).willReturn(Optional.of(unrelatedProof));
+
+        when(talentRepository.existsById(talent.getId())).thenReturn(true);
+
+        assertThrows(UnrelatedProofException.class,
+                () -> proofService.getProofDetailInfo(talent.getId(), unrelatedProof.getId()));
     }
 }
