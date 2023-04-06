@@ -1,6 +1,8 @@
 package com.uptalent.proof;
 
 import com.uptalent.mapper.ProofMapper;
+import com.uptalent.pagination.PageWithMetadata;
+import org.springframework.data.domain.Page;
 import com.uptalent.proof.exception.IllegalProofModifyingException;
 import com.uptalent.proof.exception.ProofNotFoundException;
 import com.uptalent.proof.exception.UnrelatedProofException;
@@ -8,6 +10,7 @@ import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
+import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.proof.repository.ProofRepository;
 import com.uptalent.proof.service.ProofService;
 import com.uptalent.talent.exception.TalentNotFoundException;
@@ -18,9 +21,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -388,5 +395,40 @@ public class ProofServiceTest {
 
         assertThrows(UnrelatedProofException.class,
                 () -> proofService.getProofDetailInfo(talent.getId(), unrelatedProof.getId()));
+    }
+
+    @Test
+    @DisplayName("[Stage 2] [US 1-2] - Get all proofs successfully in service")
+    public void getProofGeneralInfoSuccessfully() throws Exception {
+        List<Proof> proofs = List.of(proof, publishedProof);
+        List<ProofGeneralInfo> proofGeneralInfos = List.of(
+                ProofGeneralInfo.builder()
+                        .id(proof.getId())
+                        .title(proof.getTitle())
+                        .iconNumber(proof.getIconNumber())
+                        .published(proof.getPublished())
+                        .summary(proof.getSummary())
+                        .build(),
+                ProofGeneralInfo.builder()
+                        .id(publishedProof.getId())
+                        .title(publishedProof.getTitle())
+                        .summary(publishedProof.getSummary())
+                        .iconNumber(publishedProof.getIconNumber())
+                        .published(publishedProof.getPublished())
+                        .build()
+        );
+
+        Page<Proof> proofsPage = new PageImpl<>(proofs);
+
+        when(proofRepository.findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(0, 9, Sort.by("published").descending()))).thenReturn(proofsPage);
+        when(mapper.toProofGeneralInfos(proofs)).thenReturn(proofGeneralInfos);
+
+        PageWithMetadata<ProofGeneralInfo> result = proofService.getProofs(0, 9, "desc");
+
+        verify(proofRepository, times(1)).findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(0, 9, Sort.by("published").descending()));
+        verify(mapper, times(1)).toProofGeneralInfos(proofs);
+
+        assertThat(result.getContent()).isEqualTo(proofGeneralInfos);
+        assertThat(result.getContent().get(0).getPublished()).isEqualTo(proofGeneralInfos.get(0).getPublished());
     }
 }

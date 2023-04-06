@@ -2,14 +2,17 @@ package com.uptalent.proof;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uptalent.jwt.JwtTokenProvider;
+import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.controller.ProofController;
 import com.uptalent.proof.exception.IllegalProofModifyingException;
 import com.uptalent.proof.exception.ProofNotFoundException;
 import com.uptalent.proof.exception.UnrelatedProofException;
+import com.uptalent.proof.exception.WrongSortOrderException;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
+import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.proof.service.ProofService;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
@@ -27,6 +30,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -463,4 +468,56 @@ public class ProofControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
+
+    @Test
+    @DisplayName("[Stage 2] [US 1-2] - Get all proofs successfully")
+    public void getProofGeneralInfoSuccessfully() throws Exception {
+        List<ProofGeneralInfo> mappedProof = Arrays.asList(ProofGeneralInfo.builder()
+                        .id(proof.getId())
+                        .title(proof.getTitle())
+                        .summary(proof.getSummary())
+                        .published(proof.getPublished())
+                        .iconNumber(5)
+                        .build(),
+                ProofGeneralInfo.builder()
+                        .id(2L)
+                        .title("Proof title")
+                        .summary("Proof summary")
+                        .published(LocalDateTime.now())
+                        .iconNumber(2)
+                        .build()
+        );
+
+        given(proofService.getProofs(0, 9, "desc")).willReturn(new PageWithMetadata<>(mappedProof, 1));
+
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.get("/api/v1/proofs")
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content").exists());
+    }
+
+    @Test
+    @DisplayName("[Stage 2] [US 1-2] - Get all proofs with wrong sort order should return exception")
+    public void getProofGeneralInfoWithWrongSortOrder() throws Exception {
+
+        String wrongSortName = "dgss";
+        given(proofService.getProofs(0, 9, wrongSortName)).willThrow(new WrongSortOrderException("Unexpected input of sort order"));
+
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.get("/api/v1/proofs")
+                        .param("sort", wrongSortName)
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+
 }

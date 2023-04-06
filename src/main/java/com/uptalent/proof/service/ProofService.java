@@ -1,20 +1,28 @@
 package com.uptalent.proof.service;
 
 import com.uptalent.mapper.ProofMapper;
-import com.uptalent.talent.exception.TalentNotFoundException;
+import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.exception.IllegalProofModifyingException;
 import com.uptalent.proof.exception.ProofNotFoundException;
 import com.uptalent.proof.exception.UnrelatedProofException;
+import com.uptalent.proof.exception.WrongSortOrderException;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
+import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.proof.repository.ProofRepository;
+import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.repository.TalentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -67,8 +75,6 @@ public class ProofService {
         proofRepository.delete(proofToDelete);
 
     }
-
-
 
     @Transactional
     public ProofDetailInfo editProof(ProofModify proofModify, Long talentId, Long proofId) {
@@ -140,4 +146,19 @@ public class ProofService {
                 .orElseThrow(() -> new ProofNotFoundException("Proof was not found"));
     }
 
+    public PageWithMetadata<ProofGeneralInfo> getProofs(int page, int size, String sort) {
+        Sort sortOrder;
+        if(sort.equals("desc")) {
+            sortOrder = Sort.by("published").descending();
+        }
+        else if(sort.equals("asc")) {
+            sortOrder = Sort.by("published").ascending();
+        }
+        else {
+            throw new WrongSortOrderException("Unexpected input of sort order");
+        }
+        Page<Proof> proofsPage = proofRepository.findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(page, size, sortOrder));
+        List<ProofGeneralInfo> proofGeneralInfos = mapper.toProofGeneralInfos(proofsPage.getContent());
+        return new PageWithMetadata<>(proofGeneralInfos, proofsPage.getTotalPages());
+    }
 }

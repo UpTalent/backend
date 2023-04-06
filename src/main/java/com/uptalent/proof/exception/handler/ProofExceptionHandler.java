@@ -4,6 +4,7 @@ import com.uptalent.payload.HttpResponse;
 import com.uptalent.proof.exception.IllegalProofModifyingException;
 import com.uptalent.proof.exception.ProofNotFoundException;
 import com.uptalent.proof.exception.UnrelatedProofException;
+import com.uptalent.proof.exception.WrongSortOrderException;
 import com.uptalent.util.exception.handler.ExceptionHandlerController;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -27,6 +28,12 @@ public class ProofExceptionHandler extends ExceptionHandlerController {
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(IllegalProofModifyingException.class)
     public HttpResponse handlerIllegalProofModifyingException(IllegalProofModifyingException e) {
+        return new HttpResponse(e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(WrongSortOrderException.class)
+    public HttpResponse handlerWrongSortOrderException(WrongSortOrderException e) {
         return new HttpResponse(e.getMessage());
     }
 }
