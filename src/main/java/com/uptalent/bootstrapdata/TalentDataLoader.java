@@ -16,7 +16,10 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Profile("dev")
@@ -70,12 +73,14 @@ public class TalentDataLoader implements CommandLineRunner {
     }
 
     private Proof generateOneProof(Talent talent) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         Proof proof = Proof.builder()
                 .iconNumber(faker.random().nextInt(5) + 1)
                 .title("Proof of " + talent.getFirstname() + " " + talent.getLastname())
                 .summary("Summary of " + talent.getFirstname() + " " + talent.getLastname())
                 .content(faker.lorem().paragraph())
-                .status(ProofStatus.DRAFT)
+                .status(ProofStatus.PUBLISHED)
+                .published(faker.date().past(5, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
                 .talent(talent)
                 .build();
         return proofRepository.save(proof);
