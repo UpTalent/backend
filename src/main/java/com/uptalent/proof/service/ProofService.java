@@ -2,10 +2,7 @@ package com.uptalent.proof.service;
 
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.pagination.PageWithMetadata;
-import com.uptalent.proof.exception.IllegalProofModifyingException;
-import com.uptalent.proof.exception.ProofNotFoundException;
-import com.uptalent.proof.exception.UnrelatedProofException;
-import com.uptalent.proof.exception.WrongSortOrderException;
+import com.uptalent.proof.exception.*;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
@@ -147,18 +144,37 @@ public class ProofService {
     }
 
     public PageWithMetadata<ProofGeneralInfo> getProofs(int page, int size, String sort) {
-        Sort sortOrder;
-        if(sort.equals("desc")) {
-            sortOrder = Sort.by("published").descending();
-        }
-        else if(sort.equals("asc")) {
-            sortOrder = Sort.by("published").ascending();
-        }
-        else {
-            throw new WrongSortOrderException("Unexpected input of sort order");
-        }
+        Sort sortOrder = getSortByString(sort);
         Page<Proof> proofsPage = proofRepository.findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(page, size, sortOrder));
         List<ProofGeneralInfo> proofGeneralInfos = mapper.toProofGeneralInfos(proofsPage.getContent());
         return new PageWithMetadata<>(proofGeneralInfos, proofsPage.getTotalPages());
+    }
+
+    public PageWithMetadata<ProofDetailInfo> getTalentProofs(int page, int size, String sort, Long talentId, String status) {
+        verifyTalentExistsById(talentId);
+        Sort sortOrder = getSortByString(sort);
+        ProofStatus proofStatus = getStatusByString(status);
+        Page<Proof> proofsPage = proofRepository.findAllByTalentIdAndStatus(talentId, proofStatus, PageRequest.of(page, size, sortOrder));
+        List<ProofDetailInfo> proofDetailInfos = mapper.toProofDetailInfos(proofsPage.getContent());
+        return new PageWithMetadata<>(proofDetailInfos, proofsPage.getTotalPages());
+    }
+
+    private Sort getSortByString(String sort){
+        if(sort.equals("desc"))
+            return Sort.by("published").descending();
+        if(sort.equals("asc"))
+            return Sort.by("published").ascending();
+        throw new WrongSortOrderException("Unexpected input of sort order");
+
+    }
+
+    private ProofStatus getStatusByString(String status){
+        if(status.equals("draft"))
+            return DRAFT;
+        if(status.equals("published"))
+            return PUBLISHED;
+        if(status.equals("hidden"))
+            return HIDDEN;
+        throw new WrongStatusInputException("Unexpected input of status");
     }
 }
