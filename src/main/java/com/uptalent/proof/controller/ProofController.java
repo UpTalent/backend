@@ -6,9 +6,12 @@ import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.service.ProofService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
 
 
 @RestController
@@ -33,13 +36,11 @@ public class ProofController {
     }
 
     @PostMapping("/talents/{talentId}/proofs")
-    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> createProof(@Valid @RequestBody ProofModify proofModify,
-                                         @PathVariable Long talentId
-                                         ) {
-        var response = proofService.createProof(proofModify, talentId);
+                                         @PathVariable Long talentId) {
+        URI proofLocation = proofService.createProof(proofModify, talentId);
 
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return ResponseEntity.created(proofLocation).build();
     }
     @DeleteMapping("/talents/{talentId}/proofs/{proofId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
