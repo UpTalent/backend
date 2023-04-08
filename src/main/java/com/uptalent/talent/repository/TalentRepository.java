@@ -17,7 +17,5 @@ public interface TalentRepository extends JpaRepository<Talent, Long> {
     Optional<Talent> findByEmail(String email);
 
     Page<Talent> findAllByOrderByIdDesc(Pageable pageable);
-    @Query("select case when count(t) > 0 then true else false end " +
-            "from Talent t where t.id = ?1 and t.email = ?2")
-    boolean verifyTalent(Long id, String email);
+
 }
