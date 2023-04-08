@@ -2,6 +2,7 @@ package com.uptalent.proof;
 
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.util.service.AccessVerifyService;
 import org.springframework.data.domain.Page;
 import com.uptalent.proof.exception.IllegalProofModifyingException;
 import com.uptalent.proof.exception.ProofNotFoundException;
@@ -47,6 +48,9 @@ public class ProofServiceTest {
 
     @Mock
     private ProofMapper mapper;
+    @Mock
+    private AccessVerifyService accessVerifyService;
+
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -68,6 +72,7 @@ public class ProofServiceTest {
     private ProofModify publishProofCase;
     private ProofModify hideProofCase;
     private ProofModify reopenProofCase;
+
 
 
     @BeforeEach
@@ -399,7 +404,7 @@ public class ProofServiceTest {
 
     @Test
     @DisplayName("[Stage 2] [US 1-2] - Get all proofs successfully in service")
-    public void getProofGeneralInfoSuccessfully() throws Exception {
+    public void getProofGeneralInfoSuccessfully() {
         List<Proof> proofs = List.of(proof, publishedProof);
         List<ProofGeneralInfo> proofGeneralInfos = List.of(
                 ProofGeneralInfo.builder()

@@ -16,6 +16,7 @@ import com.uptalent.talent.model.response.TalentProfile;
 import com.uptalent.payload.AuthResponse;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.talent.service.TalentService;
+import com.uptalent.util.service.AccessVerifyService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -58,6 +59,8 @@ class TalentServiceTest {
     private AuthenticationManager authenticationManager;
     @Mock
     private JwtTokenProvider jwtTokenProvider;
+    @Mock
+    private AccessVerifyService accessVerifyService;
 
     @InjectMocks
     private TalentService talentService;
@@ -149,6 +152,7 @@ class TalentServiceTest {
         securitySetUp();
 
         willReturnOwnProfile();
+        doReturn(true).when(accessVerifyService).isPersonalProfile(anyLong());
 
         when(talentMapper.toTalentOwnProfile(any()))
                 .thenReturn(new TalentOwnProfile(talent.getEmail(), LocalDate.now()));
@@ -297,6 +301,8 @@ class TalentServiceTest {
                 .skills(Set.of("Java", "Spring"))
                 .build();
 
+        doThrow(new DeniedAccessException("")).when(accessVerifyService).tryGetAccess(anyLong(), anyString());
+
         assertThrows(DeniedAccessException.class, () -> talentService.updateTalent(talent.getId(), editRequest));
     }
 
@@ -338,6 +344,7 @@ class TalentServiceTest {
         securitySetUp();
 
         willReturnProfile();
+        doThrow(new DeniedAccessException("")).when(accessVerifyService).tryGetAccess(anyLong(), anyString());
 
         assertThrows(DeniedAccessException.class, () -> talentService.deleteTalent(talent.getId()));
 
@@ -367,16 +374,12 @@ class TalentServiceTest {
         given(talentRepository.findById(talent.getId()))
                 .willReturn(Optional.of(talent));
 
-        given(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-                .willReturn(talent.getEmail());
     }
 
     private void willReturnProfile() {
         given(talentRepository.findById(talent.getId()))
                 .willReturn(Optional.of(talent));
 
-        given(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-                .willReturn("john.doe@gmail.com");
     }
 
     private TalentRegistration generateRegistrationRequest() {

@@ -31,13 +31,6 @@ public class TalentExceptionHandlerController extends ExceptionHandlerController
     public HttpResponse handlerExistsTalentException(TalentExistsException e) {
         return new HttpResponse(e.getMessage());
     }
-
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    @ExceptionHandler(DeniedAccessException.class)
-    public HttpResponse handlerExistsTalentException(DeniedAccessException e) {
-        return new HttpResponse(e.getMessage());
-    }
-
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(BadCredentialsException.class)
     public HttpResponse handlerBadCredentialsException(BadCredentialsException e) {
