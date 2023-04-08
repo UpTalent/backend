@@ -46,10 +46,6 @@ public class TalentDataLoader implements CommandLineRunner {
 
             talentRepository.save(talent);
         }
-        log.info("Bucket name: {}", env.getProperty("aws.bucket.name"));
-        log.info("Bucket region: {}", env.getProperty("aws.bucket.region"));
-        log.info("Bucket access key: {}", env.getProperty("aws.bucket.access-key"));
-        log.info("Bucket secret key: {}", env.getProperty("aws.bucket.secret-key"));
     }
 
     private Talent generateOneTalent() {
