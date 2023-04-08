@@ -1,7 +1,7 @@
 package com.uptalent.util.exception.handler;
 
 import com.uptalent.payload.HttpResponse;
-import com.uptalent.proof.exception.IllegalProofModifyingException;
+import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.util.exception.InvalidEnumValueException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -38,4 +38,11 @@ public class ExceptionHandlerController extends ResponseEntityExceptionHandler {
     public HttpResponse handlerInvalidEnumValueException(InvalidEnumValueException e) {
         return new HttpResponse(e.getMessage());
     }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(DeniedAccessException.class)
+    public HttpResponse handlerExistsTalentException(DeniedAccessException e) {
+        return new HttpResponse(e.getMessage());
+    }
+
 }
