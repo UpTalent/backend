@@ -57,15 +57,15 @@ public class JwtTokenProvider {
     /**
      * Create authentication for filter authentication
      *
-     * @param email Talent email
+     * @param id Talent id
      * @param authority Talent authority
      * @param request Request for filter
      *
      * @return jwt token
      * */
-    public Authentication getAuthentication(String email, GrantedAuthority authority, HttpServletRequest request) {
+    public Authentication getAuthentication(Long id, GrantedAuthority authority, HttpServletRequest request) {
         UsernamePasswordAuthenticationToken authenticationToken
-                = new UsernamePasswordAuthenticationToken(email, null, List.of(authority));
+                = new UsernamePasswordAuthenticationToken(id, null, List.of(authority));
 
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         return authenticationToken;
@@ -96,6 +96,11 @@ public class JwtTokenProvider {
     public String getSubject(String token) {
         JWTVerifier verifier = getVerifier();
         return verifier.verify(token).getSubject();
+    }
+
+    public Long getId(String token) {
+        JWTVerifier verifier = getVerifier();
+        return verifier.verify(token).getClaim("talent_id").asLong();
     }
 
     /**
