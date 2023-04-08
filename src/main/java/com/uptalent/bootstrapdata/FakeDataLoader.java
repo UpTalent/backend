@@ -15,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -25,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 @Profile("dev")
 @RequiredArgsConstructor
 @Slf4j
-public class TalentDataLoader implements CommandLineRunner {
+public class FakeDataLoader implements CommandLineRunner {
 
     public static final int SIZE = 20;
     private final TalentRepository talentRepository;
