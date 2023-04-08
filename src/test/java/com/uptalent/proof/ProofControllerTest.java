@@ -14,6 +14,7 @@ import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.proof.service.ProofService;
+import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.service.TalentService;
@@ -135,6 +136,25 @@ public class ProofControllerTest {
                 3, ProofStatus.HIDDEN.name());
         reopenProofCase = new ProofModify("Reopen Proof title", "Reopen Proof summary", "Reopen Proof content",
                 3, ProofStatus.PUBLISHED.name());
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("[Stage-2] [US-4] - edit proof with other auth")
+    void editProofWithOtherAuth() throws Exception {
+        given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
+                .willThrow(new DeniedAccessException("You do not have permission"));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{talentId}/proofs/{proofId}",
+                                talent.getId(), proof.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(proofModify)));
+        response
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 
     @Test
