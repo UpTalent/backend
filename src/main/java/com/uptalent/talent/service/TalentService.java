@@ -6,7 +6,6 @@ import com.uptalent.filestore.exception.FailedToUploadFileException;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
-import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.talent.exception.EmptySkillsException;
 import com.uptalent.talent.exception.TalentExistsException;
 import com.uptalent.talent.exception.TalentNotFoundException;
@@ -19,6 +18,8 @@ import com.uptalent.talent.model.response.TalentOwnProfile;
 import com.uptalent.talent.model.response.TalentProfile;
 import com.uptalent.payload.AuthResponse;
 import com.uptalent.talent.repository.TalentRepository;
+import com.uptalent.util.service.AccessVerifyService;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -48,7 +49,9 @@ public class TalentService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final FileStoreService fileStoreService;
+    private final AccessVerifyService accessVerifyService;
 
+    @NotNull
     @Value("${aws.bucket.name}")
     private String BUCKET_NAME;
 
@@ -102,7 +105,7 @@ public class TalentService {
     public TalentProfile getTalentProfileById(Long id) {
         Talent foundTalent = getTalentById(id);
 
-        if (isPersonalProfile(foundTalent)) {
+        if (accessVerifyService.isPersonalProfile(id)) {
             return talentMapper.toTalentOwnProfile(foundTalent);
         } else {
             return talentMapper.toTalentProfile(foundTalent);
@@ -112,9 +115,7 @@ public class TalentService {
     @Transactional
     public TalentOwnProfile updateTalent(Long id, TalentEdit updatedTalent) {
         Talent talentToUpdate = getTalentById(id);
-        if(!isPersonalProfile(talentToUpdate)) {
-            throw new DeniedAccessException("You are not allowed to edit this talent");
-        }
+        accessVerifyService.tryGetAccess(id, "You are not allowed to edit this talent");
 
         if(updatedTalent.getSkills().isEmpty()){
             throw new EmptySkillsException("Skills should not be empty");
@@ -138,22 +139,18 @@ public class TalentService {
 
         return talentMapper.toTalentOwnProfile(savedTalent);
     }
+
     @Transactional
     public void deleteTalent(Long id) {
         Talent talentToDelete = getTalentById(id);
-        if (!isPersonalProfile(talentToDelete)) {
-            throw new DeniedAccessException("You are not allowed to delete this talent");
-        } else {
-            talentRepository.delete(talentToDelete);
-        }
+        accessVerifyService.tryGetAccess(id, "You are not allowed to delete this talent");
+        talentRepository.delete(talentToDelete);
     }
 
     @Transactional
     public void uploadImage(Long id, MultipartFile image, FileStoreOperation operation) {
         Talent talent = getTalentById(id);
-        if(!isPersonalProfile(talent)) {
-            throw new DeniedAccessException("You are not allowed to edit this talent");
-        }
+        accessVerifyService.tryGetAccess(id, "You are not allowed to edit this talent");
 
         isFileEmpty(image);
         isImage(image);
@@ -180,11 +177,6 @@ public class TalentService {
     private Talent getTalentById(Long id) {
         return talentRepository.findById(id)
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
-    }
-
-    private boolean isPersonalProfile(Talent talent) {
-        String authEmail = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return authEmail.equalsIgnoreCase(talent.getEmail());
     }
 
     private static Map<String, String> extractMetadata(MultipartFile file) {
