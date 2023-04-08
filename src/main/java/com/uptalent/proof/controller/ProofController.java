@@ -7,11 +7,12 @@ import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.proof.service.ProofService;
+import com.uptalent.util.annotation.EnumValue;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -20,6 +21,7 @@ import java.net.URI;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1")
+@Validated
 public class ProofController {
     private final ProofService proofService;
 
@@ -34,7 +36,8 @@ public class ProofController {
     @ResponseStatus(HttpStatus.OK)
     public PageWithMetadata<ProofDetailInfo> getAllTalentProofs(@RequestParam(defaultValue = "0") int page,
                                                                 @RequestParam(defaultValue = "9") int size,
-                                                                @RequestParam(defaultValue = "published") String status,
+                                                                @RequestParam(defaultValue = "published")
+                                                                @EnumValue(enumClass = ProofStatus.class) String status,
                                                                 @RequestParam(defaultValue = "desc") String sort,
                                                                 @PathVariable("talent-id") Long talentId) {
         return proofService.getTalentProofs(page, size, sort, talentId, status);
