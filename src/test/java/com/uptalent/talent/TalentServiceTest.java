@@ -83,7 +83,7 @@ class TalentServiceTest {
 
     @Test
     @Order(1)
-    @DisplayName("[US-1] - Get all talents successfully")
+    @DisplayName("[Stage-1] [US-1] - Get all talents successfully")
     void getAllTalentsSuccessfully() {
         List<Talent> talents = Arrays.asList(
                 talent,
@@ -131,7 +131,7 @@ class TalentServiceTest {
 
     @Test
     @Order(2)
-    @DisplayName("[US-2] - Get talent profile successfully")
+    @DisplayName("[Stage-1] [US-2] - Get talent profile successfully")
     void getTalentProfileSuccessfully() {
         securitySetUp();
 
@@ -147,7 +147,7 @@ class TalentServiceTest {
 
     @Test
     @Order(3)
-    @DisplayName("[US-2] - Get own profile successfully")
+    @DisplayName("[Stage-1] [US-2] - Get own profile successfully")
     void getOwnProfileSuccessfully() {
         securitySetUp();
 
@@ -165,7 +165,7 @@ class TalentServiceTest {
 
     @Test
     @Order(4)
-    @DisplayName("[US-2] - Fail get talent profile because talent does not exist")
+    @DisplayName("[Stage-1] [US-2] - Fail get talent profile because talent does not exist")
     void failGettingTalentProfileWhichDoesNotExist() {
 
         when(talentRepository.findById(nonExistentTalentId))
@@ -176,7 +176,7 @@ class TalentServiceTest {
 
     @Test
     @Order(5)
-    @DisplayName("[US-3] - Register new Talent successfully")
+    @DisplayName("[Stage-1] [US-3] - Register new Talent successfully")
     void registerNewTalentSuccessfully() {
 
         when(talentRepository.save(any()))
@@ -189,7 +189,7 @@ class TalentServiceTest {
 
     @Test
     @Order(6)
-    @DisplayName("[US-3] - Register new Talent with earlier occupied email")
+    @DisplayName("[Stage-1] [US-3] - Register new Talent with earlier occupied email")
     void registerNewTalentWithEarlierOccupiedEmail() {
 
         String exceptionMessage = "The talent has already exists with email [" + talent.getEmail() + "]";
@@ -202,7 +202,7 @@ class TalentServiceTest {
 
     @Test
     @Order(7)
-    @DisplayName("[US-3] - Register new Talent and forget input some data")
+    @DisplayName("[Stage-1] [US-3] - Register new Talent and forget input some data")
     void registerNewTalentAndForgetInputSomeData() {
         TalentRegistration registrationRequest = generateRegistrationRequest();
         registrationRequest.setFirstname(null);
@@ -215,7 +215,7 @@ class TalentServiceTest {
 
     @Test
     @Order(8)
-    @DisplayName("[US-3] - Log in successfully")
+    @DisplayName("[Stage-1] [US-3] - Log in successfully")
     void loginSuccessfully() {
         securitySetUp();
 
@@ -234,7 +234,7 @@ class TalentServiceTest {
 
     @Test
     @Order(9)
-    @DisplayName("[US-3] - Fail attempt of log in")
+    @DisplayName("[Stage-1] [US-3] - Fail attempt of log in")
     void failLoginWithBadCredentials() {
         securitySetUp();
 
@@ -257,7 +257,7 @@ class TalentServiceTest {
 
     @Test
     @Order(10)
-    @DisplayName("[US-3] - Edit own profile successfully")
+    @DisplayName("[Stage-1] [US-3] - Edit own profile successfully")
     void editOwnProfileSuccessfully() {
         securitySetUp();
 
@@ -289,7 +289,7 @@ class TalentServiceTest {
 
     @Test
     @Order(11)
-    @DisplayName("[US-3] - Try edit someone else's profile")
+    @DisplayName("[Stage-1] [US-3] - Try edit someone else's profile")
     void tryEditSomeoneTalentProfile() {
         securitySetUp();
 
@@ -308,7 +308,7 @@ class TalentServiceTest {
 
     @Test
     @Order(12)
-    @DisplayName("[US-3] - Fail editing own profile")
+    @DisplayName("[Stage-1] [US-3] - Fail editing own profile")
     void failEditingOwnProfile() {
         securitySetUp();
 
@@ -324,7 +324,7 @@ class TalentServiceTest {
 
     @Test
     @Order(13)
-    @DisplayName("[US-4] - Delete own profile successfully")
+    @DisplayName("[Stage-1] [US-4] - Delete own profile successfully")
     void deleteOwnProfileSuccessfully() {
         securitySetUp();
 
@@ -339,7 +339,7 @@ class TalentServiceTest {
 
     @Test
     @Order(14)
-    @DisplayName("[US-4] - Try delete someone else's profile")
+    @DisplayName("[Stage-1] [US-4] - Try delete someone else's profile")
     void tryDeleteSomeoneTalentProfile() {
         securitySetUp();
 
@@ -352,7 +352,7 @@ class TalentServiceTest {
 
     @Test
     @Order(15)
-    @DisplayName("[US-4] - Delete non-existent profile")
+    @DisplayName("[Stage-1] [US-4] - Delete non-existent profile")
     void deleteNonExistentProfile() {
         when(talentRepository.findById(nonExistentTalentId))
                 .thenThrow(new TalentNotFoundException("Talent was not found"));

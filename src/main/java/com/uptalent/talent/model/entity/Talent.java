@@ -21,9 +21,9 @@ public class Talent {
     @Id
     @GeneratedValue
     private Long id;
-
+    @Column(length = 15)
     private String lastname;
-
+    @Column(length = 15)
     private String firstname;
 
     private String avatar;
@@ -34,7 +34,7 @@ public class Talent {
     private Set<String> skills;
 
     private String location;
-
+    @Column(length = 100)
     private String email;
 
     private String password;

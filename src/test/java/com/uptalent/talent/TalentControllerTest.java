@@ -81,7 +81,7 @@ class TalentControllerTest {
 
     @Test
     @Order(1)
-    @DisplayName("[US-1] - Get all talents successfully")
+    @DisplayName("[Stage-1] [US-1] - Get all talents successfully")
     void getAllTalentsSuccessfully() throws Exception {
         List<TalentGeneralInfo> talentGeneralInfos = Arrays.asList(
                 TalentGeneralInfo.builder()
@@ -111,7 +111,7 @@ class TalentControllerTest {
 
     @Test
     @Order(2)
-    @DisplayName("[US-2] - Get talent profile successfully")
+    @DisplayName("[Stage-1] [US-2] - Get talent profile successfully")
     void getTalentProfileSuccessfully() throws Exception {
         given(talentService.getTalentProfileById(talent.getId()))
                 .willReturn(new TalentProfile());
@@ -128,7 +128,7 @@ class TalentControllerTest {
 
     @Test
     @Order(3)
-    @DisplayName("[US-2] - Get own profile successfully")
+    @DisplayName("[Stage-1] [US-2] - Get own profile successfully")
     void getOwnProfileSuccessfully() throws Exception {
         given(talentService.getTalentProfileById(talent.getId()))
                 .willReturn(new TalentOwnProfile(talent.getEmail(), LocalDate.now()));
@@ -145,7 +145,7 @@ class TalentControllerTest {
 
     @Test
     @Order(4)
-    @DisplayName("[US-2] - Fail get talent profile because talent does not exist")
+    @DisplayName("[Stage-1] [US-2] - Fail get talent profile because talent does not exist")
     void failGettingTalentProfileWhichDoesNotExist() throws Exception {
         given(talentService.getTalentProfileById(talent.getId()))
                 .willThrow(new TalentNotFoundException("Talent was not found"));
@@ -162,7 +162,7 @@ class TalentControllerTest {
 
     @Test
     @Order(5)
-    @DisplayName("[US-3] - Register new Talent successfully")
+    @DisplayName("[Stage-1] [US-3] - Register new Talent successfully")
     void registerNewTalentSuccessfully() throws Exception {
         TalentRegistration registrationRequest = generateRegistrationRequest();
 
@@ -189,7 +189,7 @@ class TalentControllerTest {
 
     @Test
     @Order(6)
-    @DisplayName("[US-3] - Register new Talent with earlier occupied email")
+    @DisplayName("[Stage-1] [US-3] - Register new Talent with earlier occupied email")
     void registerNewTalentWithEarlierOccupiedEmail() throws Exception {
         TalentRegistration registrationRequest = generateRegistrationRequest();
 
@@ -212,7 +212,7 @@ class TalentControllerTest {
 
     @Test
     @Order(7)
-    @DisplayName("[US-3] - Register new Talent and forget input some data")
+    @DisplayName("[Stage-1] [US-3] - Register new Talent and forget input some data")
     void registerNewTalentAndForgetInputSomeData() throws Exception {
         TalentRegistration registrationRequest = generateRegistrationRequest();
         registrationRequest.setLastname(null);
@@ -238,7 +238,7 @@ class TalentControllerTest {
 
     @Test
     @Order(8)
-    @DisplayName("[US-3] - Log in successfully")
+    @DisplayName("[Stage-1] [US-3] - Log in successfully")
     void loginSuccessfully() throws Exception {
         TalentLogin loginRequest = new TalentLogin(talent.getEmail(), talent.getPassword());
 
@@ -265,7 +265,7 @@ class TalentControllerTest {
 
     @Test
     @Order(9)
-    @DisplayName("[US-3] - Fail attempt of log in")
+    @DisplayName("[Stage-1] [US-3] - Fail attempt of log in")
     void failLoginWithBadCredentials() throws Exception {
         TalentLogin loginRequestWithBadCredentials =
                 new TalentLogin(talent.getEmail(), "another_password");
@@ -287,7 +287,7 @@ class TalentControllerTest {
 
     @Test
     @Order(10)
-    @DisplayName("[US-3] - Edit own profile successfully")
+    @DisplayName("[Stage-1] [US-3] - Edit own profile successfully")
     void editOwnProfileSuccessfully() throws Exception {
         TalentEdit editRequest = TalentEdit.builder()
                 .lastname("Himonov")
@@ -319,7 +319,7 @@ class TalentControllerTest {
 
     @Test
     @Order(11)
-    @DisplayName("[US-3] - Try edit someone else's profile")
+    @DisplayName("[Stage-1] [US-3] - Try edit someone else's profile")
     void tryEditSomeoneTalentProfile() throws Exception {
         TalentEdit editRequest = TalentEdit.builder()
                 .lastname("Himonov")
@@ -344,7 +344,7 @@ class TalentControllerTest {
 
     @Test
     @Order(12)
-    @DisplayName("[US-3] - Fail editing own profile")
+    @DisplayName("[Stage-1] [US-3] - Fail editing own profile")
     void failEditingOwnProfile() throws Exception {
         TalentEdit editRequest = TalentEdit.builder()
                 .lastname("Himonov")
@@ -368,7 +368,7 @@ class TalentControllerTest {
 
     @Test
     @Order(13)
-    @DisplayName("[US-4] - Delete own profile successfully")
+    @DisplayName("[Stage-1] [US-4] - Delete own profile successfully")
     void deleteOwnProfileSuccessfully() throws Exception {
         willDoNothing().given(talentService).deleteTalent(talent.getId());
 
@@ -383,7 +383,7 @@ class TalentControllerTest {
 
     @Test
     @Order(14)
-    @DisplayName("[US-4] - Try delete someone else's profile")
+    @DisplayName("[Stage-1] [US-4] - Try delete someone else's profile")
     void tryDeleteSomeoneTalentProfile() throws Exception {
         willThrow(new DeniedAccessException("You are not allowed to delete this talent"))
                 .given(talentService)
@@ -401,7 +401,7 @@ class TalentControllerTest {
 
     @Test
     @Order(15)
-    @DisplayName("[US-4] - Delete non-existent profile")
+    @DisplayName("[Stage-1] [US-4] - Delete non-existent profile")
     void deleteNonExistentProfile() throws Exception {
         willThrow(new TalentNotFoundException("Talent was not found"))
                 .given(talentService)
