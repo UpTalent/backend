@@ -12,14 +12,13 @@ import com.uptalent.proof.repository.ProofRepository;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.repository.TalentRepository;
+import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -38,11 +37,23 @@ public class ProofService {
     private final ProofRepository proofRepository;
     private final TalentRepository talentRepository;
     private final ProofMapper mapper;
+    private final AccessVerifyService accessVerifyService;
+
+    public PageWithMetadata<ProofGeneralInfo> getProofs(int page, int size, String sort) {
+        Sort sortOrder = getSortByString(sort);
+        Page<Proof> proofsPage = proofRepository.findAllByStatus(ProofStatus.PUBLISHED,
+                PageRequest.of(page, size, sortOrder));
+
+        List<ProofGeneralInfo> proofGeneralInfos = mapper.toProofGeneralInfos(proofsPage.getContent());
+
+        return new PageWithMetadata<>(proofGeneralInfos, proofsPage.getTotalPages());
+    }
 
     public ProofDetailInfo getProofDetailInfo(Long talentId, Long proofId) {
         verifyTalentExistsById(talentId);
-
         Proof proof = getProofById(proofId);
+
+        accessVerifyService.tryGetAccess(talentId, "You cannot get proof detail info");
         verifyTalentContainProof(talentId, proof);
 
         return mapper.toProofDetailInfo(proof);
@@ -50,9 +61,12 @@ public class ProofService {
 
     @Transactional
     public URI createProof(ProofModify proofModify, Long talentId) {
-        Proof proof = mapper.toProof(proofModify);
         Talent talent = talentRepository.findById(talentId)
-                .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
+            .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
+
+        accessVerifyService.tryGetAccess(talentId, "You do not have permission to create proof");
+
+        Proof proof = mapper.toProof(proofModify);
 
         proof.setTalent(talent);
         proofRepository.save(proof);
@@ -66,17 +80,10 @@ public class ProofService {
     }
 
     @Transactional
-    public void deleteProof(Long proofId, Long talentId) {
-        Proof proofToDelete = getProofById(proofId);
-        verifyTalentContainProof(talentId, proofToDelete);
-        proofRepository.delete(proofToDelete);
-
-    }
-
-    @Transactional
     public ProofDetailInfo editProof(ProofModify proofModify, Long talentId, Long proofId) {
         verifyTalentExistsById(talentId);
         Proof foundProof = getProofById(proofId);
+        accessVerifyService.tryGetAccess(talentId, "You do not have permission to edit proof");
         verifyTalentContainProof(talentId, foundProof);
 
         Consumer<Proof> modifyingStrategy = selectProofModifyStrategy(proofModify, foundProof.getStatus());
@@ -84,6 +91,34 @@ public class ProofService {
         modifyingStrategy.accept(foundProof);
 
         return mapper.toProofDetailInfo(foundProof);
+    }
+
+    public PageWithMetadata<ProofDetailInfo> getTalentProofs(int page, int size, String sort,
+                                                             Long talentId, String status) {
+        verifyTalentExistsById(talentId);
+        ProofStatus proofStatus = ProofStatus.valueOf(status.toUpperCase());
+
+        if (!PUBLISHED.equals(proofStatus))
+            accessVerifyService.tryGetAccess(talentId, "You do not have permission to get list of proofs");
+
+        Sort sortOrder = getSortByString(sort);
+
+        Page<Proof> proofsPage = proofRepository.findAllByTalentIdAndStatus(talentId, proofStatus,
+                PageRequest.of(page, size, sortOrder));
+
+        List<ProofDetailInfo> proofDetailInfos = mapper.toProofDetailInfos(proofsPage.getContent());
+
+        return new PageWithMetadata<>(proofDetailInfos, proofsPage.getTotalPages());
+    }
+
+    @Transactional
+    public void deleteProof(Long proofId, Long talentId) {
+        verifyTalentExistsById(talentId);
+        Proof proofToDelete = getProofById(proofId);
+        accessVerifyService.tryGetAccess(talentId, "You do not have permission to delete proof");
+        verifyTalentContainProof(talentId, proofToDelete);
+        proofRepository.delete(proofToDelete);
+
     }
 
     private Consumer<Proof> selectProofModifyStrategy(ProofModify proofModify, ProofStatus currentStatus) {
@@ -107,8 +142,8 @@ public class ProofService {
         else if (reopenCase.test(proofModify, currentStatus))
             strategy = proof -> proof.setStatus(PUBLISHED);
         else
-            throw new IllegalProofModifyingException("Illegal operation for modifying status [" + currentStatus +
-                    " -> " + proofModify.getStatus() + "]");
+            throw new IllegalProofModifyingException("Illegal operation for modifying status ["
+                    + currentStatus + " -> " + proofModify.getStatus() + "]");
 
         return strategy;
     }
@@ -143,21 +178,6 @@ public class ProofService {
                 .orElseThrow(() -> new ProofNotFoundException("Proof was not found"));
     }
 
-    public PageWithMetadata<ProofGeneralInfo> getProofs(int page, int size, String sort) {
-        Sort sortOrder = getSortByString(sort);
-        Page<Proof> proofsPage = proofRepository.findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(page, size, sortOrder));
-        List<ProofGeneralInfo> proofGeneralInfos = mapper.toProofGeneralInfos(proofsPage.getContent());
-        return new PageWithMetadata<>(proofGeneralInfos, proofsPage.getTotalPages());
-    }
-
-    public PageWithMetadata<ProofDetailInfo> getTalentProofs(int page, int size, String sort, Long talentId, String status) {
-        verifyTalentExistsById(talentId);
-        Sort sortOrder = getSortByString(sort);
-        ProofStatus proofStatus = getStatusByString(status);
-        Page<Proof> proofsPage = proofRepository.findAllByTalentIdAndStatus(talentId, proofStatus, PageRequest.of(page, size, sortOrder));
-        List<ProofDetailInfo> proofDetailInfos = mapper.toProofDetailInfos(proofsPage.getContent());
-        return new PageWithMetadata<>(proofDetailInfos, proofsPage.getTotalPages());
-    }
 
     private Sort getSortByString(String sort){
         if(sort.equals("desc"))
@@ -168,13 +188,4 @@ public class ProofService {
 
     }
 
-    private ProofStatus getStatusByString(String status){
-        if(status.equals("draft"))
-            return DRAFT;
-        if(status.equals("published"))
-            return PUBLISHED;
-        if(status.equals("hidden"))
-            return HIDDEN;
-        throw new WrongStatusInputException("Unexpected input of status");
-    }
 }
