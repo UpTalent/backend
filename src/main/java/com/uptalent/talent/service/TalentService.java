@@ -19,7 +19,6 @@ import com.uptalent.talent.model.response.TalentProfile;
 import com.uptalent.payload.AuthResponse;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.util.service.AccessVerifyService;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -51,7 +50,6 @@ public class TalentService {
     private final FileStoreService fileStoreService;
     private final AccessVerifyService accessVerifyService;
 
-    @NotNull
     @Value("${aws.bucket.name}")
     private String BUCKET_NAME;
 
