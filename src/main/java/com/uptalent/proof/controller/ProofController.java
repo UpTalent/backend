@@ -9,6 +9,8 @@ import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.proof.service.ProofService;
 import com.uptalent.util.annotation.EnumValue;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,19 +29,25 @@ public class ProofController {
 
     @GetMapping("/proofs")
     @ResponseStatus(HttpStatus.OK)
-    public PageWithMetadata<ProofGeneralInfo> getAllProofs(@RequestParam(defaultValue = "0") int page,
-                                                           @RequestParam(defaultValue = "9") int size,
-                                                           @RequestParam(defaultValue = "desc") String sort) {
+    public PageWithMetadata<ProofGeneralInfo> getAllProofs(
+            @Min(value = 0, message = "Page should be greater or equals 0")
+            @RequestParam(defaultValue = "0") int page,
+            @Positive(message = "Size should be positive")
+            @RequestParam(defaultValue = "9") int size,
+            @RequestParam(defaultValue = "desc") String sort) {
         return proofService.getProofs(page, size, sort);
     }
     @GetMapping("/talents/{talent-id}/proofs")
     @ResponseStatus(HttpStatus.OK)
-    public PageWithMetadata<ProofDetailInfo> getAllTalentProofs(@RequestParam(defaultValue = "0") int page,
-                                                                @RequestParam(defaultValue = "9") int size,
-                                                                @RequestParam(defaultValue = "published")
-                                                                @EnumValue(enumClass = ProofStatus.class) String status,
-                                                                @RequestParam(defaultValue = "desc") String sort,
-                                                                @PathVariable("talent-id") Long talentId) {
+    public PageWithMetadata<ProofDetailInfo> getAllTalentProofs(
+            @Min(value = 0, message = "Page should be greater or equals 0")
+            @RequestParam(defaultValue = "0") int page,
+            @Positive(message = "Size should be positive")
+            @RequestParam(defaultValue = "3") int size,
+            @RequestParam(defaultValue = "published")
+            @EnumValue(enumClass = ProofStatus.class) String status,
+            @RequestParam(defaultValue = "desc") String sort,
+            @PathVariable("talent-id") Long talentId) {
         return proofService.getTalentProofs(page, size, sort, talentId, status);
     }
     @GetMapping("/talents/{talentId}/proofs/{proofId}")

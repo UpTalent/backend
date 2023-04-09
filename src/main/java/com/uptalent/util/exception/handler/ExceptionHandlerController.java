@@ -3,6 +3,7 @@ package com.uptalent.util.exception.handler;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.util.exception.InvalidEnumValueException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,5 +46,16 @@ public class ExceptionHandlerController extends ResponseEntityExceptionHandler {
     public HttpResponse handlerExistsTalentException(DeniedAccessException e) {
         return new HttpResponse(e.getMessage());
     }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Object> handlerConstraintViolationException(ConstraintViolationException e) {
+        String [] errorMessages = e.getMessage().split(", ");
+        Map<String, String> errors = new HashMap<>();
+        Arrays.stream(errorMessages).forEach(
+                error -> errors.put(error.split("\\.")[1].split(": ")[0], error.split(": ")[1]));
+
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
 
 }
