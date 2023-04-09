@@ -35,10 +35,10 @@ public class FakeDataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        log.info("Bucket name is blank?:{}", env.getProperty("BUCKET").isBlank());
-        log.info("Region is blank?:{}", env.getProperty("S3_REGION").isBlank());
-        log.info("Access key is blank?:{}", env.getProperty("S3_ACCESS_KEY").isBlank());
-        log.info("Secret key is blank?:{}", env.getProperty("S3_SECRET_KEY").isBlank());
+        log.info("Bucket name is blank?:{}", env.getProperty("aws.bucket.name").isBlank());
+        log.info("Region is blank?:{}", env.getProperty("aws.bucket.region").isBlank());
+        log.info("Access key is blank?:{}", env.getProperty("aws.bucket.access-key").isBlank());
+        log.info("Secret key is blank?:{}", env.getProperty("aws.bucket.secret-key").isBlank());
 
         for (int i = 0; i < SIZE; i++) {
             Talent talent = generateOneTalent();
