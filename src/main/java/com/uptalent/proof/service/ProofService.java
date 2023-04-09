@@ -40,7 +40,7 @@ public class ProofService {
     private final AccessVerifyService accessVerifyService;
 
     public PageWithMetadata<ProofGeneralInfo> getProofs(int page, int size, String sort) {
-        Sort sortOrder = getSortByString(sort);
+        Sort sortOrder = getSortByString(sort, PUBLISHED);
         Page<Proof> proofsPage = proofRepository.findAllByStatus(ProofStatus.PUBLISHED,
                 PageRequest.of(page, size, sortOrder));
 
@@ -101,7 +101,7 @@ public class ProofService {
         if (!PUBLISHED.equals(proofStatus))
             accessVerifyService.tryGetAccess(talentId, "You do not have permission to get list of proofs");
 
-        Sort sortOrder = getSortByString(sort);
+        Sort sortOrder = getSortByString(sort, proofStatus);
 
         Page<Proof> proofsPage = proofRepository.findAllByTalentIdAndStatus(talentId, proofStatus,
                 PageRequest.of(page, size, sortOrder));
@@ -179,13 +179,15 @@ public class ProofService {
     }
 
 
-    private Sort getSortByString(String sort){
-        if(sort.equals("desc"))
-            return Sort.by("published").descending();
-        if(sort.equals("asc"))
-            return Sort.by("published").ascending();
-        throw new WrongSortOrderException("Unexpected input of sort order");
+    private Sort getSortByString(String sort, ProofStatus status){
+        String sortField = status.equals(DRAFT) ? "id" : "published";
 
+        if(sort.equals("desc"))
+            return Sort.by(sortField).descending();
+        else if (sort.equals("asc"))
+            return Sort.by(sortField).ascending();
+        else
+            throw new WrongSortOrderException("Unexpected input of sort order");
     }
 
 }
