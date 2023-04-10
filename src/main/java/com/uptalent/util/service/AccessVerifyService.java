@@ -1,14 +1,12 @@
 package com.uptalent.util.service;
 
 import com.uptalent.talent.exception.DeniedAccessException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
-@Component
-@RequiredArgsConstructor
+@Service
 public class AccessVerifyService {
 
     public boolean isPersonalProfile(Long talentId) {
