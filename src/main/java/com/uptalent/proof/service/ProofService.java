@@ -51,9 +51,9 @@ public class ProofService {
 
     public ProofDetailInfo getProofDetailInfo(Long talentId, Long proofId) {
         verifyTalentExistsById(talentId);
+        accessVerifyService.tryGetAccess(talentId, "You cannot get proof detail info");
         Proof proof = getProofById(proofId);
 
-        accessVerifyService.tryGetAccess(talentId, "You cannot get proof detail info");
         verifyTalentContainProof(talentId, proof);
 
         return mapper.toProofDetailInfo(proof);
@@ -70,7 +70,9 @@ public class ProofService {
 
         proof.setTalent(talent);
         proofRepository.save(proof);
+
         talent.getProofs().add(proof);
+        talentRepository.save(talent);
 
         return ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -82,8 +84,8 @@ public class ProofService {
     @Transactional
     public ProofDetailInfo editProof(ProofModify proofModify, Long talentId, Long proofId) {
         verifyTalentExistsById(talentId);
-        Proof foundProof = getProofById(proofId);
         accessVerifyService.tryGetAccess(talentId, "You do not have permission to edit proof");
+        Proof foundProof = getProofById(proofId);
         verifyTalentContainProof(talentId, foundProof);
 
         Consumer<Proof> modifyingStrategy = selectProofModifyStrategy(proofModify, foundProof.getStatus());
@@ -114,11 +116,12 @@ public class ProofService {
     @Transactional
     public void deleteProof(Long proofId, Long talentId) {
         verifyTalentExistsById(talentId);
-        Proof proofToDelete = getProofById(proofId);
         accessVerifyService.tryGetAccess(talentId, "You do not have permission to delete proof");
-        verifyTalentContainProof(talentId, proofToDelete);
-        proofRepository.delete(proofToDelete);
 
+        Proof proofToDelete = getProofById(proofId);
+        verifyTalentContainProof(talentId, proofToDelete);
+
+        proofRepository.delete(proofToDelete);
     }
 
     private Consumer<Proof> selectProofModifyStrategy(ProofModify proofModify, ProofStatus currentStatus) {
