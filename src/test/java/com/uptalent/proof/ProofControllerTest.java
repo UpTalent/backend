@@ -65,9 +65,6 @@ public class ProofControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private static final Long nonExistentProofId = 1000L;
-    private static final Long nonExistentTalentId = 1000L;
-
     private ProofModify proofModify;
     private Proof publishedProof;
     private Proof hiddenProof;
@@ -440,12 +437,12 @@ public class ProofControllerTest {
     @Test
     @DisplayName("[Stage-2] [US-6] - Try to get proof detail info when talent is not found")
     public void getProofDetailInfoNotFound() throws Exception {
-        given(proofService.getProofDetailInfo(nonExistentTalentId, proof.getId()))
+        given(proofService.getProofDetailInfo(talent.getId(), proof.getId()))
                 .willThrow(new TalentNotFoundException("Talent not found"));
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/v1/talents/{talentId}/proofs/{proofId}",
-                                nonExistentTalentId, proof.getId())
+                                talent.getId(), proof.getId())
                         .accept(MediaType.APPLICATION_JSON));
 
         response
@@ -457,12 +454,12 @@ public class ProofControllerTest {
     @Test
     @DisplayName("[Stage-2] [US-6] - Try to get proof detail info when proof is not found")
     public void getProofDetailInfoFromNonExistentProof() throws Exception {
-        given(proofService.getProofDetailInfo(talent.getId(), nonExistentProofId))
+        given(proofService.getProofDetailInfo(talent.getId(), proof.getId()))
                 .willThrow(new ProofNotFoundException("Proof not found"));
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/v1/talents/{talentId}/proofs/{proofId}",
-                                talent.getId(), nonExistentProofId)
+                                talent.getId(), proof.getId())
                         .accept(MediaType.APPLICATION_JSON));
 
         response
