@@ -74,9 +74,9 @@ public class FakeDataLoader implements CommandLineRunner {
     }
 
     private Proof generateOneProof(Talent talent) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         Proof proof = Proof.builder()
-                .iconNumber(faker.random().nextInt(5) + 1)
+                .iconNumber(faker.random().nextInt(11))
                 .title("Proof of " + talent.getFirstname() + " " + talent.getLastname())
                 .summary("Summary of " + talent.getFirstname() + " " + talent.getLastname())
                 .content(faker.lorem().paragraph())

@@ -19,7 +19,7 @@ public class ProofModify {
     @Size(max = 5000, message = "Content must be less than 5000 characters")
     private String content;
     @NotNull(message = "Icon number should not be null")
-    @Positive(message = "Icon number should be positive")
+    @Min(value = 0, message = "Icon number shouldn't be less than 0")
     private Integer iconNumber;
     @EnumValue(enumClass = ProofStatus.class)
     private String status;

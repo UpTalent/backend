@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -37,8 +38,9 @@ import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureWebMvc
@@ -64,9 +66,6 @@ public class ProofControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    private static final Long nonExistentProofId = 1000L;
-    private static final Long nonExistentTalentId = 1000L;
 
     private ProofModify proofModify;
     private Proof publishedProof;
@@ -139,7 +138,82 @@ public class ProofControllerTest {
     }
 
     @Test
-    @Order(4)
+    @DisplayName("[Stage 2] [US 1-2] - Get all proofs with wrong sort order should return exception")
+    public void getProofGeneralInfoWithWrongSortOrder() throws Exception {
+
+        String wrongSortName = "dgss";
+        given(proofService.getProofs(0, 9, wrongSortName)).willThrow(new WrongSortOrderException("Unexpected input of sort order"));
+
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.get("/api/v1/proofs")
+                        .param("sort", wrongSortName)
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+
+    @Test
+    @DisplayName("[Stage 2] [US 3] - Create new proof successfully")
+    void createProofSuccessfully() throws Exception {
+        URI proofLocation = new URI("http://mock/api/v1/talents/1/proofs/1");
+        given(proofService.createProof(any(ProofModify.class), anyLong())).willReturn(proofLocation);
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/talents/{talentId}/proofs",
+                        talent.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(proofModify)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", proofLocation.toString()));
+    }
+
+    @Test
+    @DisplayName("[Stage 2] [US 3] - Try to create proof in another talent profile")
+    void createProofInAnotherTalentProfile() throws Exception {
+        given(proofService.createProof(any(ProofModify.class), anyLong()))
+                .willThrow(new DeniedAccessException("You do not have permission"));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/talents/{talentId}/proofs",
+                        talent.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(proofModify)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+
+    @Test
+    @DisplayName("[Stage 2] [US 3] - Try to create proof in non-existent talent profile")
+    void createProofInNonExistentTalentProfile() throws Exception {
+        given(proofService.createProof(any(ProofModify.class), anyLong()))
+                .willThrow(new TalentNotFoundException("Talent not found"));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/talents/{talentId}/proofs",
+                        talent.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(proofModify)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+
+    @Test
     @DisplayName("[Stage-2] [US-4] - edit proof with other auth")
     void editProofWithOtherAuth() throws Exception {
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
@@ -422,12 +496,12 @@ public class ProofControllerTest {
     @Test
     @DisplayName("[Stage-2] [US-6] - Try to get proof detail info when talent is not found")
     public void getProofDetailInfoNotFound() throws Exception {
-        given(proofService.getProofDetailInfo(nonExistentTalentId, proof.getId()))
+        given(proofService.getProofDetailInfo(talent.getId(), proof.getId()))
                 .willThrow(new TalentNotFoundException("Talent not found"));
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/v1/talents/{talentId}/proofs/{proofId}",
-                                nonExistentTalentId, proof.getId())
+                                talent.getId(), proof.getId())
                         .accept(MediaType.APPLICATION_JSON));
 
         response
@@ -439,12 +513,12 @@ public class ProofControllerTest {
     @Test
     @DisplayName("[Stage-2] [US-6] - Try to get proof detail info when proof is not found")
     public void getProofDetailInfoFromNonExistentProof() throws Exception {
-        given(proofService.getProofDetailInfo(talent.getId(), nonExistentProofId))
+        given(proofService.getProofDetailInfo(talent.getId(), proof.getId()))
                 .willThrow(new ProofNotFoundException("Proof not found"));
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/v1/talents/{talentId}/proofs/{proofId}",
-                                talent.getId(), nonExistentProofId)
+                                talent.getId(), proof.getId())
                         .accept(MediaType.APPLICATION_JSON));
 
         response
@@ -522,21 +596,67 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage 2] [US 1-2] - Get all proofs with wrong sort order should return exception")
-    public void getProofGeneralInfoWithWrongSortOrder() throws Exception {
-
-        String wrongSortName = "dgss";
-        given(proofService.getProofs(0, 9, wrongSortName)).willThrow(new WrongSortOrderException("Unexpected input of sort order"));
-
-
+    @DisplayName("[Stage-2] [US-6] - Delete proof successfully")
+    public void deleteProofSuccessfully() throws Exception {
         ResultActions response = mockMvc
-                .perform(MockMvcRequestBuilders.get("/api/v1/proofs")
-                        .param("sort", wrongSortName)
+                .perform(MockMvcRequestBuilders.delete("/api/v1/talents/{talentId}/proofs/{proofId}",
+                                talent.getId(), proof.getId())
                         .accept(MediaType.APPLICATION_JSON));
 
         response
                 .andDo(print())
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("[Stage-2] [US-6] - Try delete someone else's proof")
+    public void tryDeleteSomeoneProof() throws Exception {
+        willThrow(new DeniedAccessException("You are not allowed to delete this proof"))
+                .given(proofService).deleteProof(proof.getId(), talent.getId());
+
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.delete("/api/v1/talents/{talentId}/proofs/{proofId}",
+                                talent.getId(), proof.getId())
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+
+    @Test
+    @DisplayName("[Stage-2] [US-6] - Try to delete proof when talent is not found")
+    public void tryDeleteProofWhenTalentNotFound() throws Exception {
+        willThrow(new TalentNotFoundException("Talent not found"))
+                .given(proofService).deleteProof(proof.getId(), proof.getId());
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.delete("/api/v1/talents/{talentId}/proofs/{proofId}",
+                                talent.getId(), proof.getId())
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+
+    @Test
+    @DisplayName("[Stage-2] [US-6] - Try to delete non-existent proof")
+    public void tryDeleteNonExistentProof() throws Exception {
+        willThrow(new ProofNotFoundException("Proof not found"))
+                .given(proofService).deleteProof(proof.getId(), talent.getId());
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.delete("/api/v1/talents/{talentId}/proofs/{proofId}",
+                                talent.getId(), proof.getId())
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 

@@ -2,6 +2,7 @@ package com.uptalent.proof;
 
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.util.service.AccessVerifyService;
 import org.springframework.data.domain.Page;
 import com.uptalent.proof.exception.IllegalProofModifyingException;
@@ -28,13 +29,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
 
 @ExtendWith({MockitoExtension.class})
@@ -57,9 +57,6 @@ public class ProofServiceTest {
 
     @InjectMocks
     private ProofService proofService;
-
-    private static final Long nonExistentProofId = 1000L;
-    private static final Long nonExistentTalentId = 1000L;
 
     private Proof proof;
     private Talent talent;
@@ -138,6 +135,8 @@ public class ProofServiceTest {
                 .skills(Set.of("Java", "Spring"))
                 .build();
 
+        talent.setProofs(new ArrayList<>(Arrays.asList(draftProof, publishedProof, hiddenProof)));
+
         proofModify = new ProofModify("New Proof title", "New Proof summary", "New Proof content",
                 2, ProofStatus.DRAFT.name());
 
@@ -149,6 +148,41 @@ public class ProofServiceTest {
                 3, ProofStatus.HIDDEN.name());
         reopenProofCase = new ProofModify("Reopen Proof title", "Reopen Proof summary", "Reopen Proof content",
                 3, ProofStatus.PUBLISHED.name());
+    }
+
+    @Test
+    @DisplayName("[Stage 2] [US 1-2] - Get all proofs successfully in service")
+    public void getProofGeneralInfoSuccessfully() {
+        List<Proof> proofs = List.of(proof, publishedProof);
+        List<ProofGeneralInfo> proofGeneralInfos = List.of(
+                ProofGeneralInfo.builder()
+                        .id(proof.getId())
+                        .title(proof.getTitle())
+                        .iconNumber(proof.getIconNumber())
+                        .published(proof.getPublished())
+                        .summary(proof.getSummary())
+                        .build(),
+                ProofGeneralInfo.builder()
+                        .id(publishedProof.getId())
+                        .title(publishedProof.getTitle())
+                        .summary(publishedProof.getSummary())
+                        .iconNumber(publishedProof.getIconNumber())
+                        .published(publishedProof.getPublished())
+                        .build()
+        );
+
+        Page<Proof> proofsPage = new PageImpl<>(proofs);
+
+        when(proofRepository.findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(0, 9, Sort.by("published").descending()))).thenReturn(proofsPage);
+        when(mapper.toProofGeneralInfos(proofs)).thenReturn(proofGeneralInfos);
+
+        PageWithMetadata<ProofGeneralInfo> result = proofService.getProofs(0, 9, "desc");
+
+        verify(proofRepository, times(1)).findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(0, 9, Sort.by("published").descending()));
+        verify(mapper, times(1)).toProofGeneralInfos(proofs);
+
+        assertThat(result.getContent()).isEqualTo(proofGeneralInfos);
+        assertThat(result.getContent().get(0).getPublished()).isEqualTo(proofGeneralInfos.get(0).getPublished());
     }
 
     @Test
@@ -361,11 +395,11 @@ public class ProofServiceTest {
     @DisplayName("[Stage-2] [US-6] - Try to get proof detail info when talent is not found")
     public void getProofDetailInfoFromNonExistentTalent() {
         // when
-        when(talentRepository.existsById(nonExistentTalentId)).thenReturn(false);
+        when(talentRepository.existsById(proof.getId())).thenReturn(false);
 
         // then
         assertThrows(TalentNotFoundException.class,
-                () -> proofService.getProofDetailInfo(nonExistentTalentId, proof.getId()));
+                () -> proofService.getProofDetailInfo(proof.getId(), proof.getId()));
     }
 
     @Test
@@ -373,11 +407,11 @@ public class ProofServiceTest {
     public void getProofDetailInfoFromNonExistentProof() {
         // when
         when(talentRepository.existsById(talent.getId())).thenReturn(true);
-        when(proofRepository.findById(nonExistentProofId)).thenReturn(Optional.empty());
+        when(proofRepository.findById(proof.getId())).thenReturn(Optional.empty());
 
         // then
         assertThrows(ProofNotFoundException.class,
-                () -> proofService.getProofDetailInfo(talent.getId(), nonExistentProofId));
+                () -> proofService.getProofDetailInfo(talent.getId(), proof.getId()));
     }
 
     @Test
@@ -403,37 +437,48 @@ public class ProofServiceTest {
     }
 
     @Test
-    @DisplayName("[Stage 2] [US 1-2] - Get all proofs successfully in service")
-    public void getProofGeneralInfoSuccessfully() {
-        List<Proof> proofs = List.of(proof, publishedProof);
-        List<ProofGeneralInfo> proofGeneralInfos = List.of(
-                ProofGeneralInfo.builder()
-                        .id(proof.getId())
-                        .title(proof.getTitle())
-                        .iconNumber(proof.getIconNumber())
-                        .published(proof.getPublished())
-                        .summary(proof.getSummary())
-                        .build(),
-                ProofGeneralInfo.builder()
-                        .id(publishedProof.getId())
-                        .title(publishedProof.getTitle())
-                        .summary(publishedProof.getSummary())
-                        .iconNumber(publishedProof.getIconNumber())
-                        .published(publishedProof.getPublished())
-                        .build()
-        );
+    @DisplayName("[Stage-2] [US-6] - Delete proof successfully")
+    public void deleteProofSuccessfully() {
+        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
+        given(talentRepository.existsById(talent.getId())).willReturn(true);
 
-        Page<Proof> proofsPage = new PageImpl<>(proofs);
+        proofService.deleteProof(proof.getId(), talent.getId());
 
-        when(proofRepository.findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(0, 9, Sort.by("published").descending()))).thenReturn(proofsPage);
-        when(mapper.toProofGeneralInfos(proofs)).thenReturn(proofGeneralInfos);
+        verify(proofRepository).delete(proof);
 
-        PageWithMetadata<ProofGeneralInfo> result = proofService.getProofs(0, 9, "desc");
+        assertThat(proofRepository.existsById(proof.getId())).isFalse();
+    }
 
-        verify(proofRepository, times(1)).findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(0, 9, Sort.by("published").descending()));
-        verify(mapper, times(1)).toProofGeneralInfos(proofs);
+    @Test
+    @DisplayName("[Stage-2] [US-6] - Try delete someone else's proof")
+    public void tryDeleteSomeoneProof() {
+        given(talentRepository.existsById(talent.getId())).willReturn(true);
 
-        assertThat(result.getContent()).isEqualTo(proofGeneralInfos);
-        assertThat(result.getContent().get(0).getPublished()).isEqualTo(proofGeneralInfos.get(0).getPublished());
+        willThrow(DeniedAccessException.class)
+                .given(accessVerifyService)
+                .tryGetAccess(talent.getId(), "You do not have permission to delete proof");
+
+
+        assertThrows(DeniedAccessException.class,
+                () -> proofService.deleteProof(proof.getId(), talent.getId()));
+    }
+
+    @Test
+    @DisplayName("[Stage-2] [US-6] - Try to delete proof when talent is not found")
+    public void tryDeleteProofWhenTalentNotFound() {
+        given(talentRepository.existsById(talent.getId())).willReturn(false);
+
+        assertThrows(TalentNotFoundException.class,
+                () -> proofService.deleteProof(proof.getId(), talent.getId()));
+    }
+
+    @Test
+    @DisplayName("[Stage-2] [US-6] - Try to delete non-existent proof")
+    public void tryDeleteNonExistentProof() {
+        given(talentRepository.existsById(talent.getId())).willReturn(true);
+        given(proofRepository.findById(proof.getId())).willReturn(Optional.empty());
+
+        assertThrows(ProofNotFoundException.class,
+                () -> proofService.deleteProof(proof.getId(), talent.getId()));
     }
 }
