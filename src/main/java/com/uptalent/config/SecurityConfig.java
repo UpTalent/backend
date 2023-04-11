@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .csrf().disable()
                 .cors().configurationSource(request -> {
                     CorsConfiguration corsConfiguration = new CorsConfiguration().applyPermitDefaultValues();
+                    corsConfiguration.addAllowedHeader("Location");
                     corsConfiguration.addAllowedMethod(PATCH);
                     corsConfiguration.addAllowedMethod(PUT);
                     corsConfiguration.addAllowedMethod(DELETE);
