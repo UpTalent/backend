@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +40,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureWebMvc
@@ -151,6 +153,63 @@ public class ProofControllerTest {
         response
                 .andDo(print())
                 .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+
+    @Test
+    @DisplayName("[Stage 2] [US 3] - Create new proof successfully")
+    void createProofSuccessfully() throws Exception {
+        URI proofLocation = new URI("http://mock/api/v1/talents/1/proofs/1");
+        given(proofService.createProof(any(ProofModify.class), anyLong())).willReturn(proofLocation);
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/talents/{talentId}/proofs",
+                        talent.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(proofModify)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", proofLocation.toString()));
+    }
+
+    @Test
+    @DisplayName("[Stage 2] [US 3] - Try to create proof in another talent profile")
+    void createProofInAnotherTalentProfile() throws Exception {
+        given(proofService.createProof(any(ProofModify.class), anyLong()))
+                .willThrow(new DeniedAccessException("You do not have permission"));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/talents/{talentId}/proofs",
+                        talent.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(proofModify)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+
+    @Test
+    @DisplayName("[Stage 2] [US 3] - Try to create proof in non-existent talent profile")
+    void createProofInNonExistentTalentProfile() throws Exception {
+        given(proofService.createProof(any(ProofModify.class), anyLong()))
+                .willThrow(new TalentNotFoundException("Talent not found"));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/talents/{talentId}/proofs",
+                        talent.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(proofModify)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 
