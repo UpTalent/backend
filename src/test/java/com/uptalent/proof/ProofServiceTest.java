@@ -61,9 +61,6 @@ public class ProofServiceTest {
     @InjectMocks
     private ProofService proofService;
 
-    private static final Long nonExistentProofId = 1000L;
-    private static final Long nonExistentTalentId = 1000L;
-
     private Proof proof;
     private Talent talent;
     private Talent anotherTalent;
@@ -401,11 +398,11 @@ public class ProofServiceTest {
     @DisplayName("[Stage-2] [US-6] - Try to get proof detail info when talent is not found")
     public void getProofDetailInfoFromNonExistentTalent() {
         // when
-        when(talentRepository.existsById(nonExistentTalentId)).thenReturn(false);
+        when(talentRepository.existsById(proof.getId())).thenReturn(false);
 
         // then
         assertThrows(TalentNotFoundException.class,
-                () -> proofService.getProofDetailInfo(nonExistentTalentId, proof.getId()));
+                () -> proofService.getProofDetailInfo(proof.getId(), proof.getId()));
     }
 
     @Test
@@ -413,11 +410,11 @@ public class ProofServiceTest {
     public void getProofDetailInfoFromNonExistentProof() {
         // when
         when(talentRepository.existsById(talent.getId())).thenReturn(true);
-        when(proofRepository.findById(nonExistentProofId)).thenReturn(Optional.empty());
+        when(proofRepository.findById(proof.getId())).thenReturn(Optional.empty());
 
         // then
         assertThrows(ProofNotFoundException.class,
-                () -> proofService.getProofDetailInfo(talent.getId(), nonExistentProofId));
+                () -> proofService.getProofDetailInfo(talent.getId(), proof.getId()));
     }
 
     @Test
