@@ -68,6 +68,9 @@ public class ProofService {
 
         Proof proof = mapper.toProof(proofModify);
 
+        if (!proof.getStatus().equals(DRAFT))
+            throw new IllegalCreatingProofException("Proof status for creating should be DRAFT");
+
         proof.setTalent(talent);
         proofRepository.save(proof);
 
