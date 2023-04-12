@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.controller.ProofController;
-import com.uptalent.proof.exception.IllegalProofModifyingException;
-import com.uptalent.proof.exception.ProofNotFoundException;
-import com.uptalent.proof.exception.UnrelatedProofException;
-import com.uptalent.proof.exception.WrongSortOrderException;
+import com.uptalent.proof.exception.*;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
@@ -211,6 +208,30 @@ public class ProofControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+
+    @Test
+    @DisplayName("[Stage 2] [US 3] - Try to create proof with other status")
+    void createProofWithOtherStatus() throws Exception {
+        String errorMessage = "Proof status for creating should be DRAFT";
+
+        given(proofService.createProof(any(ProofModify.class), anyLong()))
+                .willThrow(new IllegalCreatingProofException(errorMessage));
+
+        proofModify.setStatus(ProofStatus.PUBLISHED.name());
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/talents/{talentId}/proofs",
+                                talent.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(proofModify)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(errorMessage));
     }
 
     @Test
