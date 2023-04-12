@@ -24,8 +24,8 @@ public class ProofExceptionHandler extends ExceptionHandlerController {
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler(IllegalProofModifyingException.class)
-    public HttpResponse handlerIllegalProofModifyingException(IllegalProofModifyingException e) {
+    @ExceptionHandler({IllegalProofModifyingException.class, IllegalCreatingProofException.class})
+    public HttpResponse handlerIllegalProofModifyingException(RuntimeException e) {
         return new HttpResponse(e.getMessage());
     }
 
