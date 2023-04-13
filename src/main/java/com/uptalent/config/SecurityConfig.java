@@ -17,6 +17,7 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.Customizer.withDefaults;
+import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -34,6 +35,8 @@ public class SecurityConfig {
                 .csrf().disable()
                 .cors().configurationSource(request -> {
                     CorsConfiguration corsConfiguration = new CorsConfiguration().applyPermitDefaultValues();
+                    corsConfiguration.addAllowedHeader("*");
+                    corsConfiguration.addExposedHeader("Location");
                     corsConfiguration.addAllowedMethod(PATCH);
                     corsConfiguration.addAllowedMethod(PUT);
                     corsConfiguration.addAllowedMethod(DELETE);
@@ -45,6 +48,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests((authz) -> authz
                         .requestMatchers(GET, "/api/v1/talents").permitAll()
                         .requestMatchers(POST, "/api/v1/talents", "/api/v1/talents/login").permitAll()
+                        .requestMatchers(GET, "/api/v1/proofs").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

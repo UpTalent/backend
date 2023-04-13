@@ -2,13 +2,10 @@ package com.uptalent.talent.service;
 
 import com.uptalent.filestore.FileStoreOperation;
 import com.uptalent.filestore.FileStoreService;
-import com.uptalent.filestore.exception.EmptyFileException;
 import com.uptalent.filestore.exception.FailedToUploadFileException;
-import com.uptalent.filestore.exception.IncorrectFileFormatException;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
-import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.talent.exception.EmptySkillsException;
 import com.uptalent.talent.exception.TalentExistsException;
 import com.uptalent.talent.exception.TalentNotFoundException;
@@ -21,6 +18,7 @@ import com.uptalent.talent.model.response.TalentOwnProfile;
 import com.uptalent.talent.model.response.TalentProfile;
 import com.uptalent.payload.AuthResponse;
 import com.uptalent.talent.repository.TalentRepository;
+import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -35,10 +33,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
-import static org.apache.http.entity.ContentType.IMAGE_JPEG;
-import static org.apache.http.entity.ContentType.IMAGE_PNG;
+import static com.uptalent.util.ImageUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +48,8 @@ public class TalentService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final FileStoreService fileStoreService;
+    private final AccessVerifyService accessVerifyService;
+
     @Value("${aws.bucket.name}")
     private String BUCKET_NAME;
 
@@ -103,7 +103,7 @@ public class TalentService {
     public TalentProfile getTalentProfileById(Long id) {
         Talent foundTalent = getTalentById(id);
 
-        if (isPersonalProfile(foundTalent)) {
+        if (accessVerifyService.isPersonalProfile(id)) {
             return talentMapper.toTalentOwnProfile(foundTalent);
         } else {
             return talentMapper.toTalentProfile(foundTalent);
@@ -113,9 +113,7 @@ public class TalentService {
     @Transactional
     public TalentOwnProfile updateTalent(Long id, TalentEdit updatedTalent) {
         Talent talentToUpdate = getTalentById(id);
-        if(!isPersonalProfile(talentToUpdate)) {
-            throw new DeniedAccessException("You are not allowed to edit this talent");
-        }
+        accessVerifyService.tryGetAccess(id, "You are not allowed to edit this talent");
 
         if(updatedTalent.getSkills().isEmpty()){
             throw new EmptySkillsException("Skills should not be empty");
@@ -139,36 +137,30 @@ public class TalentService {
 
         return talentMapper.toTalentOwnProfile(savedTalent);
     }
+
     @Transactional
     public void deleteTalent(Long id) {
         Talent talentToDelete = getTalentById(id);
-        if (!isPersonalProfile(talentToDelete)) {
-            throw new DeniedAccessException("You are not allowed to delete this talent");
-        } else {
-            talentRepository.delete(talentToDelete);
-        }
+        accessVerifyService.tryGetAccess(id, "You are not allowed to delete this talent");
+        talentRepository.delete(talentToDelete);
     }
 
     @Transactional
     public void uploadImage(Long id, MultipartFile image, FileStoreOperation operation) {
         Talent talent = getTalentById(id);
-        if(!isPersonalProfile(talent)) {
-            throw new DeniedAccessException("You are not allowed to edit this talent");
-        }
+        accessVerifyService.tryGetAccess(id, "You are not allowed to edit this talent");
 
         isFileEmpty(image);
         isImage(image);
 
         Map<String, String> metadata = extractMetadata(image);
         String imageType = operation.equals(FileStoreOperation.UPLOAD_AVATAR) ? "avatar" : "banner";
-
         String path = String.format("%s/%s", BUCKET_NAME, id);
         String filename = String.format("%s.%s", imageType, getFileExtension(image));
-
         String imageUrl = generateImageUrl(id, filename);
 
-        try {
-            fileStoreService.save(path, filename, Optional.of(metadata), image.getInputStream());
+        try(InputStream is = resizeImage(image)) {
+            fileStoreService.save(path, filename, Optional.of(metadata), is);
             if(operation.equals(FileStoreOperation.UPLOAD_AVATAR)) {
                 talent.setAvatar(imageUrl);
             } else {
@@ -185,38 +177,11 @@ public class TalentService {
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
     }
 
-    private boolean isPersonalProfile(Talent talent) {
-        String authEmail = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return authEmail.equalsIgnoreCase(talent.getEmail());
-    }
-
     private static Map<String, String> extractMetadata(MultipartFile file) {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("Content-Type", file.getContentType());
         metadata.put("Content-Length", String.valueOf(file.getSize()));
         return metadata;
-    }
-
-    private static void isImage(MultipartFile file) {
-        if(!Arrays.asList(IMAGE_JPEG.getMimeType(), IMAGE_PNG.getMimeType()).contains(file.getContentType())){
-            throw new IncorrectFileFormatException("File must be an image");
-        }
-    }
-
-    private static void isFileEmpty(MultipartFile file) {
-        if(file.isEmpty()){
-            throw new EmptyFileException("File must not be empty");
-        }
-    }
-
-    private String getFileExtension(MultipartFile file) {
-        String fileName = file.getOriginalFilename();
-        int dotIndex = fileName.lastIndexOf('.');
-        if (dotIndex > 0 && dotIndex < fileName.length() - 1) {
-            return fileName.substring(dotIndex + 1);
-        } else {
-            return "";
-        }
     }
 
     private String generateImageUrl(Long id, String filename) {

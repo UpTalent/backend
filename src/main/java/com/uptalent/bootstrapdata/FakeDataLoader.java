@@ -1,31 +1,54 @@
 package com.uptalent.bootstrapdata;
 
 import com.github.javafaker.Faker;
+import com.uptalent.proof.model.entity.Proof;
+import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.proof.repository.ProofRepository;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.repository.TalentRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Profile("dev")
 @RequiredArgsConstructor
-public class TalentDataLoader implements CommandLineRunner {
+@Slf4j
+public class FakeDataLoader implements CommandLineRunner {
 
     public static final int SIZE = 20;
     private final TalentRepository talentRepository;
+    private final ProofRepository proofRepository;
     private final Faker faker;
     private final PasswordEncoder passwordEncoder;
+    private final Environment env;
 
     @Override
     public void run(String... args) {
+        log.info("Bucket name is blank?:{}", env.getProperty("aws.bucket.name").isBlank());
+        log.info("Region is blank?:{}", env.getProperty("aws.bucket.region").isBlank());
+        log.info("Access key is blank?:{}", env.getProperty("aws.bucket.access-key").isBlank());
+        log.info("Secret key is blank?:{}", env.getProperty("aws.bucket.secret-key").isBlank());
+
         for (int i = 0; i < SIZE; i++) {
-            talentRepository.save(generateOneTalent());
+            Talent talent = generateOneTalent();
+            talentRepository.save(talent);
+
+            Proof proof = generateOneProof(talent);
+            Proof anotherProof = generateOneProof(talent);
+            talent.setProofs(List.of(proof, anotherProof));
+
+            talentRepository.save(talent);
         }
     }
 
@@ -48,6 +71,20 @@ public class TalentDataLoader implements CommandLineRunner {
                 .location(location)
                 .skills(generateSkills())
                 .build();
+    }
+
+    private Proof generateOneProof(Talent talent) {
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        Proof proof = Proof.builder()
+                .iconNumber(faker.random().nextInt(11))
+                .title("Proof of " + talent.getFirstname() + " " + talent.getLastname())
+                .summary("Summary of " + talent.getFirstname() + " " + talent.getLastname())
+                .content(faker.lorem().paragraph())
+                .status(ProofStatus.PUBLISHED)
+                .published(faker.date().past(5, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
+                .talent(talent)
+                .build();
+        return proofRepository.save(proof);
     }
 
     private Set<String> generateSkills() {

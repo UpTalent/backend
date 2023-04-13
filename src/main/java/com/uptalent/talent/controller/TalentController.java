@@ -10,10 +10,13 @@ import com.uptalent.talent.model.response.TalentGeneralInfo;
 import com.uptalent.talent.model.response.TalentOwnProfile;
 import com.uptalent.talent.model.response.TalentProfile;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,13 +24,17 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/talents")
+@Validated
 public class TalentController {
     private final TalentService talentService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public PageWithMetadata<TalentGeneralInfo> getAllTalents(@RequestParam(defaultValue = "0") int page,
-                                                             @RequestParam(defaultValue = "9") int size){
+    public PageWithMetadata<TalentGeneralInfo> getAllTalents(
+            @Min(value = 0, message = "Page should be greater or equals 0")
+            @RequestParam(defaultValue = "0") int page,
+            @Positive(message = "Size should be positive")
+            @RequestParam(defaultValue = "9") int size){
         return talentService.getAllTalents(page, size);
     }
 

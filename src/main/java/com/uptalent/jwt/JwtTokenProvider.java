@@ -57,15 +57,15 @@ public class JwtTokenProvider {
     /**
      * Create authentication for filter authentication
      *
-     * @param email Talent email
+     * @param id Talent id
      * @param authority Talent authority
      * @param request Request for filter
      *
      * @return jwt token
      * */
-    public Authentication getAuthentication(String email, GrantedAuthority authority, HttpServletRequest request) {
+    public Authentication getAuthentication(Long id, GrantedAuthority authority, HttpServletRequest request) {
         UsernamePasswordAuthenticationToken authenticationToken
-                = new UsernamePasswordAuthenticationToken(email, null, List.of(authority));
+                = new UsernamePasswordAuthenticationToken(id, null, List.of(authority));
 
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         return authenticationToken;
@@ -80,9 +80,8 @@ public class JwtTokenProvider {
      * @return is expired token
      * */
     public boolean isTokenValid(String email, String token) {
-        JWTVerifier verifier = getVerifier();
         return StringUtils.isNotEmpty(email) &&
-                !isTokenExpired(verifier, token) &&
+                !isTokenExpired(token) &&
                 getSubject(token).equals(email);
     }
 
@@ -94,20 +93,23 @@ public class JwtTokenProvider {
      * @return email
      * */
     public String getSubject(String token) {
+        return JWT.decode(token).getSubject();
+    }
+
+    public Long getId(String token) {
         JWTVerifier verifier = getVerifier();
-        return verifier.verify(token).getSubject();
+        return verifier.verify(token).getClaim("talent_id").asLong();
     }
 
     /**
      * Check if jwt-token is expired
      *
-     * @param verifier jwt-verifier
      * @param token JWT-Token
      *
      * @return is expired token
      * */
-    private boolean isTokenExpired(JWTVerifier verifier, String token) {
-        Date expiration = verifier.verify(token).getExpiresAt();
+    private boolean isTokenExpired(String token) {
+        Date expiration = JWT.decode(token).getExpiresAt();
         return expiration.before(new Date());
     }
 
