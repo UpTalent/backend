@@ -142,7 +142,7 @@ public class ProofService {
         if (editCase.test(proofModify, currentStatus))
             strategy = proof -> updateProofData(proofModify, proof);
         else if (publishCase.test(proofModify, currentStatus))
-            strategy = proof -> publishProof(proof, modifyingStatus);
+            strategy = proof -> publishProof(proofModify, proof);
         else if (hideCase.test(proofModify, currentStatus))
             strategy = proof -> proof.setStatus(HIDDEN);
         else if (reopenCase.test(proofModify, currentStatus))
@@ -161,9 +161,10 @@ public class ProofService {
         proof.setIconNumber(proofModify.getIconNumber());
     }
 
-    private void publishProof(Proof proof, ProofStatus newStatus) {
+    private void publishProof(ProofModify proofModify, Proof proof) {
+        updateProofData(proofModify, proof);
         proof.setPublished(LocalDateTime.now());
-        proof.setStatus(newStatus);
+        proof.setStatus(PUBLISHED);
     }
 
 
