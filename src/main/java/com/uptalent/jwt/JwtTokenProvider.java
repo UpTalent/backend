@@ -80,9 +80,8 @@ public class JwtTokenProvider {
      * @return is expired token
      * */
     public boolean isTokenValid(String email, String token) {
-        JWTVerifier verifier = getVerifier();
         return StringUtils.isNotEmpty(email) &&
-                !isTokenExpired(verifier, token) &&
+                !isTokenExpired(token) &&
                 getSubject(token).equals(email);
     }
 
@@ -94,8 +93,7 @@ public class JwtTokenProvider {
      * @return email
      * */
     public String getSubject(String token) {
-        JWTVerifier verifier = getVerifier();
-        return verifier.verify(token).getSubject();
+        return JWT.decode(token).getSubject();
     }
 
     public Long getId(String token) {
@@ -106,13 +104,12 @@ public class JwtTokenProvider {
     /**
      * Check if jwt-token is expired
      *
-     * @param verifier jwt-verifier
      * @param token JWT-Token
      *
      * @return is expired token
      * */
-    private boolean isTokenExpired(JWTVerifier verifier, String token) {
-        Date expiration = verifier.verify(token).getExpiresAt();
+    private boolean isTokenExpired(String token) {
+        Date expiration = JWT.decode(token).getExpiresAt();
         return expiration.before(new Date());
     }
 
