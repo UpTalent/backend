@@ -5,11 +5,7 @@ import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.talent.model.entity.Talent;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.GenerationTime;
 
-import javax.annotation.processing.Generated;
 import java.time.LocalDateTime;
 import java.util.Set;
 
