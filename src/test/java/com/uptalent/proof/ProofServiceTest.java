@@ -2,9 +2,10 @@ package com.uptalent.proof;
 
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.pagination.PageWithMetadata;
-import com.uptalent.proof.kudos.IllegalPostingKudos;
-import com.uptalent.proof.kudos.KudosHistoryRepository;
-import com.uptalent.proof.kudos.PostKudos;
+import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
+import com.uptalent.proof.kudos.model.response.KudosSender;
+import com.uptalent.proof.kudos.repository.KudosHistoryRepository;
+import com.uptalent.proof.kudos.model.request.PostKudos;
 import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.util.service.AccessVerifyService;
 import org.springframework.data.domain.Page;
@@ -29,11 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -43,8 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith({MockitoExtension.class})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -103,7 +98,6 @@ public class ProofServiceTest {
                 .iconNumber(1)
                 .status(ProofStatus.PUBLISHED)
                 .talent(talent)
-                .kudos(0)
                 .build();
 
         draftProof = Proof.builder()
@@ -543,5 +537,55 @@ public class ProofServiceTest {
 
         assertThrows(IllegalPostingKudos.class,
                 () -> proofService.postKudos(postKudos, draftProof.getId()));
+    }
+
+    @Test
+    @DisplayName("[Stage-3.1] [US-3] - Get kudos senders successfully")
+    public void getKudosSendersSuccessfully() {
+        given(proofRepository.existsById(proof.getId())).willReturn(true);
+
+        List<KudosSender> expectedKudosSenders = List.of(
+                KudosSender.builder()
+                        .lastname(talent.getLastname())
+                        .firstname(talent.getFirstname())
+                        .avatar(talent.getAvatar())
+                        .sent(LocalDateTime.now())
+                        .kudos(1)
+                        .build(),
+                KudosSender.builder()
+                        .lastname(anotherTalent.getLastname())
+                        .firstname(anotherTalent.getFirstname())
+                        .avatar(anotherTalent.getAvatar())
+                        .sent(LocalDateTime.now())
+                        .kudos(1)
+                        .build()
+        );
+
+        when(kudosHistoryRepository.findKudosSendersByProofId(proof.getId())).thenReturn(expectedKudosSenders);
+        List<KudosSender> actualKudosSenders = proofService.getKudosSenders(proof.getId());
+
+        verify(proofRepository).existsById(proof.getId());
+        verify(kudosHistoryRepository).findKudosSendersByProofId(proof.getId());
+
+        assertThat(expectedKudosSenders.size()).isEqualTo(actualKudosSenders.size());
+
+        for (int i = 0; i < expectedKudosSenders.size(); i++) {
+            KudosSender expected = expectedKudosSenders.get(i);
+            KudosSender actual = actualKudosSenders.get(i);
+            assertThat(expected.getLastname()).isEqualTo(actual.getLastname());
+            assertThat(expected.getFirstname()).isEqualTo(actual.getFirstname());
+            assertThat(expected.getAvatar()).isEqualTo(actual.getAvatar());
+            assertThat(expected.getSent()).isEqualTo(actual.getSent());
+            assertThat(expected.getKudos()).isEqualTo(actual.getKudos());
+        }
+    }
+
+    @Test
+    @DisplayName("[Stage-3.1] [US-3] - Try to get kudos senders from non-existent proof")
+    public void tryGetKudosSendersFromNonExistentProof() {
+        given(proofRepository.existsById(proof.getId())).willReturn(false);
+
+        assertThrows(ProofNotFoundException.class,
+                () -> proofService.getKudosSenders(proof.getId()));
     }
 }

@@ -2,7 +2,8 @@ package com.uptalent.proof.controller;
 
 
 import com.uptalent.pagination.PageWithMetadata;
-import com.uptalent.proof.kudos.PostKudos;
+import com.uptalent.proof.kudos.model.request.PostKudos;
+import com.uptalent.proof.kudos.model.response.KudosSender;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
@@ -19,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 
 @RestController
@@ -79,6 +81,12 @@ public class ProofController {
                                          @PathVariable Long talentId) {
         proofService.deleteProof(proofId, talentId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/proofs/{proofId}/kudos")
+    @ResponseStatus(HttpStatus.OK)
+    public List<KudosSender> getKudosSenders(@PathVariable Long proofId) {
+        return proofService.getKudosSenders(proofId);
     }
 
     @PostMapping("/proofs/{proofId}/kudos")

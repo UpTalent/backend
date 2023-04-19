@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .headers().frameOptions().disable()
                 .and()
                 .authorizeHttpRequests((authz) -> authz
-                        .requestMatchers(GET, "/api/v1/talents").permitAll()
+                        .requestMatchers(GET, "/api/v1/talents", "/actuator/**").permitAll()
                         .requestMatchers(POST, "/api/v1/talents", "/api/v1/talents/login").permitAll()
                         .requestMatchers(GET, "/api/v1/proofs").permitAll()
                         .requestMatchers("/error").permitAll()

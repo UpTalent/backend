@@ -5,8 +5,9 @@ import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.controller.ProofController;
 import com.uptalent.proof.exception.*;
-import com.uptalent.proof.kudos.IllegalPostingKudos;
-import com.uptalent.proof.kudos.PostKudos;
+import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
+import com.uptalent.proof.kudos.model.request.PostKudos;
+import com.uptalent.proof.kudos.model.response.KudosSender;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
@@ -35,6 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.*;
@@ -93,7 +95,7 @@ public class ProofControllerTest {
                 .published(LocalDateTime.now())
                 .status(ProofStatus.PUBLISHED)
                 .talent(talent)
-                .kudos(0)
+                
                 .build();
         draftProof = Proof.builder()
                 .id(20L)
@@ -103,7 +105,6 @@ public class ProofControllerTest {
                 .iconNumber(1)
                 .status(ProofStatus.DRAFT)
                 .talent(talent)
-                .kudos(0)
                 .build();
         publishedProof = Proof.builder()
                 .id(21L)
@@ -114,7 +115,6 @@ public class ProofControllerTest {
                 .iconNumber(1)
                 .status(ProofStatus.PUBLISHED)
                 .talent(talent)
-                .kudos(0)
                 .build();
         hiddenProof = Proof.builder()
                 .id(22L)
@@ -125,7 +125,6 @@ public class ProofControllerTest {
                 .iconNumber(1)
                 .status(ProofStatus.HIDDEN)
                 .talent(talent)
-                .kudos(0)
                 .build();
 
         proofModify = new ProofModify("New Proof title", "New Proof summary", "New Proof content",
@@ -772,5 +771,66 @@ public class ProofControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(errorMessage));
+    }
+
+    @Test
+    @DisplayName("[Stage-3.1] [US-3] - Get kudos senders successfully")
+    public void getKudosSendersSuccessfully() throws Exception {
+        Talent anotherTalent = Talent.builder()
+                .id(2L)
+                .lastname("Doe")
+                .firstname("John")
+                .email("doe.john@gmail.com")
+                .password("1234567890")
+                .skills(Set.of("Java", "Spring"))
+                .build();
+
+        List<KudosSender> expectedKudosSenders = List.of(
+                KudosSender.builder()
+                        .lastname(talent.getLastname())
+                        .firstname(talent.getFirstname())
+                        .avatar(talent.getAvatar())
+                        .sent(LocalDateTime.now())
+                        .kudos(1)
+                        .build(),
+                KudosSender.builder()
+                        .lastname(anotherTalent.getLastname())
+                        .firstname(anotherTalent.getFirstname())
+                        .avatar(anotherTalent.getAvatar())
+                        .sent(LocalDateTime.now())
+                        .kudos(1)
+                        .build()
+        );
+        given(proofService.getKudosSenders(proof.getId()))
+                .willReturn(expectedKudosSenders);
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.get("/api/v1/proofs/{proofId}/kudos",
+                                proof.getId())
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isOk());
+        String responseBody = response.andReturn().getResponse().getContentAsString();
+
+        assertThat(responseBody).isEqualTo(objectMapper.writeValueAsString(expectedKudosSenders));
+    }
+
+    @Test
+    @DisplayName("[Stage-3.1] [US-3] - Try to get kudos senders from non-existent proof")
+    public void tryGetKudosSendersFromNonExistentProof() throws Exception {
+        willThrow(new ProofNotFoundException("Proof not found"))
+                .given(proofService).getKudosSenders(proof.getId());
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.get("/api/v1/proofs/{proofId}/kudos",
+                                proof.getId())
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 }

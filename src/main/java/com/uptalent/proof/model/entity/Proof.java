@@ -1,15 +1,11 @@
 package com.uptalent.proof.model.entity;
 
-import com.uptalent.proof.kudos.KudosHistory;
+import com.uptalent.proof.kudos.model.entity.KudosHistory;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.talent.model.entity.Talent;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.GenerationTime;
 
-import javax.annotation.processing.Generated;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -48,10 +44,9 @@ public class Proof {
     @JoinColumn(name = "talent_id", referencedColumnName = "id")
     private Talent talent;
 
-
+    @Column(nullable = false)
     private int kudos;
 
     @OneToMany(mappedBy = "proof")
     private Set<KudosHistory> kudosHistory;
-
 }

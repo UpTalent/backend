@@ -1,4 +1,4 @@
-package com.uptalent.proof.kudos;
+package com.uptalent.proof.kudos.model.entity;
 
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.talent.model.entity.Talent;
@@ -17,12 +17,16 @@ public class KudosHistory {
     @Id
     @GeneratedValue
     private Long id;
+
     @ManyToOne
     @JoinColumn(name = "talent_id", referencedColumnName = "id")
     private Talent talent;
+
     @ManyToOne
     @JoinColumn(name = "proof_id", referencedColumnName = "id")
     private Proof proof;
+
     private LocalDateTime sent;
-    private Integer kudos;
+
+    private int kudos;
 }

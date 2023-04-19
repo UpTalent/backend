@@ -3,7 +3,7 @@ package com.uptalent.proof.exception.handler;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.proof.exception.*;
 import com.uptalent.proof.exception.WrongSortOrderException;
-import com.uptalent.proof.kudos.IllegalPostingKudos;
+import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
 import com.uptalent.util.exception.handler.ExceptionHandlerController;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;

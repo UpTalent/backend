@@ -3,10 +3,11 @@ package com.uptalent.proof.service;
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.exception.*;
-import com.uptalent.proof.kudos.IllegalPostingKudos;
-import com.uptalent.proof.kudos.KudosHistory;
-import com.uptalent.proof.kudos.KudosHistoryRepository;
-import com.uptalent.proof.kudos.PostKudos;
+import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
+import com.uptalent.proof.kudos.model.entity.KudosHistory;
+import com.uptalent.proof.kudos.model.response.KudosSender;
+import com.uptalent.proof.kudos.repository.KudosHistoryRepository;
+import com.uptalent.proof.kudos.model.request.PostKudos;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.uptalent.proof.model.enums.ProofStatus.*;
 
@@ -131,6 +133,11 @@ public class ProofService {
         proofRepository.delete(proofToDelete);
     }
 
+    public List<KudosSender> getKudosSenders(Long proofId) {
+        verifyProofExistsById(proofId);
+        return kudosHistoryRepository.findKudosSendersByProofId(proofId);
+    }
+
     @Transactional
     public void postKudos(PostKudos kudos, Long proofId) {
         Long talentId = accessVerifyService.getPrincipalId();
@@ -143,11 +150,13 @@ public class ProofService {
                 .talent(talent)
                 .proof(proof)
                 .sent(LocalDateTime.now())
-                .kudos(proof.getKudos())
+                .kudos(kudos.getKudos())
                 .build();
 
         proof.setKudos(proof.getKudos() + kudos.getKudos());
+
         kudosHistoryRepository.save(kudosHistory);
+        proofRepository.save(proof);
     }
 
 
@@ -198,6 +207,12 @@ public class ProofService {
         }
     }
 
+    private void verifyProofExistsById(Long proofId) {
+        if (!proofRepository.existsById(proofId)) {
+            throw new ProofNotFoundException("Talent was not found");
+        }
+    }
+
     private void verifyTalentContainProof(Long talentId, Proof proof) {
         if(!hasTalentProof(talentId, proof)) {
             throw new UnrelatedProofException("This proof is not related to this talent's proofs");
@@ -242,5 +257,4 @@ public class ProofService {
         else
             throw new WrongSortOrderException("Unexpected input of sort order");
     }
-
 }
