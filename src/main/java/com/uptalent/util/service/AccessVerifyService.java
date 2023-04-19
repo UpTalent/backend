@@ -10,12 +10,16 @@ import java.util.Objects;
 public class AccessVerifyService {
 
     public boolean isPersonalProfile(Long talentId) {
-        Long id = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long id = getPrincipalId();
         return Objects.equals(talentId, id);
     }
 
     public void tryGetAccess(Long talentId, String errorMessage) {
         if (!isPersonalProfile(talentId))
             throw new DeniedAccessException(errorMessage);
+    }
+
+    public Long getPrincipalId() {
+        return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }
