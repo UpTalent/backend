@@ -15,7 +15,7 @@ public class ProofGeneralInfo {
     private Integer iconNumber;
     private String title;
     private String summary;
-    private Integer kudos;
+    private int kudos;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime published;
 }
