@@ -19,6 +19,6 @@ public class ProofDetailInfo {
     private String content;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime published;
-    private Integer kudos;
+    private int kudos;
     private ProofStatus status;
 }
