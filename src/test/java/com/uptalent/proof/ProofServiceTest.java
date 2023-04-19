@@ -103,7 +103,6 @@ public class ProofServiceTest {
                 .iconNumber(1)
                 .status(ProofStatus.PUBLISHED)
                 .talent(talent)
-                .kudos(0)
                 .build();
 
         draftProof = Proof.builder()
