@@ -2,6 +2,9 @@ package com.uptalent.proof;
 
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.proof.kudos.IllegalPostingKudos;
+import com.uptalent.proof.kudos.KudosHistoryRepository;
+import com.uptalent.proof.kudos.PostKudos;
 import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.util.service.AccessVerifyService;
 import org.springframework.data.domain.Page;
@@ -26,7 +29,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -36,6 +43,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith({MockitoExtension.class})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -45,6 +54,8 @@ public class ProofServiceTest {
 
     @Mock
     private TalentRepository talentRepository;
+    @Mock
+    private KudosHistoryRepository kudosHistoryRepository;
 
     @Mock
     private ProofMapper mapper;
@@ -92,6 +103,7 @@ public class ProofServiceTest {
                 .iconNumber(1)
                 .status(ProofStatus.PUBLISHED)
                 .talent(talent)
+                .kudos(0)
                 .build();
 
         draftProof = Proof.builder()
@@ -480,5 +492,56 @@ public class ProofServiceTest {
 
         assertThrows(ProofNotFoundException.class,
                 () -> proofService.deleteProof(proof.getId(), talent.getId()));
+    }
+
+    @Test
+    @DisplayName("[Stage-3.1] [US-1] - post kudos successfully")
+    public void postKudosSuccessfully() {
+        PostKudos postKudos = new PostKudos(1);
+        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
+        given(talentRepository.findById(anotherTalent.getId())).willReturn(Optional.of(anotherTalent));
+        given(accessVerifyService.getPrincipalId()).willReturn(anotherTalent.getId());
+        given(kudosHistoryRepository.pressedProofByTalentId(anotherTalent.getId(), proof.getId())).willReturn(false);
+
+        proofService.postKudos(postKudos, proof.getId());
+
+        Assertions.assertEquals(1, postKudos.getKudos());
+    }
+
+    @Test
+    @DisplayName("[Stage-3.1] [US-1] - post kudos to own proof")
+    public void postKudosToOwnProof() {
+        PostKudos postKudos = new PostKudos(1);
+
+        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
+        given(accessVerifyService.getPrincipalId()).willReturn(proof.getTalent().getId());
+
+        assertThrows(IllegalPostingKudos.class,
+                () -> proofService.postKudos(postKudos, proof.getId()));
+    }
+
+    @Test
+    @DisplayName("[Stage-3.1] [US-1] - post kudos to proof again")
+    public void postKudosToProofAgain() {
+        PostKudos postKudos = new PostKudos(1);
+
+        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
+        given(accessVerifyService.getPrincipalId()).willReturn(1000L);
+        given(kudosHistoryRepository.pressedProofByTalentId(1000L, proof.getId())).willReturn(true);
+
+
+        assertThrows(IllegalPostingKudos.class,
+                () -> proofService.postKudos(postKudos, proof.getId()));
+    }
+
+    @Test
+    @DisplayName("[Stage-3.1] [US-1] - post kudos to proof which has not status PUBLISHED")
+    public void postKudosToProofWhichHasNotStatusPublished() {
+        PostKudos postKudos = new PostKudos(1);
+
+        given(proofRepository.findById(draftProof.getId())).willReturn(Optional.of(draftProof));
+
+        assertThrows(IllegalPostingKudos.class,
+                () -> proofService.postKudos(postKudos, draftProof.getId()));
     }
 }

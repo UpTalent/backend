@@ -3,6 +3,7 @@ package com.uptalent.proof.exception.handler;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.proof.exception.*;
 import com.uptalent.proof.exception.WrongSortOrderException;
+import com.uptalent.proof.kudos.IllegalPostingKudos;
 import com.uptalent.util.exception.handler.ExceptionHandlerController;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,8 +25,10 @@ public class ProofExceptionHandler extends ExceptionHandlerController {
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler({IllegalProofModifyingException.class, IllegalCreatingProofException.class})
-    public HttpResponse handlerIllegalProofModifyingException(RuntimeException e) {
+    @ExceptionHandler({IllegalProofModifyingException.class,
+            IllegalCreatingProofException.class,
+            IllegalPostingKudos.class})
+    public HttpResponse handlerConflictException(RuntimeException e) {
         return new HttpResponse(e.getMessage());
     }
 

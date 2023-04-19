@@ -3,6 +3,10 @@ package com.uptalent.proof.service;
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.exception.*;
+import com.uptalent.proof.kudos.IllegalPostingKudos;
+import com.uptalent.proof.kudos.KudosHistory;
+import com.uptalent.proof.kudos.KudosHistoryRepository;
+import com.uptalent.proof.kudos.PostKudos;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
@@ -36,6 +40,7 @@ import static com.uptalent.proof.model.enums.ProofStatus.*;
 public class ProofService {
     private final ProofRepository proofRepository;
     private final TalentRepository talentRepository;
+    private final KudosHistoryRepository kudosHistoryRepository;
     private final ProofMapper mapper;
     private final AccessVerifyService accessVerifyService;
 
@@ -61,12 +66,12 @@ public class ProofService {
 
     @Transactional
     public URI createProof(ProofModify proofModify, Long talentId) {
-        Talent talent = talentRepository.findById(talentId)
-            .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
+        Talent talent = getTalentById(talentId);
 
         accessVerifyService.tryGetAccess(talentId, "You do not have permission to create proof");
 
         Proof proof = mapper.toProof(proofModify);
+        proof.setKudos(0);
 
         if (!proof.getStatus().equals(DRAFT))
             throw new IllegalCreatingProofException("Proof status for creating should be DRAFT");
@@ -127,6 +132,26 @@ public class ProofService {
         proofRepository.delete(proofToDelete);
     }
 
+    @Transactional
+    public void postKudos(PostKudos kudos, Long proofId) {
+        Long talentId = accessVerifyService.getPrincipalId();
+        Proof proof = getProofById(proofId);
+
+        validatePostingKudos(talentId, proof);
+
+        Talent talent = getTalentById(talentId);
+        KudosHistory kudosHistory = KudosHistory.builder()
+                .talent(talent)
+                .proof(proof)
+                .sent(LocalDateTime.now())
+                .kudos(proof.getKudos())
+                .build();
+
+        proof.setKudos(proof.getKudos() + kudos.getKudos());
+        kudosHistoryRepository.save(kudosHistory);
+    }
+
+
     private Consumer<Proof> selectProofModifyStrategy(ProofModify proofModify, ProofStatus currentStatus) {
         Consumer<Proof> strategy;
         ProofStatus modifyingStatus = ProofStatus.valueOf(proofModify.getStatus());
@@ -175,14 +200,36 @@ public class ProofService {
     }
 
     private void verifyTalentContainProof(Long talentId, Proof proof) {
-        if(!Objects.equals(proof.getTalent().getId(), talentId)) {
+        if(!hasTalentProof(talentId, proof)) {
             throw new UnrelatedProofException("This proof is not related to this talent's proofs");
         }
+    }
+
+    private boolean hasTalentProof(Long talentId, Proof proof) {
+        return Objects.equals(proof.getTalent().getId(), talentId);
+    }
+
+    private boolean isPostedKudosBefore(Long talentId, Proof proof) {
+        return kudosHistoryRepository.pressedProofByTalentId(talentId, proof.getId());
     }
 
     private Proof getProofById(Long id) {
         return proofRepository.findById(id)
                 .orElseThrow(() -> new ProofNotFoundException("Proof was not found"));
+    }
+
+    private Talent getTalentById(Long id) {
+        return talentRepository.findById(id)
+                .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
+    }
+
+    private void validatePostingKudos(Long talentId, Proof proof) {
+        if (hasTalentProof(talentId, proof))
+            throw new IllegalPostingKudos("You cannot post kudos to own proof");
+        else if (!proof.getStatus().equals(PUBLISHED))
+            throw new IllegalPostingKudos("Proof status should be PUBLISHED");
+        else if (isPostedKudosBefore(talentId, proof))
+            throw new IllegalPostingKudos("You cannot post kudos again");
     }
 
 

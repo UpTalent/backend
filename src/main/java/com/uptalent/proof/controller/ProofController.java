@@ -2,6 +2,7 @@ package com.uptalent.proof.controller;
 
 
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.proof.kudos.PostKudos;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
@@ -78,6 +79,13 @@ public class ProofController {
                                          @PathVariable Long talentId) {
         proofService.deleteProof(proofId, talentId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping("/proofs/{proofId}/kudos")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void postKudos(@PathVariable Long proofId,
+                          @RequestBody PostKudos postKudos) {
+        proofService.postKudos(postKudos, proofId);
     }
 
 }

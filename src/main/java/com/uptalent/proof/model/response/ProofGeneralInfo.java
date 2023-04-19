@@ -12,13 +12,10 @@ import java.time.LocalDateTime;
 @Builder
 public class ProofGeneralInfo {
     private Long id;
-
     private Integer iconNumber;
-
     private String title;
-
     private String summary;
-
+    private Integer kudos;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime published;
 }
