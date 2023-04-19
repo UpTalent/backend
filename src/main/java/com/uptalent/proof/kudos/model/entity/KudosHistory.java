@@ -1,4 +1,4 @@
-package com.uptalent.proof.kudos;
+package com.uptalent.proof.kudos.model.entity;
 
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.talent.model.entity.Talent;
