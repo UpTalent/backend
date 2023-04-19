@@ -1,4 +1,4 @@
-package com.uptalent.proof.kudos;
+package com.uptalent.proof.kudos.exception;
 
 public class IllegalPostingKudos extends RuntimeException {
     public IllegalPostingKudos(String message) {
