@@ -50,7 +50,7 @@ public class Proof {
 
 
     @Column(nullable = false)
-    private Integer kudos;
+    private int kudos;
 
     @OneToMany(mappedBy = "proof")
     private Set<KudosHistory> kudosHistory;
