@@ -93,7 +93,7 @@ public class ProofControllerTest {
                 .published(LocalDateTime.now())
                 .status(ProofStatus.PUBLISHED)
                 .talent(talent)
-                .kudos(0)
+                
                 .build();
         draftProof = Proof.builder()
                 .id(20L)
@@ -103,7 +103,6 @@ public class ProofControllerTest {
                 .iconNumber(1)
                 .status(ProofStatus.DRAFT)
                 .talent(talent)
-                .kudos(0)
                 .build();
         publishedProof = Proof.builder()
                 .id(21L)
@@ -114,7 +113,6 @@ public class ProofControllerTest {
                 .iconNumber(1)
                 .status(ProofStatus.PUBLISHED)
                 .talent(talent)
-                .kudos(0)
                 .build();
         hiddenProof = Proof.builder()
                 .id(22L)
@@ -125,7 +123,6 @@ public class ProofControllerTest {
                 .iconNumber(1)
                 .status(ProofStatus.HIDDEN)
                 .talent(talent)
-                .kudos(0)
                 .build();
 
         proofModify = new ProofModify("New Proof title", "New Proof summary", "New Proof content",
