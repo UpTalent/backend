@@ -1,4 +1,4 @@
-package com.uptalent.proof.kudos;
+package com.uptalent.proof.kudos.model.request;
 
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
