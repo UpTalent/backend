@@ -1,5 +1,6 @@
 package com.uptalent.talent.model.entity;
 
+import com.uptalent.proof.kudos.KudosHistory;
 import com.uptalent.proof.model.entity.Proof;
 import jakarta.persistence.*;
 import lombok.*;
@@ -50,4 +51,7 @@ public class Talent {
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     private List<Proof> proofs;
+
+    @OneToMany(mappedBy = "talent")
+    private Set<KudosHistory> kudosHistory;
 }
