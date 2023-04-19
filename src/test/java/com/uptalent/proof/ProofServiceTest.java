@@ -3,7 +3,6 @@ package com.uptalent.proof;
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
-import com.uptalent.proof.kudos.model.entity.KudosHistory;
 import com.uptalent.proof.kudos.model.response.KudosSender;
 import com.uptalent.proof.kudos.repository.KudosHistoryRepository;
 import com.uptalent.proof.kudos.model.request.PostKudos;
@@ -41,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @ExtendWith({MockitoExtension.class})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
