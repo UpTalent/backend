@@ -5,6 +5,8 @@ import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.controller.ProofController;
 import com.uptalent.proof.exception.*;
+import com.uptalent.proof.kudos.IllegalPostingKudos;
+import com.uptalent.proof.kudos.PostKudos;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
@@ -91,6 +93,7 @@ public class ProofControllerTest {
                 .published(LocalDateTime.now())
                 .status(ProofStatus.PUBLISHED)
                 .talent(talent)
+                .kudos(0)
                 .build();
         draftProof = Proof.builder()
                 .id(20L)
@@ -100,6 +103,7 @@ public class ProofControllerTest {
                 .iconNumber(1)
                 .status(ProofStatus.DRAFT)
                 .talent(talent)
+                .kudos(0)
                 .build();
         publishedProof = Proof.builder()
                 .id(21L)
@@ -110,6 +114,7 @@ public class ProofControllerTest {
                 .iconNumber(1)
                 .status(ProofStatus.PUBLISHED)
                 .talent(talent)
+                .kudos(0)
                 .build();
         hiddenProof = Proof.builder()
                 .id(22L)
@@ -120,6 +125,7 @@ public class ProofControllerTest {
                 .iconNumber(1)
                 .status(ProofStatus.HIDDEN)
                 .talent(talent)
+                .kudos(0)
                 .build();
 
         proofModify = new ProofModify("New Proof title", "New Proof summary", "New Proof content",
@@ -681,4 +687,90 @@ public class ProofControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 
+
+    @Test
+    @DisplayName("[Stage-3.1] [US-1] - post kudos successfully")
+    public void postKudosSuccessfully() throws Exception {
+        PostKudos postKudos = new PostKudos(1);
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/proofs/{proofId}/kudos",
+                                proof.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postKudos)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("[Stage-3.1] [US-1] - post kudos to own proof")
+    public void postKudosToOwnProof() throws Exception {
+        PostKudos postKudos = new PostKudos(1);
+
+        String errorMessage = "You cannot post kudos to own proof";
+
+        willThrow(new IllegalPostingKudos(errorMessage)).given(proofService).postKudos(any(PostKudos.class), anyLong());
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/proofs/{proofId}/kudos",
+                                proof.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postKudos)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(errorMessage));
+    }
+
+    @Test
+    @DisplayName("[Stage-3.1] [US-1] - post kudos to proof again")
+    public void postKudosToProofAgain() throws Exception {
+        PostKudos postKudos = new PostKudos(1);
+
+        String errorMessage = "You cannot post kudos to proof again";
+
+        willThrow(new IllegalPostingKudos(errorMessage)).given(proofService).postKudos(any(PostKudos.class), anyLong());
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/proofs/{proofId}/kudos",
+                                proof.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postKudos)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(errorMessage));
+    }
+
+    @Test
+    @DisplayName("[Stage-3.1] [US-1] - post kudos to proof which has not status PUBLISHED")
+    public void postKudosToProofWhichHasNotStatusPublished() throws Exception {
+        PostKudos postKudos = new PostKudos(1);
+
+        String errorMessage = "Proof should has status PUBLISHED";
+
+        willThrow(new IllegalPostingKudos(errorMessage)).given(proofService).postKudos(any(PostKudos.class), anyLong());
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/proofs/{proofId}/kudos",
+                                draftProof.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postKudos)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(errorMessage));
+    }
 }
