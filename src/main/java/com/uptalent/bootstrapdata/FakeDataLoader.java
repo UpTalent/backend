@@ -83,7 +83,6 @@ public class FakeDataLoader implements CommandLineRunner {
                 .status(ProofStatus.PUBLISHED)
                 .published(faker.date().past(5, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
                 .talent(talent)
-                .kudos(0)
                 .build();
         return proofRepository.save(proof);
     }
