@@ -18,4 +18,5 @@ public class ProofGeneralInfo {
     private int kudos;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime published;
+    private boolean isPressed;
 }
