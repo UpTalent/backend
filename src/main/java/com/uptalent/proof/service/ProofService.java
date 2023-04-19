@@ -71,7 +71,6 @@ public class ProofService {
         accessVerifyService.tryGetAccess(talentId, "You do not have permission to create proof");
 
         Proof proof = mapper.toProof(proofModify);
-        proof.setKudos(0);
 
         if (!proof.getStatus().equals(DRAFT))
             throw new IllegalCreatingProofException("Proof status for creating should be DRAFT");

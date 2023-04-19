@@ -49,8 +49,7 @@ public class Proof {
     private Talent talent;
 
 
-    @Column(nullable = false)
-    private Integer kudos;
+    private int kudos;
 
     @OneToMany(mappedBy = "proof")
     private Set<KudosHistory> kudosHistory;
