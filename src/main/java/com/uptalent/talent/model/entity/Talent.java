@@ -1,6 +1,6 @@
 package com.uptalent.talent.model.entity;
 
-import com.uptalent.proof.kudos.KudosHistory;
+import com.uptalent.proof.kudos.model.entity.KudosHistory;
 import com.uptalent.proof.model.entity.Proof;
 import jakarta.persistence.*;
 import lombok.*;
