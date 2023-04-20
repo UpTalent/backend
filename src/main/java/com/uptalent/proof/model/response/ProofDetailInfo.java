@@ -2,15 +2,15 @@ package com.uptalent.proof.model.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.uptalent.proof.model.enums.ProofStatus;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class ProofDetailInfo {
     private Long id;
     private Integer iconNumber;
@@ -21,5 +21,5 @@ public class ProofDetailInfo {
     private LocalDateTime published;
     private int kudos;
     private ProofStatus status;
-    private boolean isPressed;
+    private boolean kudosedByMe;
 }

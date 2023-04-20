@@ -1,5 +1,7 @@
 package com.uptalent.jwt;
 
+import com.uptalent.principal.TalentDetailService;
+import com.uptalent.talent.repository.TalentRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +22,7 @@ import static com.uptalent.jwt.JwtConstant.*;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
-
+    private final TalentRepository talentRepository;
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -39,9 +41,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 Long id = jwtTokenProvider.getId(jwtToken);
-                GrantedAuthority authority = jwtTokenProvider.getAuthority(jwtToken);
-                Authentication authentication = jwtTokenProvider.getAuthentication(id, authority, request);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                if (talentRepository.findById(id).isPresent()) {
+                    GrantedAuthority authority = jwtTokenProvider.getAuthority(jwtToken);
+                    Authentication authentication = jwtTokenProvider.getAuthentication(id, authority, request);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
         }
 

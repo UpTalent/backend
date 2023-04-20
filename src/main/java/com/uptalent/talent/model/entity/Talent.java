@@ -56,8 +56,6 @@ public class Talent {
             orphanRemoval = true)
     private List<Proof> proofs;
 
-    @OneToMany(mappedBy = "talent",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true)
+    @OneToMany(mappedBy = "talent")
     private Set<KudosHistory> kudosHistory;
 }

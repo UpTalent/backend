@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static com.uptalent.proof.model.enums.ProofStatus.*;
 
@@ -48,10 +47,22 @@ public class ProofService {
 
     public PageWithMetadata<ProofGeneralInfo> getProofs(int page, int size, String sort) {
         Sort sortOrder = getSortByString(sort, PUBLISHED);
-        Page<Proof> proofsPage = proofRepository.findAllByStatus(ProofStatus.PUBLISHED,
-                PageRequest.of(page, size, sortOrder));
+        PageRequest pageRequest = PageRequest.of(page, size, sortOrder);
 
-        List<ProofGeneralInfo> proofGeneralInfos = mapper.toProofGeneralInfos(proofsPage.getContent());
+        Long principalTalentId = accessVerifyService.getPrincipalId();
+
+
+        Page<Proof> proofsPage = proofRepository.findAllByStatus(ProofStatus.PUBLISHED, pageRequest);
+        List<Proof> retrievedProofs = proofsPage.getContent();
+
+        if (principalTalentId != 0L) {
+            Talent talent = getTalentById(principalTalentId);
+            List<Proof> kudosedProofs = talent.getKudosHistory().stream().map(KudosHistory::getProof).toList();
+
+            retrievedProofs.forEach(rp -> rp.setKudosedByMe(kudosedProofs.contains(rp)));
+        }
+
+        List<ProofGeneralInfo> proofGeneralInfos = mapper.toProofGeneralInfos(retrievedProofs);
 
         return new PageWithMetadata<>(proofGeneralInfos, proofsPage.getTotalPages());
     }
@@ -113,9 +124,20 @@ public class ProofService {
             accessVerifyService.tryGetAccess(talentId, "You do not have permission to get list of proofs");
 
         Sort sortOrder = getSortByString(sort, proofStatus);
+        PageRequest pageRequest = PageRequest.of(page, size, sortOrder);
 
         Page<Proof> proofsPage = proofRepository.findAllByTalentIdAndStatus(talentId, proofStatus,
                 PageRequest.of(page, size, sortOrder));
+
+        Long principalTalentId = accessVerifyService.getPrincipalId();
+        List<Proof> retrievedProofs = proofsPage.getContent();
+
+        if (principalTalentId != 0L) {
+            Talent talent = getTalentById(principalTalentId);
+            List<Proof> kudosedProofs = talent.getKudosHistory().stream().map(KudosHistory::getProof).toList();
+
+            retrievedProofs.forEach(rp -> rp.setKudosedByMe(kudosedProofs.contains(rp)));
+        }
 
         List<ProofDetailInfo> proofDetailInfos = mapper.toProofDetailInfos(proofsPage.getContent());
 
@@ -135,6 +157,7 @@ public class ProofService {
 
     public List<KudosSender> getKudosSenders(Long proofId) {
         verifyProofExistsById(proofId);
+        verifyTalentContainProof(accessVerifyService.getPrincipalId(), getProofById(proofId));
         return kudosHistoryRepository.findKudosSendersByProofId(proofId);
     }
 
@@ -241,7 +264,7 @@ public class ProofService {
         if (hasTalentProof(talentId, proof))
             throw new IllegalPostingKudos("You cannot post kudos to own proof");
         else if (!proof.getStatus().equals(PUBLISHED))
-            throw new IllegalPostingKudos("Proof status should be PUBLISHED");
+            throw new ProofNotFoundException("Proof was not found");
         else if (isPostedKudosBefore(talentId, proof))
             throw new IllegalPostingKudos("You cannot post kudos again");
     }
