@@ -52,4 +52,8 @@ public class Proof {
 
     @OneToMany(mappedBy = "proof")
     private Set<KudosHistory> kudosHistory;
+
+    @Transient
+    private boolean kudosedByMe;
+
 }
