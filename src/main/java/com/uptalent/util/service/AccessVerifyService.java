@@ -20,6 +20,7 @@ public class AccessVerifyService {
     }
 
     public Long getPrincipalId() {
-        return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String id = String.valueOf(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        return (!Objects.equals(id, "anonymousUser")) ? Long.parseLong(id) : 0L;
     }
 }
