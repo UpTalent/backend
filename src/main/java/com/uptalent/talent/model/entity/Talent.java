@@ -12,7 +12,8 @@ import java.util.Set;
 
 import static jakarta.persistence.FetchType.EAGER;
 
-@Entity
+@Entity(name = "talent")
+@Table(name = "talent")
 @Setter
 @Getter
 @NoArgsConstructor
@@ -20,31 +21,34 @@ import static jakarta.persistence.FetchType.EAGER;
 @Builder
 public class Talent {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(length = 15)
+    @Column(length = 15, nullable = false, name = "lastname")
     private String lastname;
-    @Column(length = 15)
+    @Column(length = 15, nullable = false, name = "firstname")
     private String firstname;
-
+    @Column(name = "avatar")
     private String avatar;
-
+    @Column(name = "banner")
     private String banner;
 
     @ElementCollection(fetch = EAGER)
     private Set<String> skills;
 
+    @Column(name = "location")
     private String location;
-    @Column(length = 100)
+    @Column(length = 100, nullable = false, name = "email")
     private String email;
 
+    @Column(name = "password")
     private String password;
 
+    @Column(name = "birthday")
     @Temporal(TemporalType.DATE)
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthday;
 
-    @Column(length = 2250)
+    @Column(length = 2250, name = "about_me")
     private String aboutMe;
 
     @OneToMany(mappedBy = "talent",
@@ -52,6 +56,8 @@ public class Talent {
             orphanRemoval = true)
     private List<Proof> proofs;
 
-    @OneToMany(mappedBy = "talent")
+    @OneToMany(mappedBy = "talent",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private Set<KudosHistory> kudosHistory;
 }
