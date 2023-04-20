@@ -4,10 +4,12 @@ import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.talent.model.entity.Talent;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 
-@Entity
+@Entity(name = "kudos_history")
+@Table(name = "kudos_history")
 @Setter
 @Getter
 @NoArgsConstructor
@@ -15,7 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 public class KudosHistory {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -26,7 +28,10 @@ public class KudosHistory {
     @JoinColumn(name = "proof_id", referencedColumnName = "id")
     private Proof proof;
 
+    @Column(nullable = false, name = "sent")
     private LocalDateTime sent;
 
+    @ColumnDefault("0")
+    @Column(nullable = false, name = "kudos")
     private int kudos;
 }
