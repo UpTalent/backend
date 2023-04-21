@@ -17,6 +17,7 @@ import com.uptalent.proof.service.ProofService;
 import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
+import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.talent.service.TalentService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ProofControllerTest {
     @Autowired
     MockMvc mockMvc;
+
+    @MockBean
+    private TalentRepository talentRepository;
 
     @MockBean
     private ProofService proofService;
