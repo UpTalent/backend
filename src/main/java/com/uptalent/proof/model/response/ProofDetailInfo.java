@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@Builder
 public class ProofDetailInfo {
     private Long id;
     private Integer iconNumber;
