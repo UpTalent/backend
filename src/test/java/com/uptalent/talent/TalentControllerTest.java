@@ -6,6 +6,7 @@ import com.uptalent.jwt.JwtTokenProvider;
 
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.talent.controller.TalentController;
+import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.talent.service.TalentService;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.exception.DeniedAccessException;
@@ -55,6 +56,9 @@ class TalentControllerTest {
 
     @MockBean
     TalentService talentService;
+
+    @MockBean
+    private TalentRepository talentRepository;
     @MockBean
     JwtTokenProvider jwtTokenProvider;
     @MockBean

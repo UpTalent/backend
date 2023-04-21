@@ -535,13 +535,15 @@ public class ProofServiceTest {
 
         given(proofRepository.findById(draftProof.getId())).willReturn(Optional.of(draftProof));
 
-        assertThrows(IllegalPostingKudos.class,
+        assertThrows(ProofNotFoundException.class,
                 () -> proofService.postKudos(postKudos, draftProof.getId()));
     }
 
     @Test
     @DisplayName("[Stage-3.1] [US-3] - Get kudos senders successfully")
     public void getKudosSendersSuccessfully() {
+        given(accessVerifyService.getPrincipalId()).willReturn(proof.getTalent().getId());
+        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
         given(proofRepository.existsById(proof.getId())).willReturn(true);
 
         List<KudosSender> expectedKudosSenders = List.of(
