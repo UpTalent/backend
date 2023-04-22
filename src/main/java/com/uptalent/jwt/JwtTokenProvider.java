@@ -4,8 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.uptalent.principal.Role;
-import com.uptalent.talent.model.entity.Talent;
+import com.uptalent.credentials.model.enums.Role;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +23,7 @@ import static com.uptalent.jwt.JwtConstant.*;
 /**
  *  Jwt provider for working with jwt-token
  *
- * @version 1.0
+ * @version 2.0
  * @author Dmytro Teliukov
  *
  * */
@@ -34,22 +33,24 @@ public class JwtTokenProvider {
     private String secret;
 
     /**
-     * Generate JWT-token for authorization our talent
-     * P.S.: In the future when we will have more than 1 role, we should change ROLE_CLAIM and add parameter role
+     * Generate JWT-token for authorization our user
      *
-     * @param talent Talent
+     * @param email String
+     * @param id Long
+     * @param role Role
+     * @param name String
      *
      * @return jwt token
      * */
-    public String generateJwtToken(Talent talent) {
+    public String generateJwtToken(String email, Long id, Role role, String name) {
         return JWT.create()
                 .withIssuer(TOKEN_ISSUE)
                 .withAudience()
                 .withIssuedAt(new Date())
-                .withSubject(talent.getEmail())
-                .withClaim(TALENT_ID_CLAIM, talent.getId())
-                .withClaim(ROLE_CLAIM, Role.TALENT.name())
-                .withClaim(FIRSTNAME_CLAIM, talent.getFirstname())
+                .withSubject(email)
+                .withClaim(ID_CLAIM, id)
+                .withClaim(ROLE_CLAIM, role.name())
+                .withClaim(NAME_CLAIM, name)
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .sign(Algorithm.HMAC512(secret.getBytes()));
     }
@@ -98,7 +99,7 @@ public class JwtTokenProvider {
 
     public Long getId(String token) {
         JWTVerifier verifier = getVerifier();
-        return verifier.verify(token).getClaim("talent_id").asLong();
+        return verifier.verify(token).getClaim(ID_CLAIM).asLong();
     }
 
     /**
