@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
+import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.controller.ProofController;
@@ -68,6 +69,8 @@ public class ProofControllerTest {
 
     @MockBean
     private JwtTokenProvider jwtTokenProvider;
+    @MockBean
+    private CredentialsRepository credentialsRepository;
 
     private Credentials credentials;
     private Talent talent;
@@ -803,15 +806,13 @@ public class ProofControllerTest {
 
         List<KudosSender> expectedKudosSenders = List.of(
                 KudosSender.builder()
-                        .lastname(talent.getLastname())
-                        .firstname(talent.getFirstname())
+                        .fullname(talent.getFirstname())
                         .avatar(talent.getAvatar())
                         .sent(LocalDateTime.now())
                         .kudos(1)
                         .build(),
                 KudosSender.builder()
-                        .lastname(anotherTalent.getLastname())
-                        .firstname(anotherTalent.getFirstname())
+                        .fullname(anotherTalent.getFirstname())
                         .avatar(anotherTalent.getAvatar())
                         .sent(LocalDateTime.now())
                         .kudos(1)
