@@ -1,26 +1,26 @@
-package com.uptalent.principal;
+package com.uptalent.credentials.principal;
 
-import com.uptalent.talent.model.entity.Talent;
+import com.uptalent.credentials.model.entity.Credentials;
+import com.uptalent.credentials.model.enums.Role;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
 
-public class TalentPrincipal implements UserDetails {
-
+public class AccountPrincipal implements UserDetails {
     private final String email;
     private final String password;
+    private final Role role;
 
-    public TalentPrincipal(Talent talent) {
-        this.email = talent.getEmail();
-        this.password = talent.getPassword();
+    public AccountPrincipal(Credentials credentials) {
+        this.email = credentials.getEmail();
+        this.password = credentials.getPassword();
+        this.role = credentials.getRole();
     }
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(Role.TALENT.name()));
+        return List.of(role);
     }
 
     @Override
@@ -52,5 +52,4 @@ public class TalentPrincipal implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
 }
