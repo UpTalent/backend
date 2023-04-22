@@ -12,5 +12,18 @@ import java.util.List;
 public interface TalentMapper {
     List<TalentGeneralInfo> toTalentGeneralInfos(List<Talent> talents);
     TalentProfile toTalentProfile(Talent talent);
-    TalentOwnProfile toTalentOwnProfile(Talent talent);
+    default TalentOwnProfile toTalentOwnProfile(Talent talent){
+        return new TalentOwnProfile(
+                talent.getId(),
+                talent.getLastname(),
+                talent.getFirstname(),
+                talent.getAvatar(),
+                talent.getBanner(),
+                talent.getSkills(),
+                talent.getLocation(),
+                talent.getAboutMe(),
+                talent.getCredentials().getEmail(),
+                talent.getBirthday()
+        );
+    }
 }
