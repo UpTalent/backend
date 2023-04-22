@@ -2,18 +2,20 @@ package com.uptalent.talent;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.uptalent.credentials.exception.AccountExistsException;
 import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
+import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
 
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.talent.controller.TalentController;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.talent.service.TalentService;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.exception.DeniedAccessException;
-import com.uptalent.talent.exception.TalentExistsException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEdit;
 import com.uptalent.talent.model.request.TalentLogin;
@@ -58,17 +60,21 @@ class TalentControllerTest {
     private String secret;
 
     @MockBean
-    TalentService talentService;
+    private TalentService talentService;
 
     @MockBean
     private TalentRepository talentRepository;
     @MockBean
-    JwtTokenProvider jwtTokenProvider;
+    private JwtTokenProvider jwtTokenProvider;
+    @MockBean
+    private SponsorRepository sponsorRepository;
     @MockBean
     private PasswordEncoder passwordEncoder;
+    @MockBean
+    private CredentialsRepository credentialsRepository;
 
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
     private Credentials credentials;
     private Talent talent;
     @Autowired
@@ -181,7 +187,7 @@ class TalentControllerTest {
 
         String jwtToken = "token";
 
-        given(jwtTokenProvider.generateJwtToken(any(Talent.class)))
+        given(jwtTokenProvider.generateJwtToken(anyString(), anyLong(), any(Role.class), anyString()))
                 .willReturn(jwtToken);
 
         when(talentService.addTalent(any(TalentRegistration.class)))
@@ -206,10 +212,10 @@ class TalentControllerTest {
     void registerNewTalentWithEarlierOccupiedEmail() throws Exception {
         TalentRegistration registrationRequest = generateRegistrationRequest();
 
-        String exceptionMessage = "The talent has already exists with this email";
+        String exceptionMessage = "The user has already exists with this email";
 
         when(talentService.addTalent(any(TalentRegistration.class)))
-                .thenThrow(new TalentExistsException(exceptionMessage));
+                .thenThrow(new AccountExistsException(exceptionMessage));
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.post("/api/v1/talents")
@@ -234,7 +240,7 @@ class TalentControllerTest {
         String exceptionMessage = "The talent has already exists with this email";
 
         when(talentService.addTalent(any(TalentRegistration.class)))
-                .thenThrow(new TalentExistsException(exceptionMessage));
+                .thenThrow(new AccountExistsException(exceptionMessage));
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.post("/api/v1/talents")
@@ -258,7 +264,7 @@ class TalentControllerTest {
 
         String jwtToken = "token";
 
-        given(jwtTokenProvider.generateJwtToken(any(Talent.class)))
+        given(jwtTokenProvider.generateJwtToken(anyString(), anyLong(), any(Role.class), anyString()))
                 .willReturn(jwtToken);
 
         given(talentService.login(any(TalentLogin.class)))
