@@ -1,5 +1,6 @@
 package com.uptalent.talent;
 
+import com.uptalent.credentials.exception.AccountExistsException;
 import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
@@ -9,7 +10,6 @@ import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.exception.DeniedAccessException;
-import com.uptalent.talent.exception.TalentExistsException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEdit;
 import com.uptalent.talent.model.request.TalentLogin;
@@ -158,7 +158,7 @@ class TalentServiceTest {
         securitySetUp();
 
         willReturnOwnProfile();
-        doReturn(true).when(accessVerifyService).isPersonalProfile(anyLong());
+        doReturn(true).when(accessVerifyService).isPersonalProfile(anyLong(), any(Role.class));
 
         when(talentMapper.toTalentOwnProfile(any()))
                 .thenReturn(new TalentOwnProfile(talent.getCredentials().getEmail(), LocalDate.now()));
@@ -200,13 +200,10 @@ class TalentServiceTest {
     @Order(6)
     @DisplayName("[Stage-1] [US-3] - Register new Talent with earlier occupied email")
     void registerNewTalentWithEarlierOccupiedEmail() {
-
-        String exceptionMessage = "The talent has already exists with this email ";
-
         when(talentRepository.save(any()))
-                .thenThrow(new TalentExistsException(exceptionMessage));
+                .thenThrow(AccountExistsException.class);
 
-        assertThrows(TalentExistsException.class, () -> talentService.addTalent(generateRegistrationRequest()));
+        assertThrows(AccountExistsException.class, () -> talentService.addTalent(generateRegistrationRequest()));
     }
 
     @Test
@@ -316,7 +313,8 @@ class TalentServiceTest {
                 .skills(Set.of("Java", "Spring"))
                 .build();
 
-        doThrow(new DeniedAccessException("")).when(accessVerifyService).tryGetAccess(anyLong(), anyString());
+        doThrow(new DeniedAccessException("")).when(accessVerifyService)
+                .tryGetAccess(anyLong(), any(Role.class), anyString());
 
         assertThrows(DeniedAccessException.class, () -> talentService.updateTalent(talent.getId(), editRequest));
     }
@@ -359,7 +357,8 @@ class TalentServiceTest {
         securitySetUp();
 
         willReturnProfile();
-        doThrow(new DeniedAccessException("")).when(accessVerifyService).tryGetAccess(anyLong(), anyString());
+        doThrow(new DeniedAccessException("")).when(accessVerifyService)
+                .tryGetAccess(anyLong(), any(Role.class), anyString());
 
         assertThrows(DeniedAccessException.class, () -> talentService.deleteTalent(talent.getId()));
 
