@@ -1,5 +1,6 @@
 package com.uptalent.talent.model.entity;
 
+import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.proof.kudos.model.entity.KudosHistory;
 import com.uptalent.proof.model.entity.Proof;
 import jakarta.persistence.*;
@@ -23,12 +24,24 @@ public class Talent {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @OneToOne
+    @JoinTable(
+            name = "talent_credentials",
+            joinColumns = @JoinColumn(name = "talent_id"),
+            inverseJoinColumns = @JoinColumn(name = "credentials_id")
+    )
+    private Credentials credentials;
+
     @Column(length = 15, nullable = false, name = "lastname")
     private String lastname;
+
     @Column(length = 15, nullable = false, name = "firstname")
     private String firstname;
+
     @Column(name = "avatar")
     private String avatar;
+
     @Column(name = "banner")
     private String banner;
 
@@ -37,11 +50,6 @@ public class Talent {
 
     @Column(name = "location")
     private String location;
-    @Column(length = 100, nullable = false, name = "email")
-    private String email;
-
-    @Column(name = "password")
-    private String password;
 
     @Column(name = "birthday")
     @Temporal(TemporalType.DATE)
