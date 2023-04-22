@@ -471,7 +471,10 @@ public class ProofServiceTest {
 
         willThrow(DeniedAccessException.class)
                 .given(accessVerifyService)
-                .tryGetAccess(talent.getId(), "You do not have permission to delete proof");
+                .tryGetAccess(
+                        talent.getId(), talent.getCredentials().getRole(),
+                        "You do not have permission to delete proof"
+                );
 
 
         assertThrows(DeniedAccessException.class,
@@ -561,15 +564,13 @@ public class ProofServiceTest {
 
         List<KudosSender> expectedKudosSenders = List.of(
                 KudosSender.builder()
-                        .lastname(talent.getLastname())
-                        .firstname(talent.getFirstname())
+                        .fullname(talent.getFirstname())
                         .avatar(talent.getAvatar())
                         .sent(LocalDateTime.now())
                         .kudos(1)
                         .build(),
                 KudosSender.builder()
-                        .lastname(anotherTalent.getLastname())
-                        .firstname(anotherTalent.getFirstname())
+                        .fullname(anotherTalent.getFirstname())
                         .avatar(anotherTalent.getAvatar())
                         .sent(LocalDateTime.now())
                         .kudos(1)
@@ -587,8 +588,7 @@ public class ProofServiceTest {
         for (int i = 0; i < expectedKudosSenders.size(); i++) {
             KudosSender expected = expectedKudosSenders.get(i);
             KudosSender actual = actualKudosSenders.get(i);
-            assertThat(expected.getLastname()).isEqualTo(actual.getLastname());
-            assertThat(expected.getFirstname()).isEqualTo(actual.getFirstname());
+            assertThat(expected.getFullname()).isEqualTo(actual.getFullname());
             assertThat(expected.getAvatar()).isEqualTo(actual.getAvatar());
             assertThat(expected.getSent()).isEqualTo(actual.getSent());
             assertThat(expected.getKudos()).isEqualTo(actual.getKudos());
