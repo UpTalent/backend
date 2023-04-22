@@ -95,7 +95,7 @@ public class TalentController {
             @ApiResponse(responseCode = "201",
                     content = { @Content(schema = @Schema(implementation = AuthResponse.class),
                             mediaType = "application/json") }),
-            @ApiResponse(responseCode = "409", description = "Talent with email exists") })
+            @ApiResponse(responseCode = "409", description = "User with email exists") })
     @PostMapping
     public ResponseEntity<?> registerTalent(@Valid @RequestBody TalentRegistration talent){
         var response = talentService.addTalent(talent);

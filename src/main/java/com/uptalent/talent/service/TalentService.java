@@ -1,5 +1,10 @@
 package com.uptalent.talent.service;
 
+import com.uptalent.credentials.exception.AccountExistsException;
+import com.uptalent.credentials.model.entity.Credentials;
+import com.uptalent.credentials.model.enums.AccountStatus;
+import com.uptalent.credentials.model.enums.Role;
+import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.filestore.FileStoreOperation;
 import com.uptalent.filestore.FileStoreService;
 import com.uptalent.filestore.exception.FailedToUploadFileException;
@@ -7,7 +12,6 @@ import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.talent.exception.EmptySkillsException;
-import com.uptalent.talent.exception.TalentExistsException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.request.TalentEdit;
@@ -49,6 +53,7 @@ public class TalentService {
     private final JwtTokenProvider jwtTokenProvider;
     private final FileStoreService fileStoreService;
     private final AccessVerifyService accessVerifyService;
+    private final CredentialsRepository credentialsRepository;
 
     @Value("${aws.bucket.name}")
     private String BUCKET_NAME;
@@ -61,33 +66,46 @@ public class TalentService {
 
     @Transactional
     public AuthResponse addTalent(TalentRegistration talent){
-        if (talentRepository.existsByEmailIgnoreCase(talent.getEmail())){
-            throw new TalentExistsException("The talent has already exists with email [" + talent.getEmail() + "]");
+        if (credentialsRepository.existsByEmailIgnoreCase(talent.getEmail())){
+            throw new AccountExistsException("The user has already exists with email [" + talent.getEmail() + "]");
         }
 
         if(talent.getSkills().isEmpty()){
             throw new EmptySkillsException("Skills should not be empty");
         }
 
+        var credentials = Credentials.builder()
+                .email(talent.getEmail())
+                .password(passwordEncoder.encode(talent.getPassword()))
+                .status(AccountStatus.ACTIVE)
+                .role(Role.TALENT)
+                .build();
+
+        credentialsRepository.save(credentials);
+
         var savedTalent = talentRepository.save(Talent.builder()
-                    .password(passwordEncoder.encode(talent.getPassword()))
-                    .email(talent.getEmail())
+                    .credentials(credentials)
                     .firstname(talent.getFirstname())
                     .lastname(talent.getLastname())
                     .skills(new LinkedHashSet<>(talent.getSkills()))
                     .build());
 
-        String jwtToken = jwtTokenProvider.generateJwtToken(savedTalent);
+        String jwtToken = jwtTokenProvider.generateJwtToken(
+                savedTalent.getCredentials().getEmail(),
+                savedTalent.getId(),
+                savedTalent.getCredentials().getRole(),
+                savedTalent.getFirstname()
+        );
         return new AuthResponse(jwtToken);
     }
 
     @Transactional
     public AuthResponse login(TalentLogin loginRequest) {
         String email = loginRequest.getEmail();
-        Talent foundTalent = talentRepository.findByEmail(email)
+        Talent foundTalent = credentialsRepository.findTalentByEmailIgnoreCase(email)
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found by email [" + email + "]"));
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), foundTalent.getPassword())) {
+        if (!passwordEncoder.matches(loginRequest.getPassword(), foundTalent.getCredentials().getPassword())) {
             throw new BadCredentialsException("Invalid email or password");
         }
 
@@ -96,14 +114,19 @@ public class TalentService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String jwtToken = jwtTokenProvider.generateJwtToken(foundTalent);
+        String jwtToken = jwtTokenProvider.generateJwtToken(
+                foundTalent.getCredentials().getEmail(),
+                foundTalent.getId(),
+                foundTalent.getCredentials().getRole(),
+                foundTalent.getFirstname()
+        );
         return new AuthResponse(jwtToken);
     }
 
     public TalentProfile getTalentProfileById(Long id) {
         Talent foundTalent = getTalentById(id);
 
-        if (accessVerifyService.isPersonalProfile(id)) {
+        if (accessVerifyService.isPersonalProfile(id, foundTalent.getCredentials().getRole())) {
             return talentMapper.toTalentOwnProfile(foundTalent);
         } else {
             return talentMapper.toTalentProfile(foundTalent);
@@ -113,7 +136,11 @@ public class TalentService {
     @Transactional
     public TalentOwnProfile updateTalent(Long id, TalentEdit updatedTalent) {
         Talent talentToUpdate = getTalentById(id);
-        accessVerifyService.tryGetAccess(id, "You are not allowed to edit this talent");
+        accessVerifyService.tryGetAccess(
+                id,
+                talentToUpdate.getCredentials().getRole(),
+                "You are not allowed to edit this talent"
+        );
 
         if(updatedTalent.getSkills().isEmpty()){
             throw new EmptySkillsException("Skills should not be empty");
@@ -141,14 +168,22 @@ public class TalentService {
     @Transactional
     public void deleteTalent(Long id) {
         Talent talentToDelete = getTalentById(id);
-        accessVerifyService.tryGetAccess(id, "You are not allowed to delete this talent");
+        accessVerifyService.tryGetAccess(
+                id,
+                talentToDelete.getCredentials().getRole(),
+                "You are not allowed to delete this talent"
+        );
         talentRepository.delete(talentToDelete);
     }
 
     @Transactional
     public void uploadImage(Long id, MultipartFile image, FileStoreOperation operation) {
         Talent talent = getTalentById(id);
-        accessVerifyService.tryGetAccess(id, "You are not allowed to edit this talent");
+        accessVerifyService.tryGetAccess(
+                id,
+                talent.getCredentials().getRole(),
+                "You are not allowed to edit this talent"
+        );
 
         isFileEmpty(image);
         isImage(image);

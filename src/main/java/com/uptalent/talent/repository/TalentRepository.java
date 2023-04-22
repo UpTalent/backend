@@ -12,10 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface TalentRepository extends JpaRepository<Talent, Long> {
-    boolean existsByEmailIgnoreCase(String email);
-
-    Optional<Talent> findByEmail(String email);
-
     Page<Talent> findAllByOrderByIdDesc(Pageable pageable);
 
 }

@@ -1,6 +1,10 @@
 package com.uptalent.bootstrapdata;
 
 import com.github.javafaker.Faker;
+import com.uptalent.credentials.model.entity.Credentials;
+import com.uptalent.credentials.model.enums.AccountStatus;
+import com.uptalent.credentials.model.enums.Role;
+import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.repository.ProofRepository;
@@ -29,6 +33,7 @@ public class FakeDataLoader implements CommandLineRunner {
     public static final int SIZE = 20;
     private final TalentRepository talentRepository;
     private final ProofRepository proofRepository;
+    private final CredentialsRepository credentialsRepository;
     private final Faker faker;
     private final PasswordEncoder passwordEncoder;
     private final Environment env;
@@ -59,13 +64,20 @@ public class FakeDataLoader implements CommandLineRunner {
         String location = faker.address().country() + ", " + faker.address().cityName();
         String password = "1234567890";
 
+        Credentials credentials = Credentials.builder()
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .status(AccountStatus.ACTIVE)
+                .role(Role.TALENT)
+                .build();
+        credentialsRepository.save(credentials);
+
         return Talent.builder()
+                .credentials(credentials)
                 .lastname(lastname)
                 .firstname(firstname)
                 .avatar(faker.avatar().image())
                 .banner(faker.internet().image())
-                .email(email)
-                .password(passwordEncoder.encode(password))
                 .birthday(LocalDate.now())
                 .aboutMe(faker.lebowski().quote())
                 .location(location)

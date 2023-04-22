@@ -2,15 +2,20 @@ package com.uptalent.talent;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.uptalent.credentials.exception.AccountExistsException;
+import com.uptalent.credentials.model.entity.Credentials;
+import com.uptalent.credentials.model.enums.AccountStatus;
+import com.uptalent.credentials.model.enums.Role;
+import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
 
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.talent.controller.TalentController;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.talent.service.TalentService;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.exception.DeniedAccessException;
-import com.uptalent.talent.exception.TalentExistsException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEdit;
 import com.uptalent.talent.model.request.TalentLogin;
@@ -55,32 +60,42 @@ class TalentControllerTest {
     private String secret;
 
     @MockBean
-    TalentService talentService;
+    private TalentService talentService;
 
     @MockBean
     private TalentRepository talentRepository;
     @MockBean
-    JwtTokenProvider jwtTokenProvider;
+    private JwtTokenProvider jwtTokenProvider;
+    @MockBean
+    private SponsorRepository sponsorRepository;
     @MockBean
     private PasswordEncoder passwordEncoder;
+    @MockBean
+    private CredentialsRepository credentialsRepository;
 
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
+    private Credentials credentials;
     private Talent talent;
     @Autowired
     private ObjectMapper objectMapper;
 
     @BeforeEach
     public void setUp() {
-        talent = Talent.builder()
+        credentials = Credentials.builder()
                 .id(1L)
-                .lastname("Teliukov")
-                .firstname("Dmytro")
                 .email("dmytro.teliukov@gmail.com")
                 .password("1234567890")
+                .status(AccountStatus.ACTIVE)
+                .role(Role.TALENT)
+                .build();
+        talent = Talent.builder()
+                .id(1L)
+                .credentials(credentials)
+                .lastname("Teliukov")
+                .firstname("Dmytro")
                 .skills(Set.of("Java", "Spring"))
                 .build();
-
     }
 
     @Test
@@ -135,7 +150,7 @@ class TalentControllerTest {
     @DisplayName("[Stage-1] [US-2] - Get own profile successfully")
     void getOwnProfileSuccessfully() throws Exception {
         given(talentService.getTalentProfileById(talent.getId()))
-                .willReturn(new TalentOwnProfile(talent.getEmail(), LocalDate.now()));
+                .willReturn(new TalentOwnProfile(talent.getCredentials().getEmail(), LocalDate.now()));
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/v1/talents/{id}", talent.getId())
@@ -172,7 +187,7 @@ class TalentControllerTest {
 
         String jwtToken = "token";
 
-        given(jwtTokenProvider.generateJwtToken(any(Talent.class)))
+        given(jwtTokenProvider.generateJwtToken(anyString(), anyLong(), any(Role.class), anyString()))
                 .willReturn(jwtToken);
 
         when(talentService.addTalent(any(TalentRegistration.class)))
@@ -197,10 +212,10 @@ class TalentControllerTest {
     void registerNewTalentWithEarlierOccupiedEmail() throws Exception {
         TalentRegistration registrationRequest = generateRegistrationRequest();
 
-        String exceptionMessage = "The talent has already exists with email [" + talent.getEmail() + "]";
+        String exceptionMessage = "The user has already exists with this email";
 
         when(talentService.addTalent(any(TalentRegistration.class)))
-                .thenThrow(new TalentExistsException(exceptionMessage));
+                .thenThrow(new AccountExistsException(exceptionMessage));
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.post("/api/v1/talents")
@@ -222,10 +237,10 @@ class TalentControllerTest {
         registrationRequest.setLastname(null);
         registrationRequest.setFirstname(null);
 
-        String exceptionMessage = "The talent has already exists with email [" + talent.getEmail() + "]";
+        String exceptionMessage = "The talent has already exists with this email";
 
         when(talentService.addTalent(any(TalentRegistration.class)))
-                .thenThrow(new TalentExistsException(exceptionMessage));
+                .thenThrow(new AccountExistsException(exceptionMessage));
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.post("/api/v1/talents")
@@ -244,11 +259,12 @@ class TalentControllerTest {
     @Order(8)
     @DisplayName("[Stage-1] [US-3] - Log in successfully")
     void loginSuccessfully() throws Exception {
-        TalentLogin loginRequest = new TalentLogin(talent.getEmail(), talent.getPassword());
+        TalentLogin loginRequest = new TalentLogin(talent.getCredentials().getEmail(),
+                talent.getCredentials().getPassword());
 
         String jwtToken = "token";
 
-        given(jwtTokenProvider.generateJwtToken(any(Talent.class)))
+        given(jwtTokenProvider.generateJwtToken(anyString(), anyLong(), any(Role.class), anyString()))
                 .willReturn(jwtToken);
 
         given(talentService.login(any(TalentLogin.class)))
@@ -272,7 +288,7 @@ class TalentControllerTest {
     @DisplayName("[Stage-1] [US-3] - Fail attempt of log in")
     void failLoginWithBadCredentials() throws Exception {
         TalentLogin loginRequestWithBadCredentials =
-                new TalentLogin(talent.getEmail(), "another_password");
+                new TalentLogin(talent.getCredentials().getEmail(), "another_password");
 
         given(talentService.login(loginRequestWithBadCredentials))
                 .willThrow(new BadCredentialsException("Bad credentials"));
@@ -302,7 +318,7 @@ class TalentControllerTest {
         TalentOwnProfile expectedDto = new TalentOwnProfile();
         expectedDto.setLastname(editRequest.getLastname());
         expectedDto.setFirstname(editRequest.getFirstname());
-        expectedDto.setEmail(talent.getEmail());
+        expectedDto.setEmail(talent.getCredentials().getEmail());
         expectedDto.setBirthday(talent.getBirthday());
         expectedDto.setSkills(editRequest.getSkills());
 
@@ -426,8 +442,8 @@ class TalentControllerTest {
 
         registrationRequest.setLastname(talent.getLastname());
         registrationRequest.setFirstname(talent.getFirstname());
-        registrationRequest.setEmail(talent.getEmail());
-        registrationRequest.setPassword(talent.getPassword());
+        registrationRequest.setEmail(talent.getCredentials().getEmail());
+        registrationRequest.setPassword(talent.getCredentials().getPassword());
         registrationRequest.setSkills(talent.getSkills());
 
         return registrationRequest;

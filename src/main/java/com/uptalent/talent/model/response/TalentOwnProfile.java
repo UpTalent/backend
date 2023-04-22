@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -13,4 +14,19 @@ public class TalentOwnProfile extends TalentProfile {
     private String email;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthday;
+
+    public TalentOwnProfile(Long id,
+                            String lastname,
+                            String firstname,
+                            String avatar,
+                            String banner,
+                            Set<String> skills,
+                            String location,
+                            String aboutMe,
+                            String email,
+                            LocalDate birthday) {
+        super(id, lastname, firstname, avatar, banner, skills, location, aboutMe);
+        this.email = email;
+        this.birthday = birthday;
+    }
 }

@@ -12,9 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class KudosSender {
-    private String lastname;
-
-    private String firstname;
+    private String fullname;
 
     private String avatar;
 

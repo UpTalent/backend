@@ -49,51 +49,53 @@ import java.util.List;
 public class ProofController {
     private final ProofService proofService;
 
-    @Operation(
-            summary = "Retrieve list of proofs",
-            description = "As a guest, I want to be able to view Proof as a list.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200",
-                    content = { @Content(schema = @Schema(implementation = ProofGeneralInfo.class),
-                            mediaType = "application/json") }),
-            @ApiResponse(responseCode = "400", description = "Illegal query params")})
-    @GetMapping("/proofs")
-    @ResponseStatus(HttpStatus.OK)
-    public PageWithMetadata<ProofGeneralInfo> getAllProofs(
-            @Min(value = 0, message = "Page should be greater or equals 0")
-            @RequestParam(defaultValue = "0") int page,
-            @Positive(message = "Size should be positive")
-            @RequestParam(defaultValue = "9") int size,
-            @RequestParam(defaultValue = "desc") String sort) {
-        return proofService.getProofs(page, size, sort);
-    }
+    // TODO: Rewrite logic with sponsor entity
+//    @Operation(
+//            summary = "Retrieve list of proofs",
+//            description = "As a guest, I want to be able to view Proof as a list.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200",
+//                    content = { @Content(schema = @Schema(implementation = ProofGeneralInfo.class),
+//                            mediaType = "application/json") }),
+//            @ApiResponse(responseCode = "400", description = "Illegal query params")})
+//    @GetMapping("/proofs")
+//    @ResponseStatus(HttpStatus.OK)
+//    public PageWithMetadata<ProofGeneralInfo> getAllProofs(
+//            @Min(value = 0, message = "Page should be greater or equals 0")
+//            @RequestParam(defaultValue = "0") int page,
+//            @Positive(message = "Size should be positive")
+//            @RequestParam(defaultValue = "9") int size,
+//            @RequestParam(defaultValue = "desc") String sort) {
+//        return proofService.getProofs(page, size, sort);
+//    }
 
-    @SecurityRequirement(name = "bearerAuth")
-    @Operation(
-            summary = "Retrieve list of proofs from talent profile",
-            description = "As a talent, I want my Proofs to be displayed on my profile.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200",
-                    content = { @Content(schema = @Schema(implementation = ProofDetailInfo.class),
-                            mediaType = "application/json") }),
-            @ApiResponse(responseCode = "400", description = "Illegal query params"),
-            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
-            @ApiResponse(responseCode = "403", description = "You cannot list of proof " +
-                    "which has not PUBLISHED status from other talent profile"),
-            @ApiResponse(responseCode = "404", description = "Talent by id was not found")})
-    @GetMapping("/talents/{talent-id}/proofs")
-    @ResponseStatus(HttpStatus.OK)
-    public PageWithMetadata<ProofDetailInfo> getAllTalentProofs(
-            @Min(value = 0, message = "Page should be greater or equals 0")
-            @RequestParam(defaultValue = "0") int page,
-            @Positive(message = "Size should be positive")
-            @RequestParam(defaultValue = "3") int size,
-            @RequestParam(defaultValue = "published")
-            @EnumValue(enumClass = ProofStatus.class) String status,
-            @RequestParam(defaultValue = "desc") String sort,
-            @PathVariable("talent-id") Long talentId) {
-        return proofService.getTalentProofs(page, size, sort, talentId, status);
-    }
+    // TODO: Rewrite logic with sponsor entity
+//    @SecurityRequirement(name = "bearerAuth")
+//    @Operation(
+//            summary = "Retrieve list of proofs from talent profile",
+//            description = "As a talent, I want my Proofs to be displayed on my profile.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200",
+//                    content = { @Content(schema = @Schema(implementation = ProofDetailInfo.class),
+//                            mediaType = "application/json") }),
+//            @ApiResponse(responseCode = "400", description = "Illegal query params"),
+//            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
+//            @ApiResponse(responseCode = "403", description = "You cannot list of proof " +
+//                    "which has not PUBLISHED status from other talent profile"),
+//            @ApiResponse(responseCode = "404", description = "Talent by id was not found")})
+//    @GetMapping("/talents/{talent-id}/proofs")
+//    @ResponseStatus(HttpStatus.OK)
+//    public PageWithMetadata<ProofDetailInfo> getAllTalentProofs(
+//            @Min(value = 0, message = "Page should be greater or equals 0")
+//            @RequestParam(defaultValue = "0") int page,
+//            @Positive(message = "Size should be positive")
+//            @RequestParam(defaultValue = "3") int size,
+//            @RequestParam(defaultValue = "published")
+//            @EnumValue(enumClass = ProofStatus.class) String status,
+//            @RequestParam(defaultValue = "desc") String sort,
+//            @PathVariable("talent-id") Long talentId) {
+//        return proofService.getTalentProofs(page, size, sort, talentId, status);
+//    }
 
     @SecurityRequirement(name = "bearerAuth")
     @Operation(
@@ -190,22 +192,23 @@ public class ProofController {
         return proofService.getKudosSenders(proofId);
     }
 
-    @SecurityRequirement(name = "bearerAuth")
-    @Operation(
-            summary = "Post kudos to proof",
-            description = "As a talent, I want to be able to put the kudos to proofs of another talents")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "No content"),
-            @ApiResponse(responseCode = "400", description = "Invalid fields"),
-            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
-            @ApiResponse(responseCode = "404", description = "Proof by id was not found"),
-            @ApiResponse(responseCode = "409", description = "Illegal posting kudos")})
-    @PostMapping("/proofs/{proofId}/kudos")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void postKudos(@PathVariable Long proofId,
-                          @RequestBody PostKudos postKudos) {
-        proofService.postKudos(postKudos, proofId);
-    }
+    // TODO: Rewrite logic with sponsor entity
+//    @SecurityRequirement(name = "bearerAuth")
+//    @Operation(
+//            summary = "Post kudos to proof",
+//            description = "As a talent, I want to be able to put the kudos to proofs of another talents")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "204", description = "No content"),
+//            @ApiResponse(responseCode = "400", description = "Invalid fields"),
+//            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
+//            @ApiResponse(responseCode = "404", description = "Proof by id was not found"),
+//            @ApiResponse(responseCode = "409", description = "Illegal posting kudos")})
+//    @PostMapping("/proofs/{proofId}/kudos")
+//    @ResponseStatus(HttpStatus.NO_CONTENT)
+//    public void postKudos(@PathVariable Long proofId,
+//                          @RequestBody PostKudos postKudos) {
+//        proofService.postKudos(postKudos, proofId);
+//    }
 
 }
 

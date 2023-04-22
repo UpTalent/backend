@@ -55,5 +55,4 @@ public class Proof {
 
     @Transient
     private boolean kudosedByMe;
-
 }
