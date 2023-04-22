@@ -1,7 +1,7 @@
 package com.uptalent.proof.kudos.model.entity;
 
 import com.uptalent.proof.model.entity.Proof;
-import com.uptalent.talent.model.entity.Talent;
+import com.uptalent.sponsor.Sponsor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -21,8 +21,8 @@ public class KudosHistory {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "talent_id", referencedColumnName = "id")
-    private Talent talent;
+    @JoinColumn(name = "sponsor_id", referencedColumnName = "id")
+    private Sponsor sponsor;
 
     @ManyToOne
     @JoinColumn(name = "proof_id", referencedColumnName = "id")
