@@ -1,4 +1,4 @@
-package com.uptalent.sponsor;
+package com.uptalent.sponsor.model.entity;
 
 import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.proof.kudos.model.entity.KudosHistory;
