@@ -1,6 +1,9 @@
 package com.uptalent.proof;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.uptalent.credentials.model.entity.Credentials;
+import com.uptalent.credentials.model.enums.AccountStatus;
+import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.controller.ProofController;
@@ -66,6 +69,7 @@ public class ProofControllerTest {
     @MockBean
     private JwtTokenProvider jwtTokenProvider;
 
+    private Credentials credentials;
     private Talent talent;
     private Proof proof;
 
@@ -83,12 +87,18 @@ public class ProofControllerTest {
 
     @BeforeEach
     public void setUp() {
-        talent = Talent.builder()
+        credentials = Credentials.builder()
                 .id(1L)
-                .lastname("Himonov")
-                .firstname("Mark")
                 .email("himonov.mark@gmail.com")
                 .password("1234567890")
+                .status(AccountStatus.ACTIVE)
+                .role(Role.TALENT)
+                .build();
+        talent = Talent.builder()
+                .id(1L)
+                .credentials(credentials)
+                .lastname("Himonov")
+                .firstname("Mark")
                 .skills(Set.of("Java", "Spring"))
                 .build();
         proof = Proof.builder()
@@ -564,8 +574,6 @@ public class ProofControllerTest {
                 .id(2L)
                 .lastname("Doe")
                 .firstname("John")
-                .email("doe.john@gmail.com")
-                .password("1234567890")
                 .skills(Set.of("Java", "Spring"))
                 .build();
 
@@ -784,8 +792,6 @@ public class ProofControllerTest {
                 .id(2L)
                 .lastname("Doe")
                 .firstname("John")
-                .email("doe.john@gmail.com")
-                .password("1234567890")
                 .skills(Set.of("Java", "Spring"))
                 .build();
 
