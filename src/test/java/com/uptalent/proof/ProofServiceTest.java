@@ -1,5 +1,8 @@
 package com.uptalent.proof;
 
+import com.uptalent.credentials.model.entity.Credentials;
+import com.uptalent.credentials.model.enums.AccountStatus;
+import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
@@ -65,6 +68,7 @@ public class ProofServiceTest {
     private ProofService proofService;
 
     private Proof proof;
+    private Credentials credentials;
     private Talent talent;
     private Talent anotherTalent;
     private ProofModify proofModify;
@@ -80,12 +84,18 @@ public class ProofServiceTest {
 
     @BeforeEach
     public void setUp() {
-        talent = Talent.builder()
+        credentials = Credentials.builder()
                 .id(1L)
-                .lastname("Himonov")
-                .firstname("Mark")
                 .email("himonov.mark@gmail.com")
                 .password(passwordEncoder.encode("1234567890"))
+                .status(AccountStatus.ACTIVE)
+                .role(Role.TALENT)
+                .build();
+        talent = Talent.builder()
+                .id(1L)
+                .credentials(credentials)
+                .lastname("Himonov")
+                .firstname("Mark")
                 .skills(Set.of("Java", "Spring"))
                 .build();
 
@@ -136,8 +146,6 @@ public class ProofServiceTest {
                 .id(2L)
                 .lastname("Doe")
                 .firstname("John")
-                .email("doe.john@gmail.com")
-                .password(passwordEncoder.encode("1234567890"))
                 .skills(Set.of("Java", "Spring"))
                 .build();
 
