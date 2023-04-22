@@ -1,5 +1,9 @@
 package com.uptalent.talent.service;
 
+import com.uptalent.credentials.model.entity.Credentials;
+import com.uptalent.credentials.model.enums.AccountStatus;
+import com.uptalent.credentials.model.enums.Role;
+import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.filestore.FileStoreOperation;
 import com.uptalent.filestore.FileStoreService;
 import com.uptalent.filestore.exception.FailedToUploadFileException;
@@ -49,6 +53,7 @@ public class TalentService {
     private final JwtTokenProvider jwtTokenProvider;
     private final FileStoreService fileStoreService;
     private final AccessVerifyService accessVerifyService;
+    private final CredentialsRepository credentialsRepository;
 
     @Value("${aws.bucket.name}")
     private String BUCKET_NAME;
@@ -61,17 +66,25 @@ public class TalentService {
 
     @Transactional
     public AuthResponse addTalent(TalentRegistration talent){
-        if (talentRepository.existsByEmailIgnoreCase(talent.getEmail())){
-            throw new TalentExistsException("The talent has already exists with email [" + talent.getEmail() + "]");
+        if (credentialsRepository.existsByEmailIgnoreCase(talent.getEmail())){
+            throw new TalentExistsException("The user has already exists with email [" + talent.getEmail() + "]");
         }
 
         if(talent.getSkills().isEmpty()){
             throw new EmptySkillsException("Skills should not be empty");
         }
 
+        var credentials = Credentials.builder()
+                .email(talent.getEmail())
+                .password(passwordEncoder.encode(talent.getPassword()))
+                .status(AccountStatus.ACTIVE)
+                .role(Role.TALENT)
+                .build();
+
+        credentialsRepository.save(credentials);
+
         var savedTalent = talentRepository.save(Talent.builder()
-                    .password(passwordEncoder.encode(talent.getPassword()))
-                    .email(talent.getEmail())
+                    .credentials(credentials)
                     .firstname(talent.getFirstname())
                     .lastname(talent.getLastname())
                     .skills(new LinkedHashSet<>(talent.getSkills()))
@@ -84,10 +97,10 @@ public class TalentService {
     @Transactional
     public AuthResponse login(TalentLogin loginRequest) {
         String email = loginRequest.getEmail();
-        Talent foundTalent = talentRepository.findByEmail(email)
+        Talent foundTalent = credentialsRepository.findTalentByEmailIgnoreCase(email)
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found by email [" + email + "]"));
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), foundTalent.getPassword())) {
+        if (!passwordEncoder.matches(loginRequest.getPassword(), foundTalent.getCredentials().getPassword())) {
             throw new BadCredentialsException("Invalid email or password");
         }
 
