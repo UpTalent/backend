@@ -1,7 +1,7 @@
 package com.uptalent.proof.kudos.model.entity;
 
 import com.uptalent.proof.model.entity.Proof;
-import com.uptalent.sponsor.Sponsor;
+import com.uptalent.sponsor.model.entity.Sponsor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
