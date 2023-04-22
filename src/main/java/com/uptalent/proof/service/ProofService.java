@@ -45,27 +45,28 @@ public class ProofService {
     private final ProofMapper mapper;
     private final AccessVerifyService accessVerifyService;
 
-    public PageWithMetadata<ProofGeneralInfo> getProofs(int page, int size, String sort) {
-        Sort sortOrder = getSortByString(sort, PUBLISHED);
-        PageRequest pageRequest = PageRequest.of(page, size, sortOrder);
-
-        Long principalTalentId = accessVerifyService.getPrincipalId();
-
-
-        Page<Proof> proofsPage = proofRepository.findAllByStatus(ProofStatus.PUBLISHED, pageRequest);
-        List<Proof> retrievedProofs = proofsPage.getContent();
-
-        if (principalTalentId != 0L) {
-            Talent talent = getTalentById(principalTalentId);
-            List<Proof> kudosedProofs = talent.getKudosHistory().stream().map(KudosHistory::getProof).toList();
-
-            retrievedProofs.forEach(rp -> rp.setKudosedByMe(kudosedProofs.contains(rp)));
-        }
-
-        List<ProofGeneralInfo> proofGeneralInfos = mapper.toProofGeneralInfos(retrievedProofs);
-
-        return new PageWithMetadata<>(proofGeneralInfos, proofsPage.getTotalPages());
-    }
+    // TODO: Rewrite logic with sponsor entity
+//    public PageWithMetadata<ProofGeneralInfo> getProofs(int page, int size, String sort) {
+//        Sort sortOrder = getSortByString(sort, PUBLISHED);
+//        PageRequest pageRequest = PageRequest.of(page, size, sortOrder);
+//
+//        Long principalTalentId = accessVerifyService.getPrincipalId();
+//
+//
+//        Page<Proof> proofsPage = proofRepository.findAllByStatus(ProofStatus.PUBLISHED, pageRequest);
+//        List<Proof> retrievedProofs = proofsPage.getContent();
+//
+//        if (principalTalentId != 0L) {
+//            Talent talent = getTalentById(principalTalentId);
+//            List<Proof> kudosedProofs = talent.getKudosHistory().stream().map(KudosHistory::getProof).toList();
+//
+//            retrievedProofs.forEach(rp -> rp.setKudosedByMe(kudosedProofs.contains(rp)));
+//        }
+//
+//        List<ProofGeneralInfo> proofGeneralInfos = mapper.toProofGeneralInfos(retrievedProofs);
+//
+//        return new PageWithMetadata<>(proofGeneralInfos, proofsPage.getTotalPages());
+//    }
 
     public ProofDetailInfo getProofDetailInfo(Long talentId, Long proofId) {
         verifyTalentExistsById(talentId);
@@ -115,34 +116,35 @@ public class ProofService {
         return mapper.toProofDetailInfo(foundProof);
     }
 
-    public PageWithMetadata<ProofDetailInfo> getTalentProofs(int page, int size, String sort,
-                                                             Long talentId, String status) {
-        verifyTalentExistsById(talentId);
-        ProofStatus proofStatus = ProofStatus.valueOf(status.toUpperCase());
-
-        if (!PUBLISHED.equals(proofStatus))
-            accessVerifyService.tryGetAccess(talentId, "You do not have permission to get list of proofs");
-
-        Sort sortOrder = getSortByString(sort, proofStatus);
-        PageRequest pageRequest = PageRequest.of(page, size, sortOrder);
-
-        Page<Proof> proofsPage = proofRepository.findAllByTalentIdAndStatus(talentId, proofStatus,
-                PageRequest.of(page, size, sortOrder));
-
-        Long principalTalentId = accessVerifyService.getPrincipalId();
-        List<Proof> retrievedProofs = proofsPage.getContent();
-
-        if (principalTalentId != 0L) {
-            Talent talent = getTalentById(principalTalentId);
-            List<Proof> kudosedProofs = talent.getKudosHistory().stream().map(KudosHistory::getProof).toList();
-
-            retrievedProofs.forEach(rp -> rp.setKudosedByMe(kudosedProofs.contains(rp)));
-        }
-
-        List<ProofDetailInfo> proofDetailInfos = mapper.toProofDetailInfos(proofsPage.getContent());
-
-        return new PageWithMetadata<>(proofDetailInfos, proofsPage.getTotalPages());
-    }
+    // TODO: Rewrite logic with sponsor entity
+//    public PageWithMetadata<ProofDetailInfo> getTalentProofs(int page, int size, String sort,
+//                                                             Long talentId, String status) {
+//        verifyTalentExistsById(talentId);
+//        ProofStatus proofStatus = ProofStatus.valueOf(status.toUpperCase());
+//
+//        if (!PUBLISHED.equals(proofStatus))
+//            accessVerifyService.tryGetAccess(talentId, "You do not have permission to get list of proofs");
+//
+//        Sort sortOrder = getSortByString(sort, proofStatus);
+//        PageRequest pageRequest = PageRequest.of(page, size, sortOrder);
+//
+//        Page<Proof> proofsPage = proofRepository.findAllByTalentIdAndStatus(talentId, proofStatus,
+//                PageRequest.of(page, size, sortOrder));
+//
+//        Long principalTalentId = accessVerifyService.getPrincipalId();
+//        List<Proof> retrievedProofs = proofsPage.getContent();
+//
+//        if (principalTalentId != 0L) {
+//            Talent talent = getTalentById(principalTalentId);
+//            List<Proof> kudosedProofs = talent.getKudosHistory().stream().map(KudosHistory::getProof).toList();
+//
+//            retrievedProofs.forEach(rp -> rp.setKudosedByMe(kudosedProofs.contains(rp)));
+//        }
+//
+//        List<ProofDetailInfo> proofDetailInfos = mapper.toProofDetailInfos(proofsPage.getContent());
+//
+//        return new PageWithMetadata<>(proofDetailInfos, proofsPage.getTotalPages());
+//    }
 
     @Transactional
     public void deleteProof(Long proofId, Long talentId) {
@@ -161,26 +163,27 @@ public class ProofService {
         return kudosHistoryRepository.findKudosSendersByProofId(proofId);
     }
 
-    @Transactional
-    public void postKudos(PostKudos kudos, Long proofId) {
-        Long talentId = accessVerifyService.getPrincipalId();
-        Proof proof = getProofById(proofId);
-
-        validatePostingKudos(talentId, proof);
-
-        Talent talent = getTalentById(talentId);
-        KudosHistory kudosHistory = KudosHistory.builder()
-                .talent(talent)
-                .proof(proof)
-                .sent(LocalDateTime.now())
-                .kudos(kudos.getKudos())
-                .build();
-
-        proof.setKudos(proof.getKudos() + kudos.getKudos());
-
-        kudosHistoryRepository.save(kudosHistory);
-        proofRepository.save(proof);
-    }
+    // TODO: Rewrite logic with sponsor entity
+//    @Transactional
+//    public void postKudos(PostKudos kudos, Long proofId) {
+//        Long talentId = accessVerifyService.getPrincipalId();
+//        Proof proof = getProofById(proofId);
+//
+//        validatePostingKudos(talentId, proof);
+//
+//        Talent talent = getTalentById(talentId);
+//        KudosHistory kudosHistory = KudosHistory.builder()
+//                .talent(talent)
+//                .proof(proof)
+//                .sent(LocalDateTime.now())
+//                .kudos(kudos.getKudos())
+//                .build();
+//
+//        proof.setKudos(proof.getKudos() + kudos.getKudos());
+//
+//        kudosHistoryRepository.save(kudosHistory);
+//        proofRepository.save(proof);
+//    }
 
 
     private Consumer<Proof> selectProofModifyStrategy(ProofModify proofModify, ProofStatus currentStatus) {
