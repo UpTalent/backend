@@ -188,28 +188,4 @@ public class TalentController {
     public void deleteTalent(@PathVariable Long id) {
         talentService.deleteTalent(id);
     }
-
-    @SecurityRequirement(name = "bearerAuth")
-    @Operation(
-            summary = "Image upload to talent's profile",
-            description = "As a talent, I would like to be able to change the photo or banner.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Image uploaded"),
-            @ApiResponse(responseCode = "400", description = "Invalid request",
-                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
-                            mediaType = "application/json") }) })
-    @PostMapping(
-            path = "/{id}/image/upload",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ResponseStatus(HttpStatus.OK)
-    public void uploadImage(@PathVariable Long id,
-                            @Parameter(required = true, description = "Image file") @RequestParam MultipartFile image,
-                            @Parameter(required = true, description = "Operation for uploading AVATAR or BANNER")
-                                @RequestParam FileStoreOperation operation){
-        talentService.uploadImage(id, image, operation);
-    }
-
-
 }
