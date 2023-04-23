@@ -27,7 +27,7 @@ public class AccessVerifyService {
         return (!Objects.equals(id, "anonymousUser")) ? Long.parseLong(id) : 0L;
     }
 
-    private boolean hasRole(Role requiredRole) {
+    public boolean hasRole(Role requiredRole) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)

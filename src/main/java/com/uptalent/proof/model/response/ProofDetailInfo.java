@@ -22,5 +22,4 @@ public class ProofDetailInfo {
     private LocalDateTime published;
     private int kudos;
     private ProofStatus status;
-    private boolean kudosedByMe;
 }
