@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -161,6 +162,7 @@ public class TalentController {
             @ApiResponse(responseCode = "404", description = "Talent with id does not exist",
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                             mediaType = "application/json") }) })
+    @PreAuthorize("hasAuthority('TALENT')")
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public TalentOwnProfile updateTalent(@PathVariable Long id,
@@ -183,6 +185,7 @@ public class TalentController {
             @ApiResponse(responseCode = "404", description = "Talent with id does not exist",
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                             mediaType = "application/json") }) })
+    @PreAuthorize("hasAuthority('TALENT')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTalent(@PathVariable Long id) {
