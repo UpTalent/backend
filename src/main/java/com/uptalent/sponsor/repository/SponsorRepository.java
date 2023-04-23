@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SponsorRepository extends JpaRepository<Sponsor, Long> {
@@ -14,4 +15,7 @@ public interface SponsorRepository extends JpaRepository<Sponsor, Long> {
             "kh.proof.title, kh.sent, kh.kudos) " +
             "from kudos_history kh where kh.sponsor.id = :sponsorId")
     List<KudosedProof> findAllKudosedProofBySponsorId(Long sponsorId);
+
+    @Query("SELECT s.avatar FROM sponsor s WHERE s.id = :sponsorId")
+    Optional<String> findAvatarBySponsorId(Long sponsorId);
 }
