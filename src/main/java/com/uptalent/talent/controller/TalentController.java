@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -161,6 +162,7 @@ public class TalentController {
             @ApiResponse(responseCode = "404", description = "Talent with id does not exist",
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                             mediaType = "application/json") }) })
+    @PreAuthorize("hasAuthority('TALENT')")
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public TalentOwnProfile updateTalent(@PathVariable Long id,
@@ -183,33 +185,10 @@ public class TalentController {
             @ApiResponse(responseCode = "404", description = "Talent with id does not exist",
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                             mediaType = "application/json") }) })
+    @PreAuthorize("hasAuthority('TALENT')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTalent(@PathVariable Long id) {
         talentService.deleteTalent(id);
     }
-
-    @SecurityRequirement(name = "bearerAuth")
-    @Operation(
-            summary = "Image upload to talent's profile",
-            description = "As a talent, I would like to be able to change the photo or banner.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Image uploaded"),
-            @ApiResponse(responseCode = "400", description = "Invalid request",
-                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
-                            mediaType = "application/json") }) })
-    @PostMapping(
-            path = "/{id}/image/upload",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ResponseStatus(HttpStatus.OK)
-    public void uploadImage(@PathVariable Long id,
-                            @Parameter(required = true, description = "Image file") @RequestParam MultipartFile image,
-                            @Parameter(required = true, description = "Operation for uploading AVATAR or BANNER")
-                                @RequestParam FileStoreOperation operation){
-        talentService.uploadImage(id, image, operation);
-    }
-
-
 }

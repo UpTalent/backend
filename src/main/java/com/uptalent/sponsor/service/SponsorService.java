@@ -3,7 +3,6 @@ package com.uptalent.sponsor.service;
 import com.uptalent.credentials.exception.AccountExistsException;
 import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.credentials.model.enums.AccountStatus;
-import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.payload.AuthResponse;
@@ -14,9 +13,9 @@ import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,6 +23,7 @@ import static com.uptalent.credentials.model.enums.Role.SPONSOR;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SponsorService {
     private final SponsorRepository sponsorRepository;
     private final CredentialsRepository credentialsRepository;
@@ -63,7 +63,7 @@ public class SponsorService {
         return new AuthResponse(jwtToken);
     }
 
-    @PreAuthorize("hasAuthority('SPONSOR')")
+    @Transactional(readOnly = true)
     public List<KudosedProof> getListKudosedProofBySponsorId(Long sponsorId) {
         String errorMessage = "You do not have permission to the list";
         accessVerifyService.tryGetAccess(sponsorId, SPONSOR, errorMessage);

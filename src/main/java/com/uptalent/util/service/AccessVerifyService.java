@@ -33,4 +33,13 @@ public class AccessVerifyService {
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch(role -> role.equals(requiredRole.name()));
     }
+
+    public Role getRole() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String roleName = auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("User has no roles assigned"));
+        return Role.valueOf(roleName);
+    }
 }

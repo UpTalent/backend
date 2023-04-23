@@ -2,43 +2,50 @@ package com.uptalent.util;
 
 import com.uptalent.filestore.exception.EmptyFileException;
 import com.uptalent.filestore.exception.IncorrectFileFormatException;
-import org.imgscalr.Scalr;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import static org.apache.http.entity.ContentType.IMAGE_JPEG;
 import static org.apache.http.entity.ContentType.IMAGE_PNG;
 
 public class ImageUtils {
-    public static InputStream resizeImage(MultipartFile image) throws IOException {
-        BufferedImage bufferedImage = ImageIO.read(image.getInputStream());
 
-        int targetWidth = bufferedImage.getWidth() / 2;
-        int targetHeight = bufferedImage.getHeight() / 2;
+    public static InputStream compressImage(MultipartFile image) throws IOException {
+        BufferedImage originalImage = ImageIO.read(image.getInputStream());
+        ByteArrayOutputStream compressedImage = new ByteArrayOutputStream();
+        ImageOutputStream outputStream = ImageIO.createImageOutputStream(compressedImage);
 
-        BufferedImage resizedImage = Scalr.resize(bufferedImage,
-                Scalr.Method.AUTOMATIC,
-                Scalr.Mode.AUTOMATIC,
-                targetWidth,
-                targetHeight);
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(getFileExtension(image));
+        ImageWriter writer = writers.next();
 
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        ImageIO.write(resizedImage, getFileExtension(image), os);
+        ImageWriteParam writeParam = writer.getDefaultWriteParam();
+        writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+        writeParam.setCompressionQuality(0.5f);
 
-        return new ByteArrayInputStream(os.toByteArray());
+        writer.setOutput(outputStream);
+        writer.write(null, new IIOImage(originalImage, null, null), writeParam);
+
+        return new ByteArrayInputStream(compressedImage.toByteArray());
     }
+
 
     public static String getFileExtension(MultipartFile file) {
         String originalFilename = file.getOriginalFilename();
-        int dotIndex = originalFilename.lastIndexOf('.');
-        return (dotIndex == -1) ? "" : originalFilename.substring(dotIndex + 1);
+        int dotIndex = StringUtils.lastIndexOf(originalFilename, '.');
+        return StringUtils.substring(originalFilename, dotIndex + 1);
     }
 
     public static void isImage(MultipartFile file) {
