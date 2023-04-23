@@ -5,6 +5,7 @@ import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
+import com.uptalent.filestore.FileStoreService;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
@@ -67,6 +68,8 @@ class TalentServiceTest {
     private JwtTokenProvider jwtTokenProvider;
     @Mock
     private AccessVerifyService accessVerifyService;
+    @Mock
+    private FileStoreService fileStoreService;
 
     @InjectMocks
     private TalentService talentService;
@@ -344,6 +347,7 @@ class TalentServiceTest {
         willReturnOwnProfile();
 
         willDoNothing().given(talentRepository).delete(talent);
+        willDoNothing().given(fileStoreService).deleteImageByUserId(talent.getId());
 
         talentService.deleteTalent(talent.getId());
 
