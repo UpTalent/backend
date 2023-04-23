@@ -13,10 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 public class KudosSender {
     private String fullname;
-
     private String avatar;
-
     private LocalDateTime sent;
-
     private int kudos;
 }
