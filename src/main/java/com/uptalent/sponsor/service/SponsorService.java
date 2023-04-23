@@ -7,13 +7,20 @@ import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.payload.AuthResponse;
+import com.uptalent.proof.kudos.model.response.KudosedProof;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.model.request.SponsorRegistration;
 import com.uptalent.sponsor.repository.SponsorRepository;
+import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import static com.uptalent.credentials.model.enums.Role.SPONSOR;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +29,7 @@ public class SponsorService {
     private final CredentialsRepository credentialsRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final AccessVerifyService accessVerifyService;
 
     @Value("${sponsor.initial-kudos-number}")
     private int INITIAL_KUDOS_NUMBER;
@@ -35,7 +43,7 @@ public class SponsorService {
                 .email(sponsorRegistration.getEmail())
                 .password(passwordEncoder.encode(sponsorRegistration.getPassword()))
                 .status(AccountStatus.ACTIVE)
-                .role(Role.SPONSOR)
+                .role(SPONSOR)
                 .build();
 
         credentialsRepository.save(credentials);
@@ -53,5 +61,13 @@ public class SponsorService {
                 savedSponsor.getFullname()
         );
         return new AuthResponse(jwtToken);
+    }
+
+    @PreAuthorize("hasAuthority('SPONSOR')")
+    public List<KudosedProof> getListKudosedProofBySponsorId(Long sponsorId) {
+        String errorMessage = "You do not have permission to the list";
+        accessVerifyService.tryGetAccess(sponsorId, SPONSOR, errorMessage);
+
+        return sponsorRepository.findAllKudosedProofBySponsorId(sponsorId);
     }
 }

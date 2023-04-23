@@ -3,6 +3,7 @@ package com.uptalent.talent.controller;
 import com.uptalent.filestore.FileStoreOperation;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.payload.AuthResponse;
+import com.uptalent.payload.HttpResponse;
 import com.uptalent.talent.service.TalentService;
 import com.uptalent.talent.model.request.TalentEdit;
 import com.uptalent.talent.model.request.TalentLogin;
@@ -75,9 +76,15 @@ public class TalentController {
             @ApiResponse(responseCode = "200",
                     content = { @Content(schema = @Schema(implementation = TalentProfile.class),
                     mediaType = "application/json") }),
-            @ApiResponse(responseCode = "400", description = "Invalid fields"),
-            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
-            @ApiResponse(responseCode = "404", description = "Talent not found") })
+            @ApiResponse(responseCode = "400", description = "Invalid fields",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Talent not found",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }) })
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public TalentProfile getTalentProfile(@PathVariable Long id){
@@ -95,7 +102,9 @@ public class TalentController {
             @ApiResponse(responseCode = "201",
                     content = { @Content(schema = @Schema(implementation = AuthResponse.class),
                             mediaType = "application/json") }),
-            @ApiResponse(responseCode = "409", description = "User with email exists") })
+            @ApiResponse(responseCode = "409", description = "User with email exists",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }) })
     @PostMapping
     public ResponseEntity<?> registerTalent(@Valid @RequestBody TalentRegistration talent){
         var response = talentService.addTalent(talent);
@@ -113,9 +122,15 @@ public class TalentController {
             @ApiResponse(responseCode = "200",
                     content = { @Content(schema = @Schema(implementation = AuthResponse.class),
                             mediaType = "application/json") }),
-            @ApiResponse(responseCode = "400", description = "Invalid fields"),
-            @ApiResponse(responseCode = "401", description = "Invalid email or password"),
-            @ApiResponse(responseCode = "404", description = "Talent with email does not exist") })
+            @ApiResponse(responseCode = "400", description = "Invalid fields",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Invalid email or password",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Talent with email does not exist",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }) })
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody TalentLogin loginRequest){
         var response = talentService.login(loginRequest);
@@ -134,10 +149,18 @@ public class TalentController {
             @ApiResponse(responseCode = "200",
                     content = { @Content(schema = @Schema(implementation = TalentOwnProfile.class),
                             mediaType = "application/json") }),
-            @ApiResponse(responseCode = "400", description = "Invalid fields"),
-            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
-            @ApiResponse(responseCode = "403", description = "You cannot edit profile other talent"),
-            @ApiResponse(responseCode = "404", description = "Talent with id does not exist") })
+            @ApiResponse(responseCode = "400", description = "Invalid fields",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "403", description = "You cannot edit profile other talent",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Talent with id does not exist",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }) })
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public TalentOwnProfile updateTalent(@PathVariable Long id,
@@ -151,9 +174,15 @@ public class TalentController {
             description = "As a talent, I would like to be able to delete my profile.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "No content"),
-            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
-            @ApiResponse(responseCode = "403", description = "You cannot delete profile other talent"),
-            @ApiResponse(responseCode = "404", description = "Talent with id does not exist") })
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "403", description = "You cannot delete profile other talent",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Talent with id does not exist",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }) })
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTalent(@PathVariable Long id) {
@@ -166,7 +195,9 @@ public class TalentController {
             description = "As a talent, I would like to be able to change the photo or banner.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Image uploaded"),
-            @ApiResponse(responseCode = "400", description = "Invalid request") })
+            @ApiResponse(responseCode = "400", description = "Invalid request",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }) })
     @PostMapping(
             path = "/{id}/image/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,

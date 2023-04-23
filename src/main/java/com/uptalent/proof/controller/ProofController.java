@@ -2,6 +2,7 @@ package com.uptalent.proof.controller;
 
 
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.payload.HttpResponse;
 import com.uptalent.proof.kudos.model.request.PostKudos;
 import com.uptalent.proof.kudos.model.response.KudosSender;
 import com.uptalent.proof.model.enums.ProofStatus;
@@ -57,7 +58,9 @@ public class ProofController {
            @ApiResponse(responseCode = "200",
                    content = { @Content(schema = @Schema(implementation = ProofGeneralInfo.class),
                            mediaType = "application/json") }),
-           @ApiResponse(responseCode = "400", description = "Illegal query params")})
+           @ApiResponse(responseCode = "400", description = "Illegal query params",
+                   content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                           mediaType = "application/json") })})
    @GetMapping("/proofs")
    @ResponseStatus(HttpStatus.OK)
    public PageWithMetadata<? extends ProofGeneralInfo> getAllProofs(
@@ -78,11 +81,19 @@ public class ProofController {
             @ApiResponse(responseCode = "200",
                     content = { @Content(schema = @Schema(implementation = ProofDetailInfo.class),
                             mediaType = "application/json") }),
-            @ApiResponse(responseCode = "400", description = "Illegal query params"),
-            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
+            @ApiResponse(responseCode = "400", description = "Illegal query params",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
             @ApiResponse(responseCode = "403", description = "You cannot list of proof " +
-                    "which has not PUBLISHED status from other talent profile"),
-            @ApiResponse(responseCode = "404", description = "Talent by id was not found")})
+                    "which has not PUBLISHED status from other talent profile",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Talent by id was not found",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })})
     @GetMapping("/talents/{talent-id}/proofs")
     @ResponseStatus(HttpStatus.OK)
     public PageWithMetadata<? extends ProofDetailInfo> getAllTalentProofs(
@@ -105,10 +116,18 @@ public class ProofController {
             @ApiResponse(responseCode = "200",
                     content = { @Content(schema = @Schema(implementation = ProofDetailInfo.class),
                             mediaType = "application/json") }),
-            @ApiResponse(responseCode = "400", description = "Illegal query params"),
-            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
-            @ApiResponse(responseCode = "403", description = "You cannot get proof detail from other talent"),
-            @ApiResponse(responseCode = "404", description = "Talent or Proof by id was not found")})
+            @ApiResponse(responseCode = "400", description = "Illegal query params",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "403", description = "You cannot get proof detail from other talent",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Talent or Proof by id was not found",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })})
     @GetMapping("/talents/{talentId}/proofs/{proofId}")
     @ResponseStatus(HttpStatus.OK)
     public ProofDetailInfo getProofDetailInfo(@PathVariable Long talentId,
@@ -124,11 +143,21 @@ public class ProofController {
             @ApiResponse(responseCode = "200",
                     content = { @Content(schema = @Schema(implementation = ProofDetailInfo.class),
                             mediaType = "application/json") }),
-            @ApiResponse(responseCode = "400", description = "Invalid fields"),
-            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
-            @ApiResponse(responseCode = "403", description = "You cannot update proof for other talent"),
-            @ApiResponse(responseCode = "404", description = "Talent or Proof by id was not found"),
-            @ApiResponse(responseCode = "409", description = "Illegal operation")})
+            @ApiResponse(responseCode = "400", description = "Invalid fields",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "403", description = "You cannot update proof for other talent",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Talent or Proof by id was not found",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "409", description = "Illegal operation",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })})
     @PatchMapping("/talents/{talentId}/proofs/{proofId}")
     @ResponseStatus(HttpStatus.OK)
     public ProofDetailInfo editProof(@Valid @RequestBody ProofModify proofModify,
@@ -143,10 +172,18 @@ public class ProofController {
             description = "As a talent, I want to be able to create proof")
     @ApiResponses({
             @ApiResponse(responseCode = "201", headers = {@Header(name = "location", description = "proof-id")}),
-            @ApiResponse(responseCode = "400", description = "Invalid fields"),
-            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
-            @ApiResponse(responseCode = "403", description = "You cannot add proof for other talent"),
-            @ApiResponse(responseCode = "404", description = "Talent by id was not found")})
+            @ApiResponse(responseCode = "400", description = "Invalid fields",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "403", description = "You cannot add proof for other talent",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Talent by id was not found",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })})
     @PostMapping("/talents/{talentId}/proofs")
     public ResponseEntity<?> createProof(@Valid @RequestBody ProofModify proofModify,
                                          @PathVariable Long talentId) {
@@ -161,10 +198,18 @@ public class ProofController {
             description = "As a talent, I want to be able to delete my own proofs")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "No content"),
-            @ApiResponse(responseCode = "400", description = "Invalid fields"),
-            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
-            @ApiResponse(responseCode = "403", description = "You cannot delete proof from other talent"),
-            @ApiResponse(responseCode = "404", description = "Talent or Proof by id was not found")})
+            @ApiResponse(responseCode = "400", description = "Invalid fields",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "403", description = "You cannot delete proof from other talent",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Talent or Proof by id was not found",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })})
     @DeleteMapping("/talents/{talentId}/proofs/{proofId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<?> deleteProof(@PathVariable Long proofId,
@@ -181,11 +226,19 @@ public class ProofController {
             @ApiResponse(responseCode = "200",
                     content = { @Content(schema = @Schema(implementation = KudosSender.class),
                     mediaType = "application/json") }),
-            @ApiResponse(responseCode = "400", description = "Invalid fields"),
-            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
+            @ApiResponse(responseCode = "400", description = "Invalid fields",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
             @ApiResponse(responseCode = "403", description = "You cannot get list of those," +
-                    " who posted kudos on proof from other talent"),
-            @ApiResponse(responseCode = "404", description = "Proof by id was not found")})
+                    " who posted kudos on proof from other talent",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Proof by id was not found",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })})
     @GetMapping("/proofs/{proofId}/kudos")
     @ResponseStatus(HttpStatus.OK)
     public List<KudosSender> getKudosSenders(@PathVariable Long proofId) {
@@ -199,10 +252,18 @@ public class ProofController {
             description = "As a talent, I want to be able to put the kudos to proofs of another talents")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "No content"),
-            @ApiResponse(responseCode = "400", description = "Invalid fields"),
-            @ApiResponse(responseCode = "401", description = "Log in to get access to the page"),
-            @ApiResponse(responseCode = "404", description = "Proof by id was not found"),
-            @ApiResponse(responseCode = "409", description = "Illegal posting kudos")})
+            @ApiResponse(responseCode = "400", description = "Invalid fields",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Proof by id was not found",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "409", description = "Illegal posting kudos",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })})
     @PostMapping("/proofs/{proofId}/kudos")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void postKudos(@PathVariable Long proofId,

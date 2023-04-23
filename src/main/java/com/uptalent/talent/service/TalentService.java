@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -132,7 +133,7 @@ public class TalentService {
             return talentMapper.toTalentProfile(foundTalent);
         }
     }
-
+    @PreAuthorize("hasAuthority('TALENT')")
     @Transactional
     public TalentOwnProfile updateTalent(Long id, TalentEdit updatedTalent) {
         Talent talentToUpdate = getTalentById(id);
@@ -164,7 +165,7 @@ public class TalentService {
 
         return talentMapper.toTalentOwnProfile(savedTalent);
     }
-
+    @PreAuthorize("hasAuthority('TALENT')")
     @Transactional
     public void deleteTalent(Long id) {
         Talent talentToDelete = getTalentById(id);
@@ -175,7 +176,7 @@ public class TalentService {
         );
         talentRepository.delete(talentToDelete);
     }
-
+    @PreAuthorize("hasAuthority('TALENT')")
     @Transactional
     public void uploadImage(Long id, MultipartFile image, FileStoreOperation operation) {
         Talent talent = getTalentById(id);

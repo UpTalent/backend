@@ -1,19 +1,16 @@
 package com.uptalent.proof.kudos.model.response;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
-@Builder
-public class KudosSender {
-    private String fullname;
-    private String avatar;
+public class KudosedProof {
+    private Long proofId;
+    private Integer iconNumber;
+    private String title;
     private LocalDateTime sent;
     private int kudos;
 }

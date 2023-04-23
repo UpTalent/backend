@@ -7,10 +7,14 @@ import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.payload.AuthResponse;
+import com.uptalent.proof.kudos.model.response.KudosedProof;
+import com.uptalent.proof.model.entity.Proof;
+import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.model.request.SponsorRegistration;
 import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.sponsor.service.SponsorService;
+import com.uptalent.util.service.AccessVerifyService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,9 +26,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +43,8 @@ public class SponsorServiceTest {
     private SponsorRepository sponsorRepository;
     @Mock
     private CredentialsRepository credentialsRepository;
+    @Mock
+    private AccessVerifyService accessVerifyService;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
@@ -43,6 +55,7 @@ public class SponsorServiceTest {
 
     private Credentials credentials;
     private Sponsor sponsor;
+    private Proof proof;
 
     @Value("${sponsor.initial-kudos-number}")
     private int INITIAL_KUDOS_NUMBER;
@@ -62,6 +75,16 @@ public class SponsorServiceTest {
                 .credentials(credentials)
                 .fullname("Sponsor")
                 .kudos(INITIAL_KUDOS_NUMBER)
+                .build();
+
+        proof = Proof.builder()
+                .id(1L)
+                .title("Proof title")
+                .summary("Proof summary")
+                .content("Proof content")
+                .published(LocalDateTime.now())
+                .iconNumber(1)
+                .status(ProofStatus.PUBLISHED)
                 .build();
     }
 
@@ -109,4 +132,15 @@ public class SponsorServiceTest {
 
         return sponsorRegistration;
     }
+
+    @Test
+    @DisplayName("[Stage-3.2] [US-2] - Get list of kudosed proof successfully")
+    public void getListKudosedProofSuccessfully() {
+        List<KudosedProof> kudosedProofs = List.of(new KudosedProof(proof.getId(), proof.getIconNumber(), proof.getTitle(), LocalDateTime.now(), 50));
+
+        given(sponsorRepository.findAllKudosedProofBySponsorId(sponsor.getId())).willReturn(kudosedProofs);
+
+        assertEquals(kudosedProofs, sponsorService.getListKudosedProofBySponsorId(sponsor.getId()));
+    }
+
 }
