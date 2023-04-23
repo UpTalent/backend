@@ -5,9 +5,7 @@ import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
-import com.uptalent.filestore.FileStoreOperation;
 import com.uptalent.filestore.FileStoreService;
-import com.uptalent.filestore.exception.FailedToUploadFileException;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
@@ -24,7 +22,6 @@ import com.uptalent.payload.AuthResponse;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,13 +32,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
-
-import static com.uptalent.util.ImageUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -52,12 +44,9 @@ public class TalentService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
-    private final FileStoreService fileStoreService;
     private final AccessVerifyService accessVerifyService;
     private final CredentialsRepository credentialsRepository;
-
-    @Value("${aws.bucket.name}")
-    private String BUCKET_NAME;
+    private final FileStoreService fileStoreService;
 
     public PageWithMetadata<TalentGeneralInfo> getAllTalents(int page, int size){
         Page<Talent> talentPage = talentRepository.findAllByOrderByIdDesc(PageRequest.of(page, size));
@@ -174,55 +163,12 @@ public class TalentService {
                 talentToDelete.getCredentials().getRole(),
                 "You are not allowed to delete this talent"
         );
+        fileStoreService.deleteImageByUserId(id);
         talentRepository.delete(talentToDelete);
-    }
-    @PreAuthorize("hasAuthority('TALENT')")
-    @Transactional
-    public void uploadImage(Long id, MultipartFile image, FileStoreOperation operation) {
-        Talent talent = getTalentById(id);
-        accessVerifyService.tryGetAccess(
-                id,
-                talent.getCredentials().getRole(),
-                "You are not allowed to edit this talent"
-        );
-
-        isFileEmpty(image);
-        isImage(image);
-
-        Map<String, String> metadata = extractMetadata(image);
-        String imageType = operation.equals(FileStoreOperation.UPLOAD_AVATAR) ? "avatar" : "banner";
-        String path = String.format("%s/%s", BUCKET_NAME, id);
-        String filename = String.format("%s.%s", imageType, getFileExtension(image));
-        String imageUrl = generateImageUrl(id, filename);
-
-        try(InputStream is = resizeImage(image)) {
-            fileStoreService.save(path, filename, Optional.of(metadata), is);
-            if(operation.equals(FileStoreOperation.UPLOAD_AVATAR)) {
-                talent.setAvatar(imageUrl);
-            } else {
-                talent.setBanner(imageUrl);
-            }
-        } catch (IOException e) {
-            throw new FailedToUploadFileException(e.getMessage());
-        }
-        talentRepository.save(talent);
     }
 
     private Talent getTalentById(Long id) {
         return talentRepository.findById(id)
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
-    }
-
-    private static Map<String, String> extractMetadata(MultipartFile file) {
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("Content-Type", file.getContentType());
-        metadata.put("Content-Length", String.valueOf(file.getSize()));
-        return metadata;
-    }
-
-    private String generateImageUrl(Long id, String filename) {
-        // TODO: Refactor the imageUrl generation logic
-        return String.format("https://%s.s3.amazonaws.com/%s/%s",
-                BUCKET_NAME, id, filename);
     }
 }
