@@ -9,6 +9,8 @@ import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
 import com.uptalent.proof.kudos.model.response.KudosSender;
 import com.uptalent.proof.kudos.repository.KudosHistoryRepository;
 import com.uptalent.proof.kudos.model.request.PostKudos;
+import com.uptalent.sponsor.model.entity.Sponsor;
+import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.util.service.AccessVerifyService;
 import org.springframework.data.domain.Page;
@@ -60,6 +62,9 @@ public class ProofServiceTest {
     @Mock
     private AccessVerifyService accessVerifyService;
 
+    @Mock
+    private SponsorRepository sponsorRepository;
+
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -80,6 +85,7 @@ public class ProofServiceTest {
     private ProofModify hideProofCase;
     private ProofModify reopenProofCase;
 
+    private Sponsor sponsor;
 
 
     @BeforeEach
@@ -149,6 +155,14 @@ public class ProofServiceTest {
                 .skills(Set.of("Java", "Spring"))
                 .build();
 
+        sponsor = Sponsor.builder()
+                .id(1L)
+                .fullname("SoftServe")
+                .kudos(50)
+                .build();
+
+
+
         talent.setProofs(new ArrayList<>(Arrays.asList(draftProof, publishedProof, hiddenProof)));
 
         proofModify = new ProofModify("New Proof title", "New Proof summary", "New Proof content",
@@ -164,41 +178,40 @@ public class ProofServiceTest {
                 3, ProofStatus.PUBLISHED.name());
     }
 
-    // TODO: Rewrite test with sponsor entity
-//    @Test
-//    @DisplayName("[Stage 2] [US 1-2] - Get all proofs successfully in service")
-//    public void getProofGeneralInfoSuccessfully() {
-//        List<Proof> proofs = List.of(proof, publishedProof);
-//        List<ProofGeneralInfo> proofGeneralInfos = List.of(
-//                ProofGeneralInfo.builder()
-//                        .id(proof.getId())
-//                        .title(proof.getTitle())
-//                        .iconNumber(proof.getIconNumber())
-//                        .published(proof.getPublished())
-//                        .summary(proof.getSummary())
-//                        .build(),
-//                ProofGeneralInfo.builder()
-//                        .id(publishedProof.getId())
-//                        .title(publishedProof.getTitle())
-//                        .summary(publishedProof.getSummary())
-//                        .iconNumber(publishedProof.getIconNumber())
-//                        .published(publishedProof.getPublished())
-//                        .build()
-//        );
-//
-//        Page<Proof> proofsPage = new PageImpl<>(proofs);
-//
-//        when(proofRepository.findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(0, 9, Sort.by("published").descending()))).thenReturn(proofsPage);
-//        when(mapper.toProofGeneralInfos(proofs)).thenReturn(proofGeneralInfos);
-//
-//        PageWithMetadata<ProofGeneralInfo> result = proofService.getProofs(0, 9, "desc");
-//
-//        verify(proofRepository, times(1)).findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(0, 9, Sort.by("published").descending()));
-//        verify(mapper, times(1)).toProofGeneralInfos(proofs);
-//
-//        assertThat(result.getContent()).isEqualTo(proofGeneralInfos);
-//        assertThat(result.getContent().get(0).getPublished()).isEqualTo(proofGeneralInfos.get(0).getPublished());
-//    }
+
+    @Test
+    @DisplayName("[Stage 2] [US 1-2] - Get all proofs successfully in service")
+    public void getProofGeneralInfoSuccessfully() {
+
+        List<ProofGeneralInfo> proofGeneralInfos = List.of(
+                ProofGeneralInfo.builder()
+                        .id(proof.getId())
+                        .title(proof.getTitle())
+                        .iconNumber(proof.getIconNumber())
+                        .published(proof.getPublished())
+                        .summary(proof.getSummary())
+                        .build(),
+                ProofGeneralInfo.builder()
+                        .id(publishedProof.getId())
+                        .title(publishedProof.getTitle())
+                        .summary(publishedProof.getSummary())
+                        .iconNumber(publishedProof.getIconNumber())
+                        .published(publishedProof.getPublished())
+                        .build()
+        );
+
+        Page<ProofGeneralInfo> proofsPage = new PageImpl<>(proofGeneralInfos);
+
+        when(proofRepository.findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(0, 9, Sort.by("published").descending())))
+                .thenReturn(proofsPage);
+
+        PageWithMetadata<? extends ProofGeneralInfo> result = proofService.getProofs(0, 9, "desc");
+
+        verify(proofRepository, times(1)).findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(0, 9, Sort.by("published").descending()));
+
+        assertThat(result.getContent()).isEqualTo(proofGeneralInfos);
+        assertThat(result.getContent().get(0).getPublished()).isEqualTo(proofGeneralInfos.get(0).getPublished());
+    }
 
     @Test
     @DisplayName("[Stage-2] [US-4] - edit not exist proof")
@@ -500,60 +513,51 @@ public class ProofServiceTest {
                 () -> proofService.deleteProof(proof.getId(), talent.getId()));
     }
 
-    // TODO: Rewrite test with sponsor entity
-//    @Test
-//    @DisplayName("[Stage-3.1] [US-1] - post kudos successfully")
-//    public void postKudosSuccessfully() {
-//        PostKudos postKudos = new PostKudos(1);
-//        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
-//        given(talentRepository.findById(anotherTalent.getId())).willReturn(Optional.of(anotherTalent));
-//        given(accessVerifyService.getPrincipalId()).willReturn(anotherTalent.getId());
-//        given(kudosHistoryRepository.pressedProofByTalentId(anotherTalent.getId(), proof.getId())).willReturn(false);
-//
-//        proofService.postKudos(postKudos, proof.getId());
-//
-//        Assertions.assertEquals(1, postKudos.getKudos());
-//    }
 
-    // TODO: Rewrite test with sponsor entity
-//    @Test
-//    @DisplayName("[Stage-3.1] [US-1] - post kudos to own proof")
-//    public void postKudosToOwnProof() {
-//        PostKudos postKudos = new PostKudos(1);
-//
-//        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
-//        given(accessVerifyService.getPrincipalId()).willReturn(proof.getTalent().getId());
-//
-//        assertThrows(IllegalPostingKudos.class,
-//                () -> proofService.postKudos(postKudos, proof.getId()));
-//    }
+    @Test
+    @DisplayName("[Stage-3.2] [US-2] - post kudos successfully as sponsor")
+    public void postKudosSuccessfullyAsSponsor() {
+        PostKudos postKudos = new PostKudos(1);
+        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
+        given(sponsorRepository.findById(sponsor.getId())).willReturn(Optional.of(sponsor));
+        given(accessVerifyService.getPrincipalId()).willReturn(sponsor.getId());
 
-    // TODO: Rewrite test with sponsor entity
-//    @Test
-//    @DisplayName("[Stage-3.1] [US-1] - post kudos to proof again")
-//    public void postKudosToProofAgain() {
-//        PostKudos postKudos = new PostKudos(1);
-//
-//        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
-//        given(accessVerifyService.getPrincipalId()).willReturn(1000L);
-//        given(kudosHistoryRepository.pressedProofByTalentId(1000L, proof.getId())).willReturn(true);
-//
-//
-//        assertThrows(IllegalPostingKudos.class,
-//                () -> proofService.postKudos(postKudos, proof.getId()));
-//    }
+        int balanceKudosBeforePosting = sponsor.getKudos();
+        int countKudosProofBeforePosting = proof.getKudos();
 
-    // TODO: Rewrite test with sponsor entity
-//    @Test
-//    @DisplayName("[Stage-3.1] [US-1] - post kudos to proof which has not status PUBLISHED")
-//    public void postKudosToProofWhichHasNotStatusPublished() {
-//        PostKudos postKudos = new PostKudos(1);
-//
-//        given(proofRepository.findById(draftProof.getId())).willReturn(Optional.of(draftProof));
-//
-//        assertThrows(ProofNotFoundException.class,
-//                () -> proofService.postKudos(postKudos, draftProof.getId()));
-//    }
+        proofService.postKudos(postKudos, proof.getId());
+        Assertions.assertEquals(countKudosProofBeforePosting + postKudos.getKudos(), proof.getKudos());
+        Assertions.assertEquals(balanceKudosBeforePosting - postKudos.getKudos(), sponsor.getKudos());
+    }
+
+    @Test
+    @DisplayName("[Stage-3.2] [US-2] - post kudos with negative balance")
+    public void postKudosToOwnProof() {
+        PostKudos postKudos = new PostKudos(1);
+        sponsor.setKudos(-50);
+
+        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
+        given(sponsorRepository.findById(sponsor.getId())).willReturn(Optional.of(sponsor));
+        given(accessVerifyService.getPrincipalId()).willReturn(sponsor.getId());
+
+        assertThrows(IllegalPostingKudos.class,
+                () -> proofService.postKudos(postKudos, proof.getId()));
+    }
+
+
+
+    @Test
+    @DisplayName("[Stage-3.2] [US-2] - post kudos to proof which has not status PUBLISHED")
+    public void postKudosToProofWhichHasNotStatusPublished() {
+        PostKudos postKudos = new PostKudos(1);
+
+        given(proofRepository.findById(draftProof.getId())).willReturn(Optional.of(draftProof));
+        given(sponsorRepository.findById(sponsor.getId())).willReturn(Optional.of(sponsor));
+        given(accessVerifyService.getPrincipalId()).willReturn(sponsor.getId());
+
+        assertThrows(ProofNotFoundException.class,
+                () -> proofService.postKudos(postKudos, draftProof.getId()));
+    }
 
     @Test
     @DisplayName("[Stage-3.1] [US-3] - Get kudos senders successfully")
