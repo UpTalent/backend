@@ -6,12 +6,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @Repository
 public interface TalentRepository extends JpaRepository<Talent, Long> {
     Page<Talent> findAllByOrderByIdDesc(Pageable pageable);
+
+    @Query("SELECT t.avatar FROM talent t WHERE t.id = :talentId")
+    Optional<String> findAvatarByTalentId(Long talentId);
+
+    @Query("SELECT t.banner FROM talent t WHERE t.id = :talentId")
+    Optional<String> findBannerByTalentId(Long talentId);
 
 }
