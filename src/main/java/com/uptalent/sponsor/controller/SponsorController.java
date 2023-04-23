@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -65,6 +66,7 @@ public class SponsorController {
             @ApiResponse(responseCode = "403", description = "Do not have permission",
                 content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                 mediaType = "application/json") })})
+    @PreAuthorize("hasAuthority('SPONSOR')")
     @GetMapping("/{sponsorId}/kudos")
     @ResponseStatus(HttpStatus.OK)
     public List<KudosedProof> getListKudosedProof(@PathVariable Long sponsorId) {
