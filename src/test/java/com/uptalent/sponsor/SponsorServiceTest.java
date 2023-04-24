@@ -6,8 +6,12 @@ import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
+import com.uptalent.mapper.KudosHistoryMapper;
 import com.uptalent.payload.AuthResponse;
 import com.uptalent.proof.kudos.model.response.KudosedProof;
+import com.uptalent.proof.kudos.model.response.KudosedProofDetail;
+import com.uptalent.proof.kudos.model.response.KudosedProofHistory;
+import com.uptalent.proof.kudos.model.response.KudosedProofInfo;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.sponsor.model.entity.Sponsor;
@@ -27,12 +31,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -49,6 +55,8 @@ public class SponsorServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private JwtTokenProvider jwtTokenProvider;
+    @Mock
+    private KudosHistoryMapper kudosHistoryMapper;
 
     @InjectMocks
     private SponsorService sponsorService;
@@ -136,11 +144,36 @@ public class SponsorServiceTest {
     @Test
     @DisplayName("[Stage-3.2] [US-2] - Get list of kudosed proof successfully")
     public void getListKudosedProofSuccessfully() {
-        List<KudosedProof> kudosedProofs = List.of(new KudosedProof(proof.getId(), proof.getIconNumber(), proof.getTitle(), LocalDateTime.now(), 50));
+        KudosedProof kudosedProof = new KudosedProof(proof.getId(), proof.getIconNumber(),
+                proof.getTitle(), LocalDateTime.now(), 50);
+        List<KudosedProof> kudosedProofs = List.of(
+                kudosedProof,
+                kudosedProof,
+                kudosedProof,
+                kudosedProof);
 
-        given(sponsorRepository.findAllKudosedProofBySponsorId(sponsor.getId())).willReturn(kudosedProofs);
+        List<KudosedProofHistory> kudosedProofHistories = new ArrayList<>();
+        int testSum = kudosedProofs.stream().mapToInt(KudosedProof::getKudos).sum();
 
-        assertEquals(kudosedProofs, sponsorService.getListKudosedProofBySponsorId(sponsor.getId()));
+        kudosedProofs.forEach(k ->
+                kudosedProofHistories.add(new KudosedProofHistory(k.getSent(), k.getKudos())));
+
+
+        given(sponsorRepository.findAllKudosedProofBySponsorId(anyLong())).willReturn(kudosedProofs);
+
+        given(kudosHistoryMapper.toKudosedProofInfo(kudosedProof)).willReturn(new KudosedProofInfo(proof.getId(),
+                proof.getIconNumber(),
+                proof.getTitle(), testSum));
+
+        given(kudosHistoryMapper.toKudosedProofHistories(kudosedProofs)).willReturn(kudosedProofHistories);
+
+        List<KudosedProofDetail> kudosedProofDetails = sponsorService
+                .getListKudosedProofDetailsBySponsorId(sponsor.getId());
+
+
+
+        assertEquals(1, kudosedProofDetails.size());
+        assertEquals(testSum, kudosedProofDetails.get(0).getProofInfo().getTotalSumKudos());
     }
 
 }
