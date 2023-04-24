@@ -2,6 +2,7 @@ package com.uptalent.sponsor.controller;
 
 import com.uptalent.payload.AuthResponse;
 import com.uptalent.payload.HttpResponse;
+import com.uptalent.proof.kudos.model.response.KudosedProofDetail;
 import com.uptalent.proof.kudos.model.response.KudosedProof;
 import com.uptalent.sponsor.model.request.SponsorRegistration;
 import com.uptalent.sponsor.service.SponsorService;
@@ -61,7 +62,7 @@ public class SponsorController {
             description = "The ability to see the number of Kudos I have given to proofs")
     @ApiResponses({
             @ApiResponse(responseCode = "200",
-                    content = { @Content(schema = @Schema(implementation = KudosedProof.class),
+                    content = { @Content(schema = @Schema(implementation = KudosedProofDetail.class),
                             mediaType = "application/json") }),
             @ApiResponse(responseCode = "403", description = "Do not have permission",
                 content = { @Content(schema = @Schema(implementation = HttpResponse.class),
@@ -69,7 +70,7 @@ public class SponsorController {
     @PreAuthorize("hasAuthority('SPONSOR')")
     @GetMapping("/{sponsorId}/kudos")
     @ResponseStatus(HttpStatus.OK)
-    public List<KudosedProof> getListKudosedProof(@PathVariable Long sponsorId) {
-        return sponsorService.getListKudosedProofBySponsorId(sponsorId);
+    public List<KudosedProofDetail> getListKudosedProof(@PathVariable Long sponsorId) {
+        return sponsorService.getListKudosedProofDetailsBySponsorId(sponsorId);
     }
 }
