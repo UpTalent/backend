@@ -9,6 +9,9 @@ import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.payload.AuthResponse;
 import com.uptalent.proof.kudos.model.response.KudosedProof;
+import com.uptalent.proof.kudos.model.response.KudosedProofDetail;
+import com.uptalent.proof.kudos.model.response.KudosedProofHistory;
+import com.uptalent.proof.kudos.model.response.KudosedProofInfo;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.sponsor.controller.SponsorController;
@@ -170,10 +173,13 @@ public class SponsorControllerTest {
     @Test
     @DisplayName("[Stage-3.2] [US-2] - Get list of kudosed proof successfully")
     public void getListKudosedProofSuccessfully() throws Exception {
-        List<KudosedProof> kudosedProofs = List.of(new KudosedProof(proof.getId(), proof.getIconNumber(), proof.getTitle(), LocalDateTime.now(), 50));
+        List<KudosedProofDetail> kudosedProofDetails =
+                List.of(new KudosedProofDetail(
+                        new KudosedProofInfo(proof.getId(), proof.getIconNumber(), proof.getTitle(), 50),
+                        List.of(new KudosedProofHistory(LocalDateTime.now(), 50))));
 
-        when(sponsorService.getListKudosedProofBySponsorId(anyLong()))
-                .thenReturn(kudosedProofs);
+        when(sponsorService.getListKudosedProofDetailsBySponsorId(anyLong()))
+                .thenReturn(kudosedProofDetails);
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/v1/sponsors/{sponsorId}/kudos",
@@ -184,7 +190,9 @@ public class SponsorControllerTest {
         response
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$").isNotEmpty());
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].proof_info").isNotEmpty())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].proof_info.id").value(proof.getId()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].histories[0].kudos").value(50));
 
 
     }
