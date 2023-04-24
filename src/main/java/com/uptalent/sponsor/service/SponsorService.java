@@ -6,26 +6,32 @@ import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.KudosHistoryMapper;
+import com.uptalent.mapper.SponsorMapper;
 import com.uptalent.payload.AuthResponse;
-import com.uptalent.proof.kudos.model.entity.KudosHistory;
 import com.uptalent.proof.kudos.model.response.KudosedProofHistory;
 import com.uptalent.proof.kudos.model.response.KudosedProofDetail;
-import com.uptalent.proof.kudos.model.response.KudosedProof;
 import com.uptalent.proof.kudos.model.response.KudosedProofInfo;
+import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.sponsor.model.entity.Sponsor;
+import com.uptalent.sponsor.model.request.IncreaseKudos;
+import com.uptalent.sponsor.model.request.SponsorEdit;
+import com.uptalent.sponsor.model.request.SponsorLogin;
 import com.uptalent.sponsor.model.request.SponsorRegistration;
+import com.uptalent.sponsor.model.response.SponsorProfile;
 import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 import static com.uptalent.credentials.model.enums.Role.SPONSOR;
@@ -42,10 +48,10 @@ public class SponsorService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AccessVerifyService accessVerifyService;
     private final KudosHistoryMapper kudosHistoryMapper;
-
+    private final AuthenticationManager authenticationManager;
     @Value("${sponsor.initial-kudos-number}")
     private int INITIAL_KUDOS_NUMBER;
-
+    @Transactional
     public AuthResponse registerSponsor(SponsorRegistration sponsorRegistration) {
         if (credentialsRepository.existsByEmailIgnoreCase(sponsorRegistration.getEmail())){
             throw new AccountExistsException("The user has already exists with email [" + sponsorRegistration.getEmail() + "]");
@@ -103,5 +109,54 @@ public class SponsorService {
                     return new KudosedProofDetail(kudosedProofInfo, histories);
                 })
                 .collect(Collectors.toList());
+    }
+
+    public SponsorProfile editSponsor(Long sponsorId, SponsorEdit updatedSponsor) {
+        Sponsor sponsorToUpdate = getSponsorById(sponsorId);
+        accessVerifyService.tryGetAccess(
+                sponsorId,
+                SPONSOR,
+                "You are not allowed to edit this sponsor"
+        );
+
+        sponsorToUpdate.setFullname(updatedSponsor.getFullname());
+        Sponsor savedSponsor = sponsorRepository.save(sponsorToUpdate);
+        return SponsorMapper.toSponsorProfile(savedSponsor);
+    }
+
+    public AuthResponse login(SponsorLogin loginRequest) {
+        String email = loginRequest.getEmail();
+        Sponsor foundSponsor = credentialsRepository.findSponsorByEmailIgnoreCase(email)
+                .orElseThrow(() -> new SponsorNotFoundException("Sponsor was not found by email [" + email + "]"));
+        if (!passwordEncoder.matches(loginRequest.getPassword(), foundSponsor.getCredentials().getPassword())) {
+            throw new BadCredentialsException("Invalid email or password");
+        }
+        var authenticationToken = new UsernamePasswordAuthenticationToken(email, loginRequest.getPassword());
+        var authentication = authenticationManager.authenticate(authenticationToken);
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String jwtToken = jwtTokenProvider.generateJwtToken(
+                foundSponsor.getCredentials().getEmail(),
+                foundSponsor.getId(),
+                foundSponsor.getCredentials().getRole(),
+                foundSponsor.getFullname()
+        );
+        return new AuthResponse(jwtToken);
+    }
+
+    public void addKudos(Long sponsorId, IncreaseKudos increaseKudos) {
+        Sponsor sponsorToUpdate = getSponsorById(sponsorId);
+        accessVerifyService.tryGetAccess(
+                sponsorId,
+                SPONSOR,
+                "You are not allowed to edit this sponsor"
+        );
+        sponsorToUpdate.setKudos(sponsorToUpdate.getKudos() + increaseKudos.getBalance());
+        sponsorRepository.save(sponsorToUpdate);
+    }
+    private Sponsor getSponsorById(Long sponsorId) {
+        return sponsorRepository.findById(sponsorId)
+                .orElseThrow(() -> new SponsorNotFoundException("Sponsor was not found"));
     }
 }
