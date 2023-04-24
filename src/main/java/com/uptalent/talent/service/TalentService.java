@@ -162,6 +162,7 @@ public class TalentService {
                 talentToDelete.getCredentials().getRole(),
                 "You are not allowed to delete this talent"
         );
+        credentialsRepository.delete(talentToDelete.getCredentials());
         fileStoreService.deleteImageByUserId(id);
         talentRepository.delete(talentToDelete);
     }
