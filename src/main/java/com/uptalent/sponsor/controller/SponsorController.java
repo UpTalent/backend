@@ -3,9 +3,14 @@ package com.uptalent.sponsor.controller;
 import com.uptalent.payload.AuthResponse;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.proof.kudos.model.response.KudosedProofDetail;
-import com.uptalent.proof.kudos.model.response.KudosedProof;
+
+import com.uptalent.sponsor.model.request.IncreaseKudos;
+import com.uptalent.sponsor.model.request.SponsorEdit;
+import com.uptalent.sponsor.model.request.SponsorLogin;
 import com.uptalent.sponsor.model.request.SponsorRegistration;
+import com.uptalent.sponsor.model.response.SponsorProfile;
 import com.uptalent.sponsor.service.SponsorService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -19,6 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -73,4 +79,26 @@ public class SponsorController {
     public List<KudosedProofDetail> getListKudosedProof(@PathVariable Long sponsorId) {
         return sponsorService.getListKudosedProofDetailsBySponsorId(sponsorId);
     }
+    @PreAuthorize("hasAuthority('SPONSOR')")
+    @PatchMapping("/{sponsorId}")
+    @ResponseStatus(HttpStatus.OK)
+    public SponsorProfile editSponsorProfile(@PathVariable Long sponsorId,
+                                             @Valid @RequestBody SponsorEdit updatedSponsor) {
+        return sponsorService.editSponsor(sponsorId, updatedSponsor);
+    }
+    @PostMapping("/login")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> login(@Valid @RequestBody SponsorLogin loginRequest) {
+        var response = sponsorService.login(loginRequest);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PutMapping("/{sponsorId}/kudos")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void addKudos(@PathVariable Long sponsorId,
+                         @Valid @RequestBody IncreaseKudos increaseKudos) {
+        sponsorService.addKudos(sponsorId, increaseKudos);
+    }
+
 }
