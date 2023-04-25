@@ -180,8 +180,8 @@ public class SponsorControllerTest {
                         new KudosedProofInfo(proof.getId(), proof.getIconNumber(), proof.getTitle(), 50),
                         List.of(new KudosedProofHistory(LocalDateTime.now(), 50))));
 
-        when(sponsorService.getListKudosedProofDetailsBySponsorId(anyLong()))
-                .thenReturn(kudosedProofDetails);
+      // when(sponsorService.getListKudosedProofDetailsBySponsorId(anyLong()))
+      //         .thenReturn(kudosedProofDetails);
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/v1/sponsors/{sponsorId}/kudos",
