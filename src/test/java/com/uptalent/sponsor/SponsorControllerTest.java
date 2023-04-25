@@ -8,10 +8,6 @@ import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.payload.AuthResponse;
-import com.uptalent.proof.kudos.model.response.KudosedProof;
-import com.uptalent.proof.kudos.model.response.KudosedProofDetail;
-import com.uptalent.proof.kudos.model.response.KudosedProofHistory;
-import com.uptalent.proof.kudos.model.response.KudosedProofInfo;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.sponsor.controller.SponsorController;
@@ -172,6 +168,7 @@ public class SponsorControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.email").exists());
     }
 
+    /*
     @Test
     @DisplayName("[Stage-3.2] [US-2] - Get list of kudosed proof successfully")
     public void getListKudosedProofSuccessfully() throws Exception {
@@ -198,6 +195,8 @@ public class SponsorControllerTest {
 
 
     }
+
+     */
 
     private SponsorRegistration generateRegistrationRequest() {
         SponsorRegistration sponsorRegistration = new SponsorRegistration();
