@@ -1,5 +1,6 @@
 package com.uptalent.proof.kudos.model.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -11,6 +12,5 @@ public class KudosedProof {
     private Long proofId;
     private Integer iconNumber;
     private String title;
-    private LocalDateTime sent;
-    private int kudos;
+    private Long totalSumKudos;
 }
