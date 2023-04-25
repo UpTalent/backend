@@ -5,11 +5,11 @@ import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
-import com.uptalent.mapper.KudosHistoryMapper;
 import com.uptalent.mapper.SponsorMapper;
+import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.payload.AuthResponse;
+import com.uptalent.proof.kudos.model.response.KudosedProof;
 import com.uptalent.proof.kudos.model.response.KudosedProofHistory;
-import com.uptalent.proof.kudos.model.response.KudosedProofDetail;
 import com.uptalent.proof.kudos.model.response.KudosedProofInfo;
 import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.sponsor.model.entity.Sponsor;
@@ -23,6 +23,9 @@ import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,10 +35,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.uptalent.credentials.model.enums.Role.SPONSOR;
-import static java.util.stream.Collectors.*;
 
 @Service
 @RequiredArgsConstructor
@@ -47,7 +48,6 @@ public class SponsorService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AccessVerifyService accessVerifyService;
-    private final KudosHistoryMapper kudosHistoryMapper;
     private final AuthenticationManager authenticationManager;
     @Value("${sponsor.initial-kudos-number}")
     private int INITIAL_KUDOS_NUMBER;
@@ -82,33 +82,39 @@ public class SponsorService {
     }
 
     @Transactional(readOnly = true)
-    public List<KudosedProofDetail> getListKudosedProofDetailsBySponsorId(Long sponsorId) {
+    public PageWithMetadata<KudosedProof> getListKudosedProofBySponsorId(Long sponsorId, int page, int size) {
         String errorMessage = "You do not have permission to the list";
         accessVerifyService.tryGetAccess(sponsorId, SPONSOR, errorMessage);
 
-        List<KudosedProofDetail> kudosedProofDetails =
-                collectKudosedProofDetailsBySponsorId(sponsorId);
-        Comparator<KudosedProofDetail> sortByHistory = Comparator.comparing(k -> k.getHistories().get(0).getSent());
-
-        kudosedProofDetails.sort(Collections.reverseOrder(sortByHistory));
-
-        return kudosedProofDetails;
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<KudosedProof> kudosedProofPage = sponsorRepository.findAllKudosedProofBySponsorId(sponsorId, pageRequest);
+        return new PageWithMetadata<>(kudosedProofPage.getContent(), kudosedProofPage.getTotalPages());
     }
 
-    private List<KudosedProofDetail> collectKudosedProofDetailsBySponsorId(Long sponsorId) {
-        return sponsorRepository.findAllKudosedProofBySponsorId(sponsorId)
-                .stream()
-                .collect(groupingBy(kudosHistoryMapper::toKudosedProofInfo))
-                .entrySet()
-                .stream()
-                .map(entry -> {
-                    KudosedProofInfo kudosedProofInfo = entry.getKey();
-                    List<KudosedProofHistory> histories = kudosHistoryMapper.toKudosedProofHistories(entry.getValue());
-                    int totalSumKudos = histories.stream().mapToInt(KudosedProofHistory::getKudos).sum();
-                    kudosedProofInfo.setTotalSumKudos(totalSumKudos);
-                    return new KudosedProofDetail(kudosedProofInfo, histories);
-                })
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public PageWithMetadata<KudosedProofHistory> getListKudosedProofHistoryBySponsorIdAndProofId(Long sponsorId, Long proofId,
+                                                                                                 int page, int size) {
+        String errorMessage = "You do not have permission to the list";
+        accessVerifyService.tryGetAccess(sponsorId, SPONSOR, errorMessage);
+
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<KudosedProofHistory> kudosedProofHistoriesPage =
+                sponsorRepository.findAllKudosedProofHistoryBySponsorIdAndProofId(sponsorId, proofId, pageRequest);
+
+        return new PageWithMetadata<>(kudosedProofHistoriesPage.getContent(),
+                kudosedProofHistoriesPage.getTotalPages());
+    }
+
+    @Transactional(readOnly = true)
+    public SponsorProfile getSponsorProfileById(Long sponsorId) {
+        Sponsor foundSponsor = getSponsorById(sponsorId);
+        accessVerifyService.tryGetAccess(
+                sponsorId,
+                SPONSOR,
+                "You are not allowed to get this sponsor"
+        );
+
+        return SponsorMapper.toSponsorProfile(foundSponsor);
     }
 
     public SponsorProfile editSponsor(Long sponsorId, SponsorEdit updatedSponsor) {
