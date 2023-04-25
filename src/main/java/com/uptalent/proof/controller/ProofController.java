@@ -5,6 +5,7 @@ import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.proof.kudos.model.request.PostKudos;
 import com.uptalent.proof.kudos.model.response.KudosSender;
+import com.uptalent.proof.kudos.model.response.UpdatedProofKudos;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
@@ -251,7 +252,9 @@ public class ProofController {
             summary = "Post kudos to proof",
             description = "As a talent, I want to be able to put the kudos to proofs of another talents")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "No content"),
+            @ApiResponse(responseCode = "200", description = "No content",
+                    content = { @Content(schema = @Schema(implementation = UpdatedProofKudos.class),
+                            mediaType = "application/json") }),
             @ApiResponse(responseCode = "400", description = "Invalid fields",
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                             mediaType = "application/json") }),
@@ -265,10 +268,10 @@ public class ProofController {
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                             mediaType = "application/json") })})
     @PostMapping("/proofs/{proofId}/kudos")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void postKudos(@PathVariable Long proofId,
-                          @RequestBody PostKudos postKudos) {
-        proofService.postKudos(postKudos, proofId);
+    @ResponseStatus(HttpStatus.OK)
+    public UpdatedProofKudos postKudos(@PathVariable Long proofId,
+                                       @RequestBody PostKudos postKudos) {
+        return proofService.postKudos(postKudos, proofId);
     }
 
 }
