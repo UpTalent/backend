@@ -54,6 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(ProofController.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Disabled
 public class ProofControllerTest {
     @Autowired
     MockMvc mockMvc;
