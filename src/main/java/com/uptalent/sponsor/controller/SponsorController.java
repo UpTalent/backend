@@ -4,7 +4,6 @@ import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.payload.AuthResponse;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.proof.kudos.model.response.KudosedProof;
-import com.uptalent.proof.kudos.model.response.KudosedProofDetail;
 
 import com.uptalent.proof.kudos.model.response.KudosedProofHistory;
 import com.uptalent.sponsor.model.request.IncreaseKudos;

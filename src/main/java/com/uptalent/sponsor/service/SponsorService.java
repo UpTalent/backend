@@ -10,7 +10,6 @@ import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.payload.AuthResponse;
 import com.uptalent.proof.kudos.model.response.KudosedProof;
 import com.uptalent.proof.kudos.model.response.KudosedProofHistory;
-import com.uptalent.proof.kudos.model.response.KudosedProofInfo;
 import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.model.request.IncreaseKudos;
