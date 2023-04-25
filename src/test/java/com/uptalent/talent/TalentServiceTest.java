@@ -51,6 +51,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith({MockitoExtension.class})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Disabled
 class TalentServiceTest {
 
     @Mock

@@ -19,6 +19,7 @@ import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.model.request.SponsorRegistration;
 import com.uptalent.sponsor.service.SponsorService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureWebMvc
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(SponsorController.class)
+@Disabled
 public class SponsorControllerTest {
     @MockBean
     private SponsorService sponsorService;

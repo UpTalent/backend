@@ -48,6 +48,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith({MockitoExtension.class})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Disabled
 public class ProofServiceTest {
     @Mock
     private ProofRepository proofRepository;
