@@ -8,6 +8,7 @@ import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
 import com.uptalent.proof.kudos.model.entity.KudosHistory;
 import com.uptalent.proof.kudos.model.request.PostKudos;
 import com.uptalent.proof.kudos.model.response.KudosSender;
+import com.uptalent.proof.kudos.model.response.UpdatedProofKudos;
 import com.uptalent.proof.kudos.repository.KudosHistoryRepository;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
@@ -169,7 +170,7 @@ public class ProofService {
 
     @PreAuthorize("hasAuthority('SPONSOR')")
     @Transactional
-    public void postKudos(PostKudos kudos, Long proofId) {
+    public UpdatedProofKudos postKudos(PostKudos kudos, Long proofId) {
         Long sponsorId = accessVerifyService.getPrincipalId();
         Proof proof = getProofById(proofId);
         Sponsor sponsor = getSponsorById(sponsorId);
@@ -183,12 +184,15 @@ public class ProofService {
                 .kudos(kudos.getKudos())
                 .build();
 
-        proof.setKudos(proof.getKudos() + kudos.getKudos());
+        int newCurrentCountKudos = proof.getKudos() + kudos.getKudos();
+        proof.setKudos(newCurrentCountKudos);
         sponsor.setKudos(sponsor.getKudos() - kudos.getKudos());
 
         kudosHistoryRepository.save(kudosHistory);
         proofRepository.save(proof);
         sponsorRepository.save(sponsor);
+
+        return new UpdatedProofKudos(newCurrentCountKudos);
     }
 
 
