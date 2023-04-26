@@ -10,6 +10,7 @@ import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.payload.AuthResponse;
 import com.uptalent.proof.kudos.model.response.KudosedProof;
 import com.uptalent.proof.kudos.model.response.KudosedProofHistory;
+import com.uptalent.sponsor.exception.IllegalAddingKudosException;
 import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.model.request.IncreaseKudos;
@@ -50,6 +51,9 @@ public class SponsorService {
     private final AuthenticationManager authenticationManager;
     @Value("${sponsor.initial-kudos-number}")
     private int INITIAL_KUDOS_NUMBER;
+    @Value("${kudos.max-value}")
+    private int KUDOS_MAX_VALUE;
+
     @Transactional
     public AuthResponse registerSponsor(SponsorRegistration sponsorRegistration) {
         if (credentialsRepository.existsByEmailIgnoreCase(sponsorRegistration.getEmail())){
@@ -157,6 +161,11 @@ public class SponsorService {
                 SPONSOR,
                 "You are not allowed to edit this sponsor"
         );
+
+        if (KUDOS_MAX_VALUE - sponsorToUpdate.getKudos() < increaseKudos.getBalance()) {
+            throw new IllegalAddingKudosException("You reached max value of balance");
+        }
+
         sponsorToUpdate.setKudos(sponsorToUpdate.getKudos() + increaseKudos.getBalance());
         sponsorRepository.save(sponsorToUpdate);
     }
