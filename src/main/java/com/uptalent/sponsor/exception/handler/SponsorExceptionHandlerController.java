@@ -1,6 +1,7 @@
 package com.uptalent.sponsor.exception.handler;
 
 import com.uptalent.payload.HttpResponse;
+import com.uptalent.sponsor.exception.IllegalAddingKudosException;
 import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.util.exception.handler.ExceptionHandlerController;
 import org.springframework.core.Ordered;
@@ -17,6 +18,12 @@ public class SponsorExceptionHandlerController extends ExceptionHandlerControlle
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(SponsorNotFoundException.class)
     public HttpResponse handlerNotFoundSponsorException(SponsorNotFoundException e) {
+        return new HttpResponse(e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(IllegalAddingKudosException.class)
+    public HttpResponse handlerIllegalAddingKudosException(IllegalAddingKudosException e) {
         return new HttpResponse(e.getMessage());
     }
 }

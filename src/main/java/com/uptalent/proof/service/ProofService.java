@@ -25,6 +25,7 @@ import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -55,6 +56,8 @@ public class ProofService {
     private final ProofMapper mapper;
     private final AccessVerifyService accessVerifyService;
     private final SponsorRepository sponsorRepository;
+    @Value("${kudos.max-value}")
+    private int KUDOS_MAX_VALUE;
 
 
     public PageWithMetadata<? extends ProofGeneralInfo> getProofs(int page, int size, String sort) {
@@ -183,6 +186,11 @@ public class ProofService {
                 .sent(LocalDateTime.now())
                 .kudos(kudos.getKudos())
                 .build();
+
+
+        if (KUDOS_MAX_VALUE - proof.getKudos() < kudos.getKudos()) {
+            throw new IllegalPostingKudos("You reached max value of posting kudos");
+        }
 
         int currentCountKudos = proof.getKudos() + kudos.getKudos();
         int currentBalance = sponsor.getKudos() - kudos.getKudos();
