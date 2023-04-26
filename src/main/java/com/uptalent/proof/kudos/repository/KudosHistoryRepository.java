@@ -16,4 +16,8 @@ public interface KudosHistoryRepository extends JpaRepository<KudosHistory, Long
             "(kh.sponsor.fullname, kh.sponsor.avatar, kh.sent, kh.kudos) " +
             "FROM kudos_history kh WHERE kh.proof.id = :proofId")
     List<KudosSender> findKudosSendersByProofId(Long proofId);
+
+    @Query("select sum(kh.kudos) from kudos_history kh " +
+            "group by kh.proof.id, kh.sponsor.id having kh.proof.id = :proofId and kh.sponsor.id = :sponsorId")
+    Integer sumKudosProofBySponsorId(Long sponsorId, Long proofId);
 }
