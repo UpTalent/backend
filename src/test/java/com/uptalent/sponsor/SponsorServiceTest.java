@@ -9,26 +9,35 @@ import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.payload.AuthResponse;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.sponsor.model.entity.Sponsor;
+import com.uptalent.sponsor.model.request.SponsorEdit;
+import com.uptalent.sponsor.model.request.SponsorLogin;
 import com.uptalent.sponsor.model.request.SponsorRegistration;
 import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.sponsor.service.SponsorService;
+import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.util.service.AccessVerifyService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.exceptions.base.MockitoException;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,8 +45,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 @Disabled
@@ -53,7 +62,8 @@ public class SponsorServiceTest {
     @Mock
     private JwtTokenProvider jwtTokenProvider;
 
-
+    @Mock
+    private AuthenticationManager authenticationManager;
     @InjectMocks
     private SponsorService sponsorService;
 
@@ -127,6 +137,105 @@ public class SponsorServiceTest {
         assertThrows(MockitoException.class, () -> sponsorService.registerSponsor(registrationRequest));
     }
 
+    @Test
+    @DisplayName("[Stage-3.2] [US-1] - Log in successfully as sponsor")
+    void loginSuccessfully() {
+        securitySetUp();
+
+        SponsorLogin loginRequest = new SponsorLogin(sponsor.getCredentials().getEmail(), "1234567890");
+        when(credentialsRepository.findSponsorByEmailIgnoreCase(loginRequest.getEmail()))
+                .thenReturn(Optional.of(sponsor));
+
+        when(passwordEncoder.matches(loginRequest.getPassword(), sponsor.getCredentials().getPassword()))
+                .thenReturn(true);
+
+        AuthResponse loggedInUser = sponsorService.login(loginRequest);
+
+        verify(credentialsRepository, times(1))
+                .findSponsorByEmailIgnoreCase(loginRequest.getEmail());
+
+        assertThat(loggedInUser).isNotNull();
+    }
+    @Test
+    @DisplayName("[Stage-3.2] [US-1] - Fail attempt of log in as sponsor")
+    void failLoginWithBadCredentials() {
+        securitySetUp();
+
+        SponsorLogin loginRequestWithBadPassword =
+                new SponsorLogin(sponsor.getCredentials().getEmail(), "another_password");
+
+        when(credentialsRepository.findSponsorByEmailIgnoreCase(loginRequestWithBadPassword.getEmail()))
+                .thenReturn(Optional.of(sponsor));
+
+        when(passwordEncoder.matches(loginRequestWithBadPassword.getPassword(), sponsor.getCredentials().getPassword()))
+                .thenReturn(false);
+
+        assertThrows(BadCredentialsException.class, () -> sponsorService.login(loginRequestWithBadPassword));
+
+        SponsorLogin loginRequestWithBadEmail =
+                new SponsorLogin("mark.gimonov@gmail.com", "1234567890");
+
+        when(credentialsRepository.findSponsorByEmailIgnoreCase(loginRequestWithBadEmail.getEmail()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(SponsorNotFoundException.class, () -> sponsorService.login(loginRequestWithBadEmail));
+    }
+    @Test
+    @DisplayName("[Stage-3.2] [US-1] - Edit own profile successfully")
+    void editOwnProfileSuccessfully() {
+        securitySetUp();
+
+        willReturnOwnProfile();
+
+        SponsorEdit editRequest = SponsorEdit.builder()
+                .fullname("test case")
+                .build();
+
+        Sponsor sponsorToSave = Sponsor.builder()
+                .id(sponsor.getId())
+                .credentials(sponsor.getCredentials())
+                .fullname(editRequest.getFullname())
+                .kudos(sponsor.getKudos())
+                .build();
+
+        when(sponsorRepository.save(any(Sponsor.class))).thenReturn(sponsorToSave);
+
+        sponsorService.editSponsor(sponsor.getId(), editRequest);
+
+        verify(sponsorRepository, times(1)).save(sponsor);
+
+        assertThat(sponsor).isNotNull();
+    }
+    @Test
+    @DisplayName("[Stage-3.2] [US-1] - Try edit someone else's profile")
+    void tryEditSomeoneTalentProfile() {
+        securitySetUp();
+
+        willReturnProfile();
+
+        SponsorEdit editRequest = SponsorEdit.builder()
+                .fullname("test case")
+                .build();
+
+
+        doThrow(new DeniedAccessException("")).when(accessVerifyService)
+                .tryGetAccess(anyLong(), any(Role.class), anyString());
+
+        assertThrows(DeniedAccessException.class, () -> sponsorService.editSponsor(sponsor.getId(), editRequest));
+    }
+    @Test
+    @DisplayName("[Stage-3.2] [US-1] - Fail editing own profile")
+    void failEditingOwnProfile() {
+        securitySetUp();
+
+        willReturnOwnProfile();
+
+        SponsorEdit editRequest = SponsorEdit.builder()
+                .fullname("")
+                .build();
+
+        assertThrows(NullPointerException.class, () -> sponsorService.editSponsor(sponsor.getId(), editRequest));
+    }
     private SponsorRegistration generateRegistrationRequest() {
         SponsorRegistration sponsorRegistration = new SponsorRegistration();
 
@@ -137,6 +246,24 @@ public class SponsorServiceTest {
         return sponsorRegistration;
     }
 
+    private void securitySetUp() {
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        assertThat(securityContext.getAuthentication()).isEqualTo(authentication);
+    }
+    private void willReturnOwnProfile() {
+        given(sponsorRepository.findById(sponsor.getId()))
+                .willReturn(Optional.of(sponsor));
+
+    }
+    private void willReturnProfile() {
+        given(sponsorRepository.findById(sponsor.getId()))
+                .willReturn(Optional.of(sponsor));
+
+    }
     /*
     @Test
     @DisplayName("[Stage-3.2] [US-2] - Get list of kudosed proof successfully")
