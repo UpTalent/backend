@@ -12,12 +12,16 @@ import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.sponsor.controller.SponsorController;
 import com.uptalent.sponsor.model.entity.Sponsor;
+import com.uptalent.sponsor.model.request.SponsorEdit;
+import com.uptalent.sponsor.model.request.SponsorLogin;
 import com.uptalent.sponsor.model.request.SponsorRegistration;
+import com.uptalent.sponsor.model.response.SponsorProfile;
 import com.uptalent.sponsor.service.SponsorService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import com.uptalent.talent.exception.DeniedAccessException;
+import com.uptalent.talent.model.request.TalentEdit;
+import com.uptalent.talent.model.request.TalentLogin;
+import com.uptalent.talent.model.response.TalentOwnProfile;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -25,6 +29,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebM
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -33,6 +38,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
@@ -197,7 +203,118 @@ public class SponsorControllerTest {
     }
 
      */
+    @Test
+    @DisplayName("[Stage-3.2] [US-1] - Log in successfully as sponsor")
+    void loginSuccessfully() throws Exception {
+        SponsorLogin loginRequest = new SponsorLogin(sponsor.getCredentials().getEmail(),
+                sponsor.getCredentials().getPassword());
+        String jwtToken = "token";
 
+        given(jwtTokenProvider.generateJwtToken(anyString(), anyLong(), any(Role.class), anyString()))
+                .willReturn(jwtToken);
+
+        given(sponsorService.login(any(SponsorLogin.class)))
+                .willReturn(new AuthResponse(jwtToken));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/sponsors/login")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)));
+        response
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.jwt_token").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.jwt_token").value(jwtToken))
+                .andReturn().getResponse().getContentAsString();
+    }
+    @Test
+    @DisplayName("[Stage-3.2] [US-1] - Fail attempt of log in as sponsor")
+    void failLoginWithBadCredentials() throws Exception {
+        SponsorLogin loginRequestWithBadCredentials = new SponsorLogin(sponsor.getCredentials().getEmail(),
+                "another_pass");
+
+        given(sponsorService.login(loginRequestWithBadCredentials))
+                .willThrow(new BadCredentialsException("Bad credentials"));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/sponsors/login")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequestWithBadCredentials)));
+        response
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
+                .andReturn().getResponse().getContentAsString();
+    }
+    @Test
+    @DisplayName("[Stage-3.2] [US-1] - Edit own profile successfully")
+    void editOwnProfileSuccessfully() throws Exception {
+
+        SponsorEdit editRequest = SponsorEdit.builder()
+                .fullname("test case")
+                .build();
+        SponsorProfile expectedDto = new SponsorProfile();
+        expectedDto.setFullname(editRequest.getFullname());
+
+        given(sponsorService.editSponsor(anyLong(), any(SponsorEdit.class)))
+                .willReturn(expectedDto);
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.patch("/api/v1/sponsors/{id}", sponsor.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(editRequest)));
+        response
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.fullname").exists())
+                .andReturn().getResponse().getContentAsString();
+    }
+    @Test
+    @DisplayName("[Stage-3.2] [US-1] - Try edit someone else's profile")
+    void tryEditSomeoneTalentProfile() throws Exception {
+        SponsorEdit editRequest = SponsorEdit.builder()
+                .fullname("test case")
+                .build();
+
+        given(sponsorService.editSponsor(anyLong(), any(SponsorEdit.class)))
+                .willThrow(new DeniedAccessException("You are not allowed to edit this sponsor"));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.patch("/api/v1/sponsors/{sponsorId}", sponsor.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(editRequest))
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+    @Test
+    @DisplayName("[Stage-3.2] [US-1] - Fail editing own profile")
+    void failEditingOwnProfile() throws Exception {
+        SponsorEdit editRequest = SponsorEdit.builder()
+                .fullname("")
+                .build();
+
+
+        given(sponsorService.editSponsor(anyLong(), any(SponsorEdit.class)))
+                .willThrow(NullPointerException.class);
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.patch("/api/v1/sponsors/{sponsorId}", sponsor.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(editRequest))
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.fullname").exists());
+    }
     private SponsorRegistration generateRegistrationRequest() {
         SponsorRegistration sponsorRegistration = new SponsorRegistration();
 
