@@ -184,15 +184,19 @@ public class ProofService {
                 .kudos(kudos.getKudos())
                 .build();
 
-        int newCurrentCountKudos = proof.getKudos() + kudos.getKudos();
-        proof.setKudos(newCurrentCountKudos);
-        sponsor.setKudos(sponsor.getKudos() - kudos.getKudos());
+        int currentCountKudos = proof.getKudos() + kudos.getKudos();
+        int currentBalance = sponsor.getKudos() - kudos.getKudos();
+
+        proof.setKudos(currentCountKudos);
+        sponsor.setKudos(currentBalance);
 
         kudosHistoryRepository.save(kudosHistory);
         proofRepository.save(proof);
         sponsorRepository.save(sponsor);
 
-        return new UpdatedProofKudos(newCurrentCountKudos);
+        int currentSumKudos = kudosHistoryRepository.sumKudosProofBySponsorId(sponsorId, proofId);
+
+        return new UpdatedProofKudos(currentCountKudos, currentSumKudos, currentBalance);
     }
 
 
