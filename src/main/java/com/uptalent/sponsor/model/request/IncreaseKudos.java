@@ -1,7 +1,8 @@
 package com.uptalent.sponsor.model.request;
 
 
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Min;
+
 import lombok.*;
 
 
@@ -10,6 +11,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class IncreaseKudos {
-    @Positive
+    @Min(value = 0, message = "Kudos should be greater or equals 0")
     private int balance;
 }
