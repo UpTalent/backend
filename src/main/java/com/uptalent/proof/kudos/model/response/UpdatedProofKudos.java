@@ -7,4 +7,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class UpdatedProofKudos {
     private int currentCountKudos;
+    private int currentSumKudosBySponsor;
+    private int currentSponsorBalance;
 }
