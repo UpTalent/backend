@@ -11,10 +11,5 @@ import java.util.Optional;
 
 public interface CredentialsRepository extends JpaRepository<Credentials, Long> {
     Optional<Credentials> findByEmailIgnoreCase(String email);
-
-    @Query("SELECT t FROM talent t JOIN t.credentials c WHERE LOWER(c.email) = LOWER(:email)")
-    Optional<Talent> findTalentByEmailIgnoreCase(String email);
-    @Query("SELECT t FROM sponsor t JOIN t.credentials c WHERE LOWER(c.email) = LOWER(:email)")
-    Optional<Sponsor> findSponsorByEmailIgnoreCase(String email);
     boolean existsByEmailIgnoreCase(String email);
 }

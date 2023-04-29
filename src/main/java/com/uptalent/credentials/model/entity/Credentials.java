@@ -2,6 +2,8 @@ package com.uptalent.credentials.model.entity;
 
 import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
+import com.uptalent.sponsor.model.entity.Sponsor;
+import com.uptalent.talent.model.entity.Talent;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,4 +33,10 @@ public class Credentials {
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private Role role;
+
+    @OneToOne(mappedBy = "credentials")
+    private Sponsor sponsor;
+
+    @OneToOne(mappedBy = "credentials")
+    private Talent talent;
 }

@@ -45,9 +45,10 @@ public class SecurityConfig {
                 .headers().frameOptions().disable()
                 .and()
                 .authorizeHttpRequests((authz) -> authz
+                        .requestMatchers(POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(GET, "/api/v1/talents", "/actuator/**").permitAll()
                         .requestMatchers("/api-documentation/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers(POST, "/api/v1/talents", "/api/v1/talents/login", "/api/v1/sponsors", "/api/v1/sponsors/login").permitAll()
+                        .requestMatchers(POST, "/api/v1/talents", "/api/v1/sponsors").permitAll()
                         .requestMatchers(GET, "/api/v1/proofs").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()

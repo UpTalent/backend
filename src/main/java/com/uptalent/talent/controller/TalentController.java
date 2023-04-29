@@ -1,18 +1,15 @@
 package com.uptalent.talent.controller;
 
-import com.uptalent.filestore.FileStoreOperation;
 import com.uptalent.pagination.PageWithMetadata;
-import com.uptalent.payload.AuthResponse;
+import com.uptalent.auth.model.response.AuthResponse;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.talent.service.TalentService;
 import com.uptalent.talent.model.request.TalentEdit;
-import com.uptalent.talent.model.request.TalentLogin;
 import com.uptalent.talent.model.request.TalentRegistration;
 import com.uptalent.talent.model.response.TalentGeneralInfo;
 import com.uptalent.talent.model.response.TalentOwnProfile;
 import com.uptalent.talent.model.response.TalentProfile;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -27,12 +24,10 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 
 @RestController
@@ -111,32 +106,6 @@ public class TalentController {
         var response = talentService.addTalent(talent);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
-    }
-
-    @Operation(
-            summary = "Talent log in",
-            description = "As a guest, I want to log in on the site as talent",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = @Content(schema = @Schema(implementation = TalentLogin.class),
-                            mediaType = "application/json")))
-    @ApiResponses({
-            @ApiResponse(responseCode = "200",
-                    content = { @Content(schema = @Schema(implementation = AuthResponse.class),
-                            mediaType = "application/json") }),
-            @ApiResponse(responseCode = "400", description = "Invalid fields",
-                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
-                            mediaType = "application/json") }),
-            @ApiResponse(responseCode = "401", description = "Invalid email or password",
-                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
-                            mediaType = "application/json") }),
-            @ApiResponse(responseCode = "404", description = "Talent with email does not exist",
-                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
-                            mediaType = "application/json") }) })
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody TalentLogin loginRequest){
-        var response = talentService.login(loginRequest);
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @SecurityRequirement(name = "bearerAuth")

@@ -7,20 +7,16 @@ import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
-import com.uptalent.payload.AuthResponse;
+import com.uptalent.auth.model.response.AuthResponse;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.sponsor.controller.SponsorController;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.model.request.SponsorEdit;
-import com.uptalent.sponsor.model.request.SponsorLogin;
 import com.uptalent.sponsor.model.request.SponsorRegistration;
 import com.uptalent.sponsor.model.response.SponsorProfile;
 import com.uptalent.sponsor.service.SponsorService;
 import com.uptalent.talent.exception.DeniedAccessException;
-import com.uptalent.talent.model.request.TalentEdit;
-import com.uptalent.talent.model.request.TalentLogin;
-import com.uptalent.talent.model.response.TalentOwnProfile;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +25,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebM
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -37,10 +32,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
@@ -203,51 +195,7 @@ public class SponsorControllerTest {
     }
 
      */
-    @Test
-    @DisplayName("[Stage-3.2] [US-1] - Log in successfully as sponsor")
-    void loginSuccessfully() throws Exception {
-        SponsorLogin loginRequest = new SponsorLogin(sponsor.getCredentials().getEmail(),
-                sponsor.getCredentials().getPassword());
-        String jwtToken = "token";
 
-        given(jwtTokenProvider.generateJwtToken(anyString(), anyLong(), any(Role.class), anyString()))
-                .willReturn(jwtToken);
-
-        given(sponsorService.login(any(SponsorLogin.class)))
-                .willReturn(new AuthResponse(jwtToken));
-
-        ResultActions response = mockMvc
-                .perform(MockMvcRequestBuilders.post("/api/v1/sponsors/login")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)));
-        response
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.jwt_token").exists())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.jwt_token").value(jwtToken))
-                .andReturn().getResponse().getContentAsString();
-    }
-    @Test
-    @DisplayName("[Stage-3.2] [US-1] - Fail attempt of log in as sponsor")
-    void failLoginWithBadCredentials() throws Exception {
-        SponsorLogin loginRequestWithBadCredentials = new SponsorLogin(sponsor.getCredentials().getEmail(),
-                "another_pass");
-
-        given(sponsorService.login(loginRequestWithBadCredentials))
-                .willThrow(new BadCredentialsException("Bad credentials"));
-
-        ResultActions response = mockMvc
-                .perform(MockMvcRequestBuilders.post("/api/v1/sponsors/login")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequestWithBadCredentials)));
-        response
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
-                .andReturn().getResponse().getContentAsString();
-    }
     @Test
     @DisplayName("[Stage-3.2] [US-1] - Edit own profile successfully")
     void editOwnProfileSuccessfully() throws Exception {

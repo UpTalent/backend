@@ -18,13 +18,12 @@ import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEdit;
-import com.uptalent.talent.model.request.TalentLogin;
 import com.uptalent.talent.model.request.TalentRegistration;
 import com.uptalent.talent.model.response.TalentGeneralInfo;
 import com.uptalent.talent.model.response.TalentOwnProfile;
 import com.uptalent.talent.model.response.TalentProfile;
 
-import com.uptalent.payload.AuthResponse;
+import com.uptalent.auth.model.response.AuthResponse;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +32,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebM
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -254,56 +252,6 @@ class TalentControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.firstname").exists())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.lastname").exists());
-    }
-
-    @Test
-    @Order(8)
-    @DisplayName("[Stage-1] [US-3] - Log in successfully")
-    void loginSuccessfully() throws Exception {
-        TalentLogin loginRequest = new TalentLogin(talent.getCredentials().getEmail(),
-                talent.getCredentials().getPassword());
-
-        String jwtToken = "token";
-
-        given(jwtTokenProvider.generateJwtToken(anyString(), anyLong(), any(Role.class), anyString()))
-                .willReturn(jwtToken);
-
-        given(talentService.login(any(TalentLogin.class)))
-                .willReturn(new AuthResponse(jwtToken));
-
-        ResultActions response = mockMvc
-                .perform(MockMvcRequestBuilders.post("/api/v1/talents/login")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)));
-        response
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.jwt_token").exists())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.jwt_token").value(jwtToken))
-                .andReturn().getResponse().getContentAsString();
-    }
-
-    @Test
-    @Order(9)
-    @DisplayName("[Stage-1] [US-3] - Fail attempt of log in")
-    void failLoginWithBadCredentials() throws Exception {
-        TalentLogin loginRequestWithBadCredentials =
-                new TalentLogin(talent.getCredentials().getEmail(), "another_password");
-
-        given(talentService.login(loginRequestWithBadCredentials))
-                .willThrow(new BadCredentialsException("Bad credentials"));
-
-        ResultActions response = mockMvc
-                .perform(MockMvcRequestBuilders.post("/api/v1/talents/login")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequestWithBadCredentials)));
-        response
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
-                .andReturn().getResponse().getContentAsString();
     }
 
     @Test
