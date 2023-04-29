@@ -13,12 +13,11 @@ import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEdit;
-import com.uptalent.talent.model.request.TalentLogin;
 import com.uptalent.talent.model.request.TalentRegistration;
 import com.uptalent.talent.model.response.TalentGeneralInfo;
 import com.uptalent.talent.model.response.TalentOwnProfile;
 import com.uptalent.talent.model.response.TalentProfile;
-import com.uptalent.payload.AuthResponse;
+import com.uptalent.auth.model.response.AuthResponse;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.talent.service.TalentService;
 import com.uptalent.util.service.AccessVerifyService;
@@ -33,7 +32,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -223,53 +221,6 @@ class TalentServiceTest {
         assertThrows(MockitoException.class, () -> talentService.addTalent(registrationRequest));
     }
 
-    @Test
-    @Order(8)
-    @DisplayName("[Stage-1] [US-3] - Log in successfully")
-    void loginSuccessfully() {
-        securitySetUp();
-
-        TalentLogin loginRequest = new TalentLogin(talent.getCredentials().getEmail(), "12345");
-
-        when(credentialsRepository.findTalentByEmailIgnoreCase(loginRequest.getEmail()))
-                .thenReturn(Optional.of(talent));
-
-        when(passwordEncoder.matches(loginRequest.getPassword(), talent.getCredentials().getPassword()))
-                .thenReturn(true);
-
-        AuthResponse loggedInUser = talentService.login(loginRequest);
-
-        verify(credentialsRepository, times(1))
-                .findTalentByEmailIgnoreCase(loginRequest.getEmail());
-
-        assertThat(loggedInUser).isNotNull();
-    }
-
-    @Test
-    @Order(9)
-    @DisplayName("[Stage-1] [US-3] - Fail attempt of log in")
-    void failLoginWithBadCredentials() {
-        securitySetUp();
-
-        TalentLogin loginRequestWithBadPassword =
-                new TalentLogin(talent.getCredentials().getEmail(), "another_password");
-
-        when(credentialsRepository.findTalentByEmailIgnoreCase(loginRequestWithBadPassword.getEmail()))
-                .thenReturn(Optional.of(talent));
-
-        when(passwordEncoder.matches(loginRequestWithBadPassword.getPassword(), talent.getCredentials().getPassword()))
-                .thenReturn(false);
-
-        assertThrows(BadCredentialsException.class, () -> talentService.login(loginRequestWithBadPassword));
-
-        TalentLogin loginRequestWithBadEmail =
-                new TalentLogin("mark.gimonov@gmail.com", "12345");
-
-        when(credentialsRepository.findTalentByEmailIgnoreCase(loginRequestWithBadEmail.getEmail()))
-                .thenReturn(Optional.empty());
-
-        assertThrows(TalentNotFoundException.class, () -> talentService.login(loginRequestWithBadEmail));
-    }
 
     @Test
     @Order(10)
