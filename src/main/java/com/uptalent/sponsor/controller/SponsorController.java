@@ -11,6 +11,7 @@ import com.uptalent.sponsor.model.request.SponsorEdit;
 import com.uptalent.sponsor.model.request.SponsorLogin;
 import com.uptalent.sponsor.model.request.SponsorRegistration;
 import com.uptalent.sponsor.model.response.SponsorProfile;
+import com.uptalent.sponsor.model.response.SponsorRating;
 import com.uptalent.sponsor.service.SponsorService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -202,6 +203,23 @@ public class SponsorController {
     public void addKudos(@PathVariable Long sponsorId,
                          @Valid @RequestBody IncreaseKudos increaseKudos) {
         sponsorService.addKudos(sponsorId, increaseKudos);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+            summary = "Get sponsor rating",
+            description = "As talent, I want to see top 10 sponsor who kudosed my proofs")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",
+                    content = { @Content(schema = @Schema(implementation = SponsorRating.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "403", description = "Do not have permission",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })})
+    @PreAuthorize("hasAuthority('TALENT')")
+    @GetMapping("/rating")
+    public List<SponsorRating> getSponsorRating() {
+        return sponsorService.getSponsorRating();
     }
 
 }
