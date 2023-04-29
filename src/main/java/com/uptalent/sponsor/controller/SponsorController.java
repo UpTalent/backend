@@ -1,14 +1,13 @@
 package com.uptalent.sponsor.controller;
 
 import com.uptalent.pagination.PageWithMetadata;
-import com.uptalent.payload.AuthResponse;
+import com.uptalent.auth.model.response.AuthResponse;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.proof.kudos.model.response.KudosedProof;
 
 import com.uptalent.proof.kudos.model.response.KudosedProofHistory;
 import com.uptalent.sponsor.model.request.IncreaseKudos;
 import com.uptalent.sponsor.model.request.SponsorEdit;
-import com.uptalent.sponsor.model.request.SponsorLogin;
 import com.uptalent.sponsor.model.request.SponsorRegistration;
 import com.uptalent.sponsor.model.response.SponsorProfile;
 import com.uptalent.sponsor.model.response.SponsorRating;
@@ -29,7 +28,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -157,30 +155,6 @@ public class SponsorController {
     public SponsorProfile editSponsorProfile(@PathVariable Long sponsorId,
                                              @Valid @RequestBody SponsorEdit updatedSponsor) {
         return sponsorService.editSponsor(sponsorId, updatedSponsor);
-    }
-
-    @Operation(
-            summary = "Sponsor log in",
-            description = "As a guest, I want to log in on the site as sponsor",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = @Content(schema = @Schema(implementation = SponsorLogin.class),
-                            mediaType = "application/json")))
-    @ApiResponses({
-            @ApiResponse(responseCode = "200",
-                    content = { @Content(schema = @Schema(implementation = AuthResponse.class),
-                            mediaType = "application/json") }),
-            @ApiResponse(responseCode = "401", description = "Invalid email or password",
-                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
-                            mediaType = "application/json") }),
-            @ApiResponse(responseCode = "404", description = "Sponsor with email was not found",
-                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
-                            mediaType = "application/json") })})
-    @PostMapping("/login")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> login(@Valid @RequestBody SponsorLogin loginRequest) {
-        var response = sponsorService.login(loginRequest);
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @SecurityRequirement(name = "bearerAuth")
