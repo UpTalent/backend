@@ -13,21 +13,16 @@ import com.uptalent.talent.exception.EmptySkillsException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.model.request.TalentEdit;
-import com.uptalent.talent.model.request.TalentLogin;
 import com.uptalent.talent.model.request.TalentRegistration;
 import com.uptalent.talent.model.response.TalentGeneralInfo;
 import com.uptalent.talent.model.response.TalentOwnProfile;
 import com.uptalent.talent.model.response.TalentProfile;
-import com.uptalent.payload.AuthResponse;
+import com.uptalent.auth.model.response.AuthResponse;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +36,6 @@ public class TalentService {
     private final TalentRepository talentRepository;
     private final TalentMapper talentMapper;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final AccessVerifyService accessVerifyService;
     private final CredentialsRepository credentialsRepository;
@@ -88,29 +82,6 @@ public class TalentService {
         return new AuthResponse(jwtToken);
     }
 
-    @Transactional
-    public AuthResponse login(TalentLogin loginRequest) {
-        String email = loginRequest.getEmail();
-        Talent foundTalent = credentialsRepository.findTalentByEmailIgnoreCase(email)
-                .orElseThrow(() -> new TalentNotFoundException("Talent was not found by email [" + email + "]"));
-
-        if (!passwordEncoder.matches(loginRequest.getPassword(), foundTalent.getCredentials().getPassword())) {
-            throw new BadCredentialsException("Invalid email or password");
-        }
-
-        var authenticationToken = new UsernamePasswordAuthenticationToken(email, loginRequest.getPassword());
-        var authentication = authenticationManager.authenticate(authenticationToken);
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        String jwtToken = jwtTokenProvider.generateJwtToken(
-                foundTalent.getCredentials().getEmail(),
-                foundTalent.getId(),
-                foundTalent.getCredentials().getRole(),
-                foundTalent.getFirstname()
-        );
-        return new AuthResponse(jwtToken);
-    }
 
     public TalentProfile getTalentProfileById(Long id) {
         Talent foundTalent = getTalentById(id);
