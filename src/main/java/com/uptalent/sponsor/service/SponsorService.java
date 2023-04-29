@@ -18,6 +18,7 @@ import com.uptalent.sponsor.model.request.SponsorEdit;
 import com.uptalent.sponsor.model.request.SponsorLogin;
 import com.uptalent.sponsor.model.request.SponsorRegistration;
 import com.uptalent.sponsor.model.response.SponsorProfile;
+import com.uptalent.sponsor.model.response.SponsorRating;
 import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
@@ -168,6 +169,14 @@ public class SponsorService {
 
         sponsorToUpdate.setKudos(sponsorToUpdate.getKudos() + increaseKudos.getBalance());
         sponsorRepository.save(sponsorToUpdate);
+    }
+
+    public List<SponsorRating> getSponsorRating() {
+        Long talentId = accessVerifyService.getPrincipalId();
+
+        PageRequest limitRequest = PageRequest.of(0, 10);
+        return sponsorRepository.getSponsorRatingByTalentId(talentId, limitRequest)
+                .getContent();
     }
     private Sponsor getSponsorById(Long sponsorId) {
         return sponsorRepository.findById(sponsorId)
