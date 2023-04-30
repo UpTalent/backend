@@ -16,8 +16,7 @@ public interface ProofRepository extends JpaRepository<Proof, Long> {
     Page<ProofGeneralInfo> findAllByStatus(ProofStatus proofStatus, PageRequest pageable);
 
     @Query("SELECT new com.uptalent.proof.model.response.ProofSponsorDetailInfo(p.id, p.iconNumber, p.title, p.summary, " +
-            "p.content, p.published, p.kudos, p.status, " +
-            "CASE WHEN COUNT(kh.id) > 0 THEN TRUE ELSE FALSE END) " +
+            "p.content, p.published, p.kudos, p.status, coalesce(sum(kh.kudos), 0)) " +
             "FROM proof p LEFT JOIN kudos_history kh ON kh.proof.id = p.id AND kh.sponsor.id = :sponsorId " +
             "WHERE p.status = :proofStatus " +
             "GROUP BY p.id having p.talent.id = :talentId")
@@ -31,7 +30,7 @@ public interface ProofRepository extends JpaRepository<Proof, Long> {
     Page<ProofTalentDetailInfo> findAllTalentProofsByTalentIdAndStatus(Long currentTalentId, Long talentId, ProofStatus proofStatus, PageRequest of);
 
     @Query("SELECT new com.uptalent.proof.model.response.ProofSponsorGeneralInfo(p.id, p.iconNumber, p.title, p.summary, p.kudos, p.published, " +
-            "CASE WHEN COUNT(kh.id) > 0 THEN TRUE ELSE FALSE END) " +
+            "coalesce(sum(kh.kudos), 0)) " +
             "FROM proof p LEFT JOIN kudos_history kh ON kh.proof.id = p.id AND kh.sponsor.id = :sponsorId " +
             "WHERE p.status = :proofStatus " +
             "GROUP BY p.id")

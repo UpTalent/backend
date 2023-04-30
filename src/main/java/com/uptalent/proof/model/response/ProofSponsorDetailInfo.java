@@ -9,11 +9,11 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ProofSponsorDetailInfo extends ProofDetailInfo {
-    private boolean kudosedByMe;
+    private long sumKudosFromMe;
 
     public ProofSponsorDetailInfo(Long id, Integer iconNumber, String title, String summary, String content,
-                                  LocalDateTime published, int kudos, ProofStatus status, boolean kudosedByMe) {
+                                  LocalDateTime published, int kudos, ProofStatus status, long sumKudosFromMe) {
         super(id, iconNumber, title, summary, content, published, kudos, status);
-        this.kudosedByMe = kudosedByMe;
+        this.sumKudosFromMe = sumKudosFromMe;
     }
 }
