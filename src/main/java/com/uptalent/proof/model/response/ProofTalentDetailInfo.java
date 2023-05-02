@@ -1,12 +1,10 @@
 package com.uptalent.proof.model.response;
 
 import com.uptalent.proof.model.enums.ProofStatus;
-import com.uptalent.skill.model.SkillInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -14,9 +12,8 @@ public class ProofTalentDetailInfo extends ProofDetailInfo {
     private boolean myProof;
 
     public ProofTalentDetailInfo(Long id, Integer iconNumber, String title, String summary, String content,
-                                 LocalDateTime published, int kudos, ProofStatus status, boolean myProof,
-                                 Set<SkillInfo> skills) {
-        super(id, iconNumber, title, summary, content, published, kudos, status, skills);
+                                 LocalDateTime published, int kudos, ProofStatus status, boolean myProof) {
+        super(id, iconNumber, title, summary, content, published, kudos, status);
         this.myProof = myProof;
     }
 }
