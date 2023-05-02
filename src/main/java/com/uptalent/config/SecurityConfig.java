@@ -49,7 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(GET, "/api/v1/talents", "/actuator/**").permitAll()
                         .requestMatchers("/api-documentation/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(POST, "/api/v1/talents", "/api/v1/sponsors").permitAll()
-                        .requestMatchers(GET, "/api/v1/proofs").permitAll()
+                        .requestMatchers(GET, "/api/v1/proofs", "/api/v1/proofs/{proofId}/skills").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )

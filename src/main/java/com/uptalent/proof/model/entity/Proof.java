@@ -2,11 +2,13 @@ package com.uptalent.proof.model.entity;
 
 import com.uptalent.proof.kudos.model.entity.KudosHistory;
 import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.talent.model.entity.Talent;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 import static jakarta.persistence.FetchType.LAZY;
@@ -55,4 +57,20 @@ public class Proof {
 
     @Transient
     private boolean kudosedByMe;
+
+    @ManyToMany(mappedBy = "proofs")
+    private Set<Skill> skills;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Proof proof = (Proof) o;
+        return kudos == proof.kudos && Objects.equals(id, proof.id) && Objects.equals(iconNumber, proof.iconNumber) && Objects.equals(title, proof.title) && Objects.equals(summary, proof.summary) && Objects.equals(content, proof.content) && Objects.equals(published, proof.published) && status == proof.status;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, iconNumber, title, summary, content, published, status, kudos);
+    }
 }

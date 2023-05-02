@@ -3,17 +3,26 @@ package com.uptalent.proof.repository;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.response.*;
+import com.uptalent.skill.model.SkillInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+
 public interface ProofRepository extends JpaRepository<Proof, Long> {
     @Query("SELECT new com.uptalent.proof.model.response.ProofGeneralInfo(p.id, p.iconNumber, p.title, p.summary, p.kudos, p.published) " +
             "FROM proof p " +
             "WHERE p.status = :proofStatus")
     Page<ProofGeneralInfo> findAllByStatus(ProofStatus proofStatus, PageRequest pageable);
+
+    @Query("SELECT new com.uptalent.skill.model.SkillInfo(s.id, s.name) " +
+            "FROM proof p " +
+            "JOIN p.skills s " +
+            "WHERE p.id = :proofId")
+    List<SkillInfo> findAllSkillsByProofId(Long proofId);
 
     @Query("SELECT new com.uptalent.proof.model.response.ProofSponsorDetailInfo(p.id, p.iconNumber, p.title, p.summary, " +
             "p.content, p.published, p.kudos, p.status, coalesce(sum(kh.kudos), 0)) " +

@@ -9,6 +9,8 @@ import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
 import com.uptalent.proof.kudos.model.response.KudosSender;
 import com.uptalent.proof.kudos.repository.KudosHistoryRepository;
 import com.uptalent.proof.kudos.model.request.PostKudos;
+import com.uptalent.skill.model.SkillInfo;
+import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.talent.exception.DeniedAccessException;
@@ -87,6 +89,8 @@ public class ProofServiceTest {
     private ProofModify reopenProofCase;
 
     private Sponsor sponsor;
+    private Skill skill;
+    private SkillInfo skillInfo;
 
 
     @BeforeEach
@@ -163,20 +167,26 @@ public class ProofServiceTest {
                 .build();
 
 
+        skill = Skill.builder()
+                .id(1L)
+                .name("Java")
+                .build();
+
+        skillInfo = new SkillInfo(skill.getId(), skill.getName());
 
         talent.setProofs(new ArrayList<>(Arrays.asList(draftProof, publishedProof, hiddenProof)));
 
         proofModify = new ProofModify("New Proof title", "New Proof summary", "New Proof content",
-                2, ProofStatus.DRAFT.name());
+                2, ProofStatus.DRAFT.name(), Set.of(skillInfo));
 
         editProofCase = new ProofModify("Edit Proof title", "Edit Proof summary", "Edit Proof content",
-                3, ProofStatus.DRAFT.name());
+                3, ProofStatus.DRAFT.name(), Set.of(skillInfo));
         publishProofCase = new ProofModify("Publish Proof title", "Publish Proof summary", "Publish Proof content",
-                3, ProofStatus.PUBLISHED.name());
+                3, ProofStatus.PUBLISHED.name(), Set.of(skillInfo));
         hideProofCase = new ProofModify("Hide Proof title", "Hide Proof summary", "Hide Proof content",
-                3, ProofStatus.HIDDEN.name());
+                3, ProofStatus.HIDDEN.name(), Set.of(skillInfo));
         reopenProofCase = new ProofModify("Reopen Proof title", "Reopen Proof summary", "Reopen Proof content",
-                3, ProofStatus.PUBLISHED.name());
+                3, ProofStatus.PUBLISHED.name(), Set.of(skillInfo));
     }
 
 

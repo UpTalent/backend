@@ -1,9 +1,13 @@
 package com.uptalent.proof.model.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.skill.model.SkillInfo;
 import com.uptalent.util.annotation.EnumValue;
 import jakarta.validation.constraints.*;
 import lombok.*;
+
+import java.util.Set;
 
 @Getter
 @Setter
@@ -23,4 +27,5 @@ public class ProofModify {
     private Integer iconNumber;
     @EnumValue(enumClass = ProofStatus.class)
     private String status;
+    private Set<SkillInfo> skills;
 }
