@@ -18,8 +18,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import static org.apache.http.entity.ContentType.IMAGE_JPEG;
-import static org.apache.http.entity.ContentType.IMAGE_PNG;
+import static org.apache.http.entity.ContentType.*;
 
 public class ImageUtils {
 
@@ -49,8 +48,14 @@ public class ImageUtils {
     }
 
     public static void isImage(MultipartFile file) {
-        if(!Arrays.asList(IMAGE_JPEG.getMimeType(), IMAGE_PNG.getMimeType()).contains(file.getContentType())){
-            throw new IncorrectFileFormatException("File must be an image");
+        if(!Arrays.asList(
+                IMAGE_JPEG.getMimeType(),
+                IMAGE_PNG.getMimeType(),
+                IMAGE_BMP.getMimeType(),
+                IMAGE_WEBP.getMimeType(),
+                IMAGE_GIF.getMimeType()
+                ).contains(file.getContentType())){
+            throw new IncorrectFileFormatException("File format must be JPEG, PNG, BMP, WEBP or GIF");
         }
     }
 
