@@ -16,6 +16,9 @@ import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.proof.repository.ProofRepository;
+import com.uptalent.skill.model.SkillInfo;
+import com.uptalent.skill.model.entity.Skill;
+import com.uptalent.skill.repository.SkillRepository;
 import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.repository.SponsorRepository;
@@ -38,8 +41,10 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.uptalent.credentials.model.enums.Role.SPONSOR;
 import static com.uptalent.credentials.model.enums.Role.TALENT;
@@ -56,6 +61,7 @@ public class ProofService {
     private final ProofMapper mapper;
     private final AccessVerifyService accessVerifyService;
     private final SponsorRepository sponsorRepository;
+    private final SkillRepository skillRepository;
     @Value("${kudos.max-value}")
     private int KUDOS_MAX_VALUE;
 
@@ -98,9 +104,15 @@ public class ProofService {
 
         if (!proof.getStatus().equals(DRAFT))
             throw new IllegalCreatingProofException("Proof status for creating should be DRAFT");
+        
+        Set<Skill> skills = getAllMappedSkills(proofModify, proof);
+
+        proof.setSkills(skills);
 
         proof.setTalent(talent);
         proofRepository.save(proof);
+
+        skillRepository.saveAll(skills);
 
         talent.getProofs().add(proof);
         talentRepository.save(talent);
@@ -207,6 +219,9 @@ public class ProofService {
         return new UpdatedProofKudos(currentCountKudos, currentSumKudos, currentBalance);
     }
 
+    public List<SkillInfo> getSkillsByProofId(Long proofId) {
+        return proofRepository.findAllSkillsByProofId(proofId);
+    }
 
     private Consumer<Proof> selectProofModifyStrategy(ProofModify proofModify, ProofStatus currentStatus) {
         Consumer<Proof> strategy;
@@ -240,14 +255,41 @@ public class ProofService {
         proof.setSummary(proofModify.getSummary());
         proof.setContent(proofModify.getContent());
         proof.setIconNumber(proofModify.getIconNumber());
+
+        proof.getSkills().forEach(skill -> skill.getProofs().remove(proof));
+        proof.getSkills().clear();
+
+        Set<Skill> skills = getAllMappedSkills(proofModify, proof);
+        proof.getSkills().addAll(skills);
+        skillRepository.saveAll(skills);
     }
 
     private void publishProof(ProofModify proofModify, Proof proof) {
         updateProofData(proofModify, proof);
         proof.setPublished(LocalDateTime.now());
+
+        proof.getSkills().forEach(skill -> skill.getProofs().remove(proof));
+        proof.getSkills().clear();
+
+        Set<Skill> skills = getAllMappedSkills(proofModify, proof);
+        proof.getSkills().addAll(skills);
+        skillRepository.saveAll(skills);
+        
         proof.setStatus(PUBLISHED);
+        proofRepository.save(proof);
     }
 
+    private Set<Skill> getAllMappedSkills(ProofModify proofModify, Proof proof) {
+        return skillRepository.findAllById(
+                        proofModify.getSkills()
+                                .stream()
+                                .map(SkillInfo::getId)
+                                .collect(Collectors.toSet())
+                )
+                .stream()
+                .peek(skill -> skill.getProofs().add(proof))
+                .collect(Collectors.toSet());
+    }
 
     private void verifyTalentExistsById(Long talentId) {
         if (!talentRepository.existsById(talentId)) {
