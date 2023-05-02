@@ -7,6 +7,7 @@ import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.model.response.ProofGeneralInfo;
 import org.mapstruct.Mapper;
 
+import java.util.HashSet;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -19,6 +20,7 @@ public interface ProofMapper {
                 .summary(proofModify.getSummary())
                 .content(proofModify.getContent())
                 .status(ProofStatus.valueOf(proofModify.getStatus()))
+                .skills(new HashSet<>())
                 .build();
     }
     List<ProofGeneralInfo> toProofGeneralInfos(List<Proof> content);
