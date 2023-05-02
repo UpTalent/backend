@@ -41,6 +41,7 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -104,15 +105,11 @@ public class ProofService {
 
         if (!proof.getStatus().equals(DRAFT))
             throw new IllegalCreatingProofException("Proof status for creating should be DRAFT");
-        
-        Set<Skill> skills = getAllMappedSkills(proofModify, proof);
 
-        proof.setSkills(skills);
+        updateSkillsIfExists(proofModify, proof);
 
         proof.setTalent(talent);
         proofRepository.save(proof);
-
-        skillRepository.saveAll(skills);
 
         talent.getProofs().add(proof);
         talentRepository.save(talent);
@@ -259,9 +256,7 @@ public class ProofService {
         proof.getSkills().forEach(skill -> skill.getProofs().remove(proof));
         proof.getSkills().clear();
 
-        Set<Skill> skills = getAllMappedSkills(proofModify, proof);
-        proof.getSkills().addAll(skills);
-        skillRepository.saveAll(skills);
+        updateSkillsIfExists(proofModify, proof);
     }
 
     private void publishProof(ProofModify proofModify, Proof proof) {
@@ -271,12 +266,17 @@ public class ProofService {
         proof.getSkills().forEach(skill -> skill.getProofs().remove(proof));
         proof.getSkills().clear();
 
-        Set<Skill> skills = getAllMappedSkills(proofModify, proof);
-        proof.getSkills().addAll(skills);
-        skillRepository.saveAll(skills);
+        updateSkillsIfExists(proofModify, proof);
         
         proof.setStatus(PUBLISHED);
         proofRepository.save(proof);
+    }
+
+    private void updateSkillsIfExists(ProofModify proofModify, Proof proof) {
+        Optional.ofNullable(proofModify.getSkills())
+                .filter(skills -> !skills.isEmpty())
+                .map(skills -> getAllMappedSkills(proofModify, proof))
+                .ifPresent(proof::setSkills);
     }
 
     private Set<Skill> getAllMappedSkills(ProofModify proofModify, Proof proof) {
