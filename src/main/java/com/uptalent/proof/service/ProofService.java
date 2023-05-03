@@ -253,8 +253,7 @@ public class ProofService {
         proof.setContent(proofModify.getContent());
         proof.setIconNumber(proofModify.getIconNumber());
 
-        proof.getSkills().forEach(skill -> skill.getProofs().remove(proof));
-        proof.getSkills().clear();
+        clearSkillsFromProof(proof);
 
         updateSkillsIfExists(proofModify, proof);
     }
@@ -263,12 +262,17 @@ public class ProofService {
         updateProofData(proofModify, proof);
         proof.setPublished(LocalDateTime.now());
 
-        proof.getSkills().forEach(skill -> skill.getProofs().remove(proof));
-        proof.getSkills().clear();
+        clearSkillsFromProof(proof);
 
         updateSkillsIfExists(proofModify, proof);
         
         proof.setStatus(PUBLISHED);
+        proofRepository.save(proof);
+    }
+
+    private void clearSkillsFromProof(Proof proof) {
+        proof.getSkills().forEach(skill -> skill.getProofs().remove(proof));
+        proof.getSkills().clear();
         proofRepository.save(proof);
     }
 
