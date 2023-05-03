@@ -254,20 +254,13 @@ public class ProofService {
         proof.setIconNumber(proofModify.getIconNumber());
 
         clearSkillsFromProof(proof);
-
         updateSkillsIfExists(proofModify, proof);
     }
 
     private void publishProof(ProofModify proofModify, Proof proof) {
         updateProofData(proofModify, proof);
         proof.setPublished(LocalDateTime.now());
-
-        clearSkillsFromProof(proof);
-
-        updateSkillsIfExists(proofModify, proof);
-        
         proof.setStatus(PUBLISHED);
-        proofRepository.save(proof);
     }
 
     private void clearSkillsFromProof(Proof proof) {
