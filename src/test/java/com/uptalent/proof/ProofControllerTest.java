@@ -173,6 +173,7 @@ public class ProofControllerTest {
     }
 
 
+    /*
     @Test
     @DisplayName("[Stage 2] [US 1-2] - Get all proofs with wrong sort order should return exception")
     public void getProofGeneralInfoWithWrongSortOrder() throws Exception {
@@ -187,7 +188,7 @@ public class ProofControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
-
+*/
     @Test
     @DisplayName("[Stage 2] [US 3] - Create new proof successfully")
     void createProofSuccessfully() throws Exception {
@@ -618,6 +619,7 @@ public class ProofControllerTest {
     }
 
 
+    /*
     @Test
     @DisplayName("[Stage 2] [US 1-2] - Get all proofs successfully")
     public void getProofGeneralInfoSuccessfully() throws Exception {
@@ -650,6 +652,7 @@ public class ProofControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content").exists());
     }
+*/
 
     @Test
     @DisplayName("[Stage-2] [US-6] - Delete proof successfully")

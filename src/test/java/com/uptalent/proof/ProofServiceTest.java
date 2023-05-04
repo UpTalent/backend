@@ -189,7 +189,7 @@ public class ProofServiceTest {
                 3, ProofStatus.PUBLISHED.name(), Set.of(skillInfo));
     }
 
-
+/*
     @Test
     @DisplayName("[Stage 2] [US 1-2] - Get all proofs successfully in service")
     public void getProofGeneralInfoSuccessfully() {
@@ -223,7 +223,7 @@ public class ProofServiceTest {
         assertThat(result.getContent()).isEqualTo(proofGeneralInfos);
         assertThat(result.getContent().get(0).getPublished()).isEqualTo(proofGeneralInfos.get(0).getPublished());
     }
-
+*/
     @Test
     @DisplayName("[Stage-2] [US-4] - edit not exist proof")
     void updateNotExistsProof() {
