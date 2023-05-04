@@ -1,5 +1,6 @@
 package com.uptalent.talent.model.request;
 
+import com.uptalent.skill.model.SkillInfo;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,10 +21,8 @@ public class TalentRegistration {
     @Size(max = 15, message = "Firstname must be less than 15 characters")
     private String firstname;
 
-    @NotNull(message = "Skills should not be null")
-    private Set<@NotBlank(message = "Name of skill should not be blank")
-    @Size(max = 20, message = "Name of skill must be less than 20 characters")
-            String> skills;
+
+    private Set<SkillInfo> skills;
 
     @NotNull(message = "Email should not be null")
     @NotBlank(message = "Email should not be blank")
