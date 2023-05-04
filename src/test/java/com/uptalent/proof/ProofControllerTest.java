@@ -110,7 +110,7 @@ public class ProofControllerTest {
                 .credentials(credentials)
                 .lastname("Himonov")
                 .firstname("Mark")
-                .skills(Set.of("Java", "Spring"))
+
                 .build();
         proof = Proof.builder()
                 .id(1L)
@@ -591,7 +591,7 @@ public class ProofControllerTest {
                 .id(2L)
                 .lastname("Doe")
                 .firstname("John")
-                .skills(Set.of("Java", "Spring"))
+
                 .build();
 
         Proof unrelatedProof = Proof.builder()
@@ -769,7 +769,7 @@ public class ProofControllerTest {
                 .id(2L)
                 .lastname("Doe")
                 .firstname("John")
-                .skills(Set.of("Java", "Spring"))
+
                 .build();
 
         List<KudosSender> expectedKudosSenders = List.of(

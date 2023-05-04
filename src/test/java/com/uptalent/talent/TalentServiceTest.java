@@ -92,7 +92,7 @@ class TalentServiceTest {
                 .credentials(credentials)
                 .lastname("Teliukov")
                 .firstname("Dmytro")
-                .skills(Set.of("Java", "Spring"))
+
                 .build();
     }
 
@@ -112,13 +112,13 @@ class TalentServiceTest {
                         .id(talent.getId())
                         .lastname(talent.getLastname())
                         .firstname(talent.getFirstname())
-                        .skills(talent.getSkills())
+
                         .build(),
                 TalentGeneralInfo.builder()
                         .id(2L)
                         .lastname("Himonov")
                         .firstname("Mark")
-                        .skills(Set.of("Java", "Spring"))
+
                         .build()
         );
 
@@ -233,13 +233,13 @@ class TalentServiceTest {
         TalentEdit editRequest = TalentEdit.builder()
                 .lastname("Himonov")
                 .firstname("Mark")
-                .skills(Set.of("Java", "Spring"))
+
                 .build();
 
         Talent talentToBeSaved = Talent.builder()
                 .firstname(editRequest.getFirstname())
                 .lastname(editRequest.getLastname())
-                .skills(editRequest.getSkills())
+
                 .build();
 
         when(talentRepository.save(any(Talent.class))).thenReturn(talentToBeSaved);
@@ -251,7 +251,7 @@ class TalentServiceTest {
         assertThat(talent).isNotNull();
         assertThat(talent.getLastname()).isEqualTo("Himonov");
         assertThat(talent.getFirstname()).isEqualTo("Mark");
-        assertThat(talent.getSkills()).contains("Java", "Spring");
+
     }
 
     @Test
@@ -265,7 +265,7 @@ class TalentServiceTest {
         TalentEdit editRequest = TalentEdit.builder()
                 .lastname("Himonov")
                 .firstname("Mark")
-                .skills(Set.of("Java", "Spring"))
+
                 .build();
 
         doThrow(new DeniedAccessException("")).when(accessVerifyService)
@@ -359,7 +359,7 @@ class TalentServiceTest {
         registrationRequest.setFirstname(talent.getFirstname());
         registrationRequest.setEmail(talent.getCredentials().getEmail());
         registrationRequest.setPassword(talent.getCredentials().getPassword());
-        registrationRequest.setSkills(talent.getSkills());
+
 
         return registrationRequest;
     }

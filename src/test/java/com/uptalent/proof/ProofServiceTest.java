@@ -107,7 +107,7 @@ public class ProofServiceTest {
                 .credentials(credentials)
                 .lastname("Himonov")
                 .firstname("Mark")
-                .skills(Set.of("Java", "Spring"))
+
                 .build();
 
         proof = Proof.builder()
@@ -157,7 +157,7 @@ public class ProofServiceTest {
                 .id(2L)
                 .lastname("Doe")
                 .firstname("John")
-                .skills(Set.of("Java", "Spring"))
+
                 .build();
 
         sponsor = Sponsor.builder()
