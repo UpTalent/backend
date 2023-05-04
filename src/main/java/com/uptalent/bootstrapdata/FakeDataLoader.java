@@ -109,13 +109,20 @@ public class FakeDataLoader implements CommandLineRunner {
         return proof;
     }
 
-    private Set<String> generateSkills() {
-        Set<String> skills = new HashSet<>();
+
+        private Set<Skill> generateSkills() {
+
+        Set<Skill> skills = new HashSet<>();
         int size = faker.random().nextInt(3) + 3;
 
-        for (int i = 0; i < size; i++)
-            skills.add(faker.job().keySkills());
-
+        for (int i = 0; i < size; i++) {
+            Skill skill = Skill.builder()
+                    .name(faker.job().keySkills())
+                    .build();
+            skills.add(skill);
+        }
         return skills;
     }
+
+
 }
