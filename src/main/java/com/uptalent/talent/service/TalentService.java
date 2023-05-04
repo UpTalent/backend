@@ -9,6 +9,11 @@ import com.uptalent.filestore.FileStoreService;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.proof.model.entity.Proof;
+import com.uptalent.proof.model.request.ProofModify;
+import com.uptalent.skill.model.SkillInfo;
+import com.uptalent.skill.model.entity.Skill;
+import com.uptalent.skill.repository.SkillRepository;
 import com.uptalent.talent.exception.EmptySkillsException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
@@ -28,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +46,7 @@ public class TalentService {
     private final AccessVerifyService accessVerifyService;
     private final CredentialsRepository credentialsRepository;
     private final FileStoreService fileStoreService;
+    private final SkillRepository skillRepository;
 
     public PageWithMetadata<TalentGeneralInfo> getAllTalents(int page, int size){
         Page<Talent> talentPage = talentRepository.findAllByOrderByIdDesc(PageRequest.of(page, size));
@@ -48,18 +55,13 @@ public class TalentService {
     }
 
     @Transactional
-    public AuthResponse addTalent(TalentRegistration talent){
-        if (credentialsRepository.existsByEmailIgnoreCase(talent.getEmail())){
-            throw new AccountExistsException("The user has already exists with email [" + talent.getEmail() + "]");
+    public AuthResponse addTalent(TalentRegistration talentRegistration){
+        if (credentialsRepository.existsByEmailIgnoreCase(talentRegistration.getEmail())){
+            throw new AccountExistsException("The user has already exists with email [" + talentRegistration.getEmail() + "]");
         }
-
-        if(talent.getSkills().isEmpty()){
-            throw new EmptySkillsException("Skills should not be empty");
-        }
-
         var credentials = Credentials.builder()
-                .email(talent.getEmail())
-                .password(passwordEncoder.encode(talent.getPassword()))
+                .email(talentRegistration.getEmail())
+                .password(passwordEncoder.encode(talentRegistration.getPassword()))
                 .status(AccountStatus.ACTIVE)
                 .role(Role.TALENT)
                 .build();
@@ -68,10 +70,11 @@ public class TalentService {
 
         var savedTalent = talentRepository.save(Talent.builder()
                     .credentials(credentials)
-                    .firstname(talent.getFirstname())
-                    .lastname(talent.getLastname())
-                    .skills(new LinkedHashSet<>(talent.getSkills()))
+                    .firstname(talentRegistration.getFirstname())
+                    .lastname(talentRegistration.getLastname())
                     .build());
+
+        updateSkillsIfExists(talentRegistration.getSkills(), savedTalent);
 
         String jwtToken = jwtTokenProvider.generateJwtToken(
                 savedTalent.getCredentials().getEmail(),
@@ -108,7 +111,8 @@ public class TalentService {
 
         talentToUpdate.setLastname(updatedTalent.getLastname());
         talentToUpdate.setFirstname(updatedTalent.getFirstname());
-        talentToUpdate.setSkills(new LinkedHashSet<>(updatedTalent.getSkills()));
+        clearSkillsFromTalent(talentToUpdate);
+        updateSkillsIfExists(updatedTalent.getSkills(),talentToUpdate);
 
         if(updatedTalent.getBirthday() != null) {
             talentToUpdate.setBirthday(updatedTalent.getBirthday());
@@ -119,7 +123,6 @@ public class TalentService {
         if(updatedTalent.getAboutMe() != null) {
             talentToUpdate.setAboutMe(updatedTalent.getAboutMe());
         }
-
         Talent savedTalent = talentRepository.save(talentToUpdate);
 
         return talentMapper.toTalentOwnProfile(savedTalent);
@@ -141,5 +144,26 @@ public class TalentService {
     private Talent getTalentById(Long id) {
         return talentRepository.findById(id)
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
+    }
+    private Set<Skill> getAllMappedSkills(Set <SkillInfo> skillInfo, Talent talent) {
+        return skillRepository.findAllById(
+                       skillInfo.stream()
+                                .map(SkillInfo::getId)
+                                .collect(Collectors.toSet())
+                )
+                .stream()
+                .peek(skill -> skill.getTalents().add(talent))
+                .collect(Collectors.toSet());
+    }
+    private void updateSkillsIfExists(Set <SkillInfo> skillInfo, Talent talent) {
+        Optional.ofNullable(skillInfo)
+                .filter(skills -> !skills.isEmpty())
+                .map(skills -> getAllMappedSkills(skillInfo, talent))
+                .ifPresent(talent::setSkills);
+    }
+    private void clearSkillsFromTalent(Talent talent) {
+        talent.getSkills().forEach(skill -> skill.getTalents().remove(talent));
+        talent.getSkills().clear();
+        talentRepository.save(talent);
     }
 }

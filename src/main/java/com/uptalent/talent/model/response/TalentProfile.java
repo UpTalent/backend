@@ -1,5 +1,6 @@
 package com.uptalent.talent.model.response;
 
+import com.uptalent.skill.model.entity.Skill;
 import lombok.*;
 
 import java.util.Set;
@@ -14,7 +15,7 @@ public class TalentProfile {
     private String firstname;
     private String avatar;
     private String banner;
-    private Set<String> skills;
+    private Set<Skill> skills;
     private String location;
     private String aboutMe;
 }

@@ -1,6 +1,7 @@
 package com.uptalent.talent.model.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.uptalent.skill.model.entity.Skill;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -20,7 +21,7 @@ public class TalentOwnProfile extends TalentProfile {
                             String firstname,
                             String avatar,
                             String banner,
-                            Set<String> skills,
+                            Set<Skill> skills,
                             String location,
                             String aboutMe,
                             String email,

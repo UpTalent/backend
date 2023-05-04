@@ -25,10 +25,7 @@ create table if not exists talent (
     primary key (id)
 );
 
-create table if not exists talent_skills (
-    talent_id bigint not null,
-    skills varchar(255) not null
-);
+drop table talent_skills
 
 create table if not exists talent_credentials (
     talent_id bigint not null references talent(id) on delete cascade,
@@ -81,3 +78,11 @@ create table if not exists sponsor_credentials (
     credentials_id bigint not null references credentials(id) on delete cascade,
     primary key (sponsor_id)
 );
+create table if not exists skill_talent (
+    talent_id bigint not null,
+    skill_id bigint not null,
+    primary key(talent_id, skill_id),
+    foreign key (talent_id) references talent(id) on delete cascade,
+    foreign key (skill_id) references skill(id) on delete cascade
+
+)

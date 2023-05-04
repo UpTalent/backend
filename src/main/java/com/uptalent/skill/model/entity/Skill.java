@@ -1,6 +1,8 @@
 package com.uptalent.skill.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.uptalent.proof.model.entity.Proof;
+import com.uptalent.talent.model.entity.Talent;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,7 +23,7 @@ public class Skill {
 
     @Column(length = 30, nullable = false, name = "name")
     private String name;
-
+    @JsonIgnore
     @ManyToMany
     @JoinTable(
             name = "skill_proof",
@@ -29,7 +31,14 @@ public class Skill {
             inverseJoinColumns = @JoinColumn(name = "proof_id")
     )
     private Set<Proof> proofs;
-
+    @JsonIgnore
+    @ManyToMany
+    @JoinTable(
+            name = "skill_talent",
+            joinColumns = @JoinColumn(name = "skill_id"),
+            inverseJoinColumns = @JoinColumn(name = "talent_id")
+    )
+    private Set<Talent> talents;
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
