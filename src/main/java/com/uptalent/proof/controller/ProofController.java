@@ -70,8 +70,9 @@ public class ProofController {
            @RequestParam(defaultValue = "0") int page,
            @Positive(message = "Size should be positive")
            @RequestParam(defaultValue = "9") int size,
-           @RequestParam(defaultValue = "desc") String sort) {
-       return proofService.getProofs(page, size, sort);
+           @RequestParam(defaultValue = "desc") String sort,
+           @RequestParam(required = false) String [] filter) {
+       return proofService.getProofs(page, size, sort, filter);
    }
 
     @Operation(summary = "Retrieve list of skills by proof")
