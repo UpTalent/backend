@@ -67,11 +67,11 @@ public class ProofService {
     private int KUDOS_MAX_VALUE;
 
 
-    public PageWithMetadata<? extends ProofGeneralInfo> getProofs(int page, int size, String sort) {
+    public PageWithMetadata<? extends ProofGeneralInfo> getProofs(int page, int size, String sort, String [] filter) {
         Sort sortOrder = getSortByString(sort, PUBLISHED);
         PageRequest pageRequest = PageRequest.of(page, size, sortOrder);
         Long principalId = accessVerifyService.getPrincipalId();
-        Page<? extends ProofGeneralInfo> proofsPage = getPageProofsWithGeneralInfo(principalId, pageRequest);
+        Page<? extends ProofGeneralInfo> proofsPage = getPageProofsWithGeneralInfo(principalId, pageRequest, filter);
 
         return new PageWithMetadata<>(proofsPage.getContent(), proofsPage.getTotalPages());
     }
@@ -337,13 +337,16 @@ public class ProofService {
     }
 
     private Page<? extends ProofGeneralInfo> getPageProofsWithGeneralInfo(Long principalId,
-                                                                          PageRequest pageRequest) {
+                                                                          PageRequest pageRequest, String [] filter) {
+
+        int size = (filter == null) ? 0 : filter.length;
+
         if (accessVerifyService.hasRole(SPONSOR))
-            return proofRepository.findAllWithKudosedBySponsorId(principalId, PUBLISHED, pageRequest);
+            return proofRepository.findAllWithKudosedBySponsorId(principalId, PUBLISHED, pageRequest, filter, size);
         else if (accessVerifyService.hasRole(TALENT))
-            return proofRepository.findAllWithTalentProofByTalentId(principalId, PUBLISHED, pageRequest);
+            return proofRepository.findAllWithTalentProofByTalentId(principalId, PUBLISHED, pageRequest, filter, size);
         else
-            return proofRepository.findAllByStatus(ProofStatus.PUBLISHED, pageRequest);
+            return proofRepository.findAllByStatus(ProofStatus.PUBLISHED, pageRequest, filter, size);
     }
 
     private void validateGetTalentProofs(Long talentId, ProofStatus proofStatus) {

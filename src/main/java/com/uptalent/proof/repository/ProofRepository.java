@@ -14,9 +14,10 @@ import java.util.List;
 
 public interface ProofRepository extends JpaRepository<Proof, Long> {
     @Query("SELECT new com.uptalent.proof.model.response.ProofGeneralInfo(p.id, p.iconNumber, p.title, p.summary, p.kudos, p.published) " +
-            "FROM proof p " +
-            "WHERE p.status = :proofStatus")
-    Page<ProofGeneralInfo> findAllByStatus(ProofStatus proofStatus, PageRequest pageable);
+            "FROM proof p WHERE p.status = :proofStatus group by p.id having p.id in " +
+            "(select pr.id FROM proof pr where " +
+            "coalesce((SELECT count(sk) FROM pr.skills sk WHERE sk.name IN :filter GROUP BY pr.id HAVING pr.id = p.id), 0) = :filterSize) ")
+    Page<ProofGeneralInfo> findAllByStatus(ProofStatus proofStatus, PageRequest pageable, String [] filter, int filterSize);
 
     @Query("SELECT new com.uptalent.skill.model.SkillInfo(s.id, s.name) " +
             "FROM proof p " +
@@ -42,17 +43,19 @@ public interface ProofRepository extends JpaRepository<Proof, Long> {
             "coalesce(sum(kh.kudos), 0)) " +
             "FROM proof p LEFT JOIN kudos_history kh ON kh.proof.id = p.id AND kh.sponsor.id = :sponsorId " +
             "WHERE p.status = :proofStatus " +
-            "GROUP BY p.id")
+            "GROUP BY p.id having p.id in (select pr.id FROM proof pr where " +
+            "coalesce((SELECT count(sk) FROM pr.skills sk WHERE sk.name IN :filter GROUP BY pr.id HAVING pr.id = p.id), 0) = :filterSize)")
     Page<ProofSponsorGeneralInfo> findAllWithKudosedBySponsorId(Long sponsorId,
                                                                 ProofStatus proofStatus,
-                                                                Pageable pageable);
+                                                                Pageable pageable, String [] filter, int filterSize);
 
     @Query("SELECT new com.uptalent.proof.model.response.ProofTalentGeneralInfo(p.id, p.iconNumber, p.title, p.summary, p.kudos, p.published, " +
             "CASE WHEN (p.talent.id = :talentId)  THEN TRUE ELSE FALSE END) " +
-            "FROM proof p" +
-            " WHERE p.status = :proofStatus group by p.id")
+            "FROM proof p WHERE p.status = :proofStatus group by p.id having p.id in " +
+            "(select pr.id FROM proof pr where " +
+            "coalesce((SELECT count(sk) FROM pr.skills sk WHERE sk.name IN :filter GROUP BY pr.id HAVING pr.id = p.id), 0) = :filterSize)")
     Page<ProofTalentGeneralInfo> findAllWithTalentProofByTalentId(Long talentId,
                                                                   ProofStatus proofStatus,
-                                                                  Pageable pageable);
+                                                                  Pageable pageable, String [] filter, int filterSize);
 
 }
