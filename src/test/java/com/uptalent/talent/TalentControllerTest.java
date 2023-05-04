@@ -93,7 +93,7 @@ class TalentControllerTest {
                 .credentials(credentials)
                 .lastname("Teliukov")
                 .firstname("Dmytro")
-                .skills(Set.of("Java", "Spring"))
+
                 .build();
     }
 
@@ -106,12 +106,11 @@ class TalentControllerTest {
                         .id(talent.getId())
                         .lastname(talent.getLastname())
                         .firstname(talent.getFirstname())
-                        .skills(talent.getSkills()).build(),
+                        .build(),
                 TalentGeneralInfo.builder()
                         .id(2L)
                         .lastname("Himonov")
-                        .firstname("Mark")
-                        .skills(Set.of("Java", "Spring")).build()
+                        .firstname("Mark").build()
         );
 
         given(talentService.getAllTalents(0, 9))
@@ -261,7 +260,7 @@ class TalentControllerTest {
         TalentEdit editRequest = TalentEdit.builder()
                 .lastname("Himonov")
                 .firstname("Mark")
-                .skills(Set.of("Java", "Spring"))
+
                 .build();
 
         TalentOwnProfile expectedDto = new TalentOwnProfile();
@@ -269,7 +268,7 @@ class TalentControllerTest {
         expectedDto.setFirstname(editRequest.getFirstname());
         expectedDto.setEmail(talent.getCredentials().getEmail());
         expectedDto.setBirthday(talent.getBirthday());
-        expectedDto.setSkills(editRequest.getSkills());
+
 
         given(talentService.updateTalent(anyLong(), any(TalentEdit.class)))
                 .willReturn(expectedDto);
@@ -293,7 +292,7 @@ class TalentControllerTest {
         TalentEdit editRequest = TalentEdit.builder()
                 .lastname("Himonov")
                 .firstname("Mark")
-                .skills(Set.of("Java", "Spring"))
+
                 .build();
 
         given(talentService.updateTalent(anyLong(), any(TalentEdit.class)))
@@ -393,7 +392,7 @@ class TalentControllerTest {
         registrationRequest.setFirstname(talent.getFirstname());
         registrationRequest.setEmail(talent.getCredentials().getEmail());
         registrationRequest.setPassword(talent.getCredentials().getPassword());
-        registrationRequest.setSkills(talent.getSkills());
+
 
         return registrationRequest;
     }
