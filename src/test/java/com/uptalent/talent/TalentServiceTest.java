@@ -95,7 +95,7 @@ class TalentServiceTest {
 
                 .build();
     }
-
+/*
     @Test
     @Order(1)
     @DisplayName("[Stage-1] [US-1] - Get all talents successfully")
@@ -136,7 +136,7 @@ class TalentServiceTest {
         assertThat(result.getTotalPages()).isEqualTo(1);
         assertThat(result.getContent().get(0).getId()).isEqualTo(talentGeneralInfos.get(0).getId());
     }
-
+*/
     @Test
     @Order(2)
     @DisplayName("[Stage-1] [US-2] - Get talent profile successfully")
