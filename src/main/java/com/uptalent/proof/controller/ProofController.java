@@ -71,8 +71,8 @@ public class ProofController {
            @Positive(message = "Size should be positive")
            @RequestParam(defaultValue = "9") int size,
            @RequestParam(defaultValue = "desc") String sort,
-           @RequestParam(required = false) String [] filter) {
-       return proofService.getProofs(page, size, sort, filter);
+           @RequestParam(required = false) String [] skills) {
+       return proofService.getProofs(page, size, sort, skills);
    }
 
     @Operation(summary = "Retrieve list of skills by proof")
