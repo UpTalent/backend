@@ -25,7 +25,7 @@ create table if not exists talent (
     primary key (id)
     );
 
-drop table talent_skills
+drop table talent_skills;
 
 create table if not exists talent_credentials (
     talent_id bigint not null references talent(id) on delete cascade,
