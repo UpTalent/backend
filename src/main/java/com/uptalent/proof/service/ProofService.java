@@ -39,10 +39,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -216,10 +213,6 @@ public class ProofService {
         return new UpdatedProofKudos(currentCountKudos, currentSumKudos, currentBalance);
     }
 
-    public List<SkillInfo> getSkillsByProofId(Long proofId) {
-        return proofRepository.findAllSkillsByProofId(proofId);
-    }
-
     private Consumer<Proof> selectProofModifyStrategy(ProofModify proofModify, ProofStatus currentStatus) {
         Consumer<Proof> strategy;
         ProofStatus modifyingStatus = ProofStatus.valueOf(proofModify.getStatus());
@@ -341,14 +334,19 @@ public class ProofService {
 
         int skillsSize = (skills == null) ? 0 : skills.length;
 
-        if (accessVerifyService.hasRole(SPONSOR))
-            return proofRepository.findAllWithKudosedBySponsorId(principalId, PUBLISHED, pageRequest,
-                    skills, skillsSize);
-        else if (accessVerifyService.hasRole(TALENT))
-            return proofRepository.findAllWithTalentProofByTalentId(principalId, PUBLISHED, pageRequest,
-                    skills, skillsSize);
+        if (accessVerifyService.hasRole(SPONSOR)){
+            Page<Object[]> proofsAndKudosSum = proofRepository
+                    .findProofsAndKudosSumBySponsorId(principalId, PUBLISHED, pageRequest, skills, skillsSize);
+            return mapper.toProofSponsorGeneralInfos(proofsAndKudosSum, pageRequest);
+        }
+        else if (accessVerifyService.hasRole(TALENT)){
+            Page<Object[]> proofsAndIsMyProofList = proofRepository
+                    .findProofsAndIsMyProofByTalentId(principalId, PUBLISHED, pageRequest, skills, skillsSize);
+            return mapper.toProofTalentGeneralInfos(proofsAndIsMyProofList, pageRequest);
+        }
         else
-            return proofRepository.findAllByStatus(ProofStatus.PUBLISHED, pageRequest, skills, skillsSize);
+            return mapper.toProofGeneralInfos(proofRepository
+                    .findAllByStatus(ProofStatus.PUBLISHED, pageRequest, skills, skillsSize));
     }
 
     private void validateGetTalentProofs(Long talentId, ProofStatus proofStatus) {
@@ -363,10 +361,16 @@ public class ProofService {
                                                                         Long talentId,
                                                                         ProofStatus proofStatus,
                                                                         PageRequest pageRequest) {
-        if (accessVerifyService.hasRole(SPONSOR))
-            return proofRepository.findAllTalentProofsBySponsorIdAndStatus(principalId, talentId, proofStatus, pageRequest);
-        else
-            return proofRepository.findAllTalentProofsByTalentIdAndStatus(principalId, talentId, proofStatus, pageRequest);
+        if (accessVerifyService.hasRole(SPONSOR)){
+            Page<Object[]> talentProofs = proofRepository
+                    .findAllTalentProofsBySponsorIdAndStatus(principalId, talentId, proofStatus, pageRequest);
+            return mapper.toProofSponsorDetailInfos(talentProofs, pageRequest);
+        }
+        else{
+            Page<Object[]> talentProofs = proofRepository
+                    .findAllTalentProofsByTalentIdAndStatus(principalId, talentId, proofStatus, pageRequest);
+            return mapper.toProofTalentDetailInfos(talentProofs, pageRequest);
+        }
     }
 
     private Sort getSortByString(String sort, ProofStatus status){

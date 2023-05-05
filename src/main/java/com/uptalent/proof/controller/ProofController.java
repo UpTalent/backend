@@ -11,7 +11,6 @@ import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.proof.service.ProofService;
-import com.uptalent.skill.model.SkillInfo;
 import com.uptalent.util.annotation.EnumValue;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
@@ -74,17 +73,6 @@ public class ProofController {
            @RequestParam(required = false) String [] skills) {
        return proofService.getProofs(page, size, sort, skills);
    }
-
-    @Operation(summary = "Retrieve list of skills by proof")
-    @ApiResponse(responseCode = "200",
-            content = { @Content(schema = @Schema(type = "array", implementation = SkillInfo.class),
-                    mediaType = "application/json") })
-   @GetMapping("/proofs/{proofId}/skills")
-   @ResponseStatus(HttpStatus.OK)
-   public List<SkillInfo> getSkillsByProofId(@PathVariable Long proofId) {
-       return proofService.getSkillsByProofId(proofId);
-   }
-
 
     @SecurityRequirement(name = "bearerAuth")
     @Operation(
