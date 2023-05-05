@@ -2,57 +2,48 @@ package com.uptalent.proof.repository;
 
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
-import com.uptalent.proof.model.response.*;
-import com.uptalent.skill.model.SkillInfo;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.List;
-
 public interface ProofRepository extends JpaRepository<Proof, Long> {
-    @Query("SELECT new com.uptalent.proof.model.response.ProofGeneralInfo(p.id, p.iconNumber, p.title, p.summary, p.kudos, p.published) " +
-            "FROM proof p WHERE p.status = :proofStatus and " +
+    @Query("SELECT p " +
+            "FROM proof p WHERE p.status = :proofStatus AND " +
             "coalesce((SELECT count(sk) FROM p.skills sk WHERE sk.name IN :skills GROUP BY p.id), 0) = :skillsSize")
-    Page<ProofGeneralInfo> findAllByStatus(ProofStatus proofStatus, PageRequest pageable, String [] skills, int skillsSize);
+    Page<Proof> findAllByStatus(ProofStatus proofStatus,
+                                Pageable pageable,
+                                String [] skills, int skillsSize);
 
-    @Query("SELECT new com.uptalent.skill.model.SkillInfo(s.id, s.name) " +
+    @Query("SELECT p, coalesce(sum(kh.kudos), 0) " +
+            "FROM proof p LEFT JOIN kudos_history kh ON kh.proof.id = p.id AND kh.sponsor.id = :sponsorId " +
+            "WHERE p.status = :proofStatus " +
+            "GROUP BY p.id HAVING p.talent.id = :talentId")
+    Page<Object[]> findAllTalentProofsBySponsorIdAndStatus(Long sponsorId,
+                                                           Long talentId,
+                                                           ProofStatus proofStatus, Pageable pageable);
+
+    @Query("SELECT p, CASE WHEN (p.talent.id = :currentTalentId) THEN TRUE ELSE FALSE END " +
             "FROM proof p " +
-            "JOIN p.skills s " +
-            "WHERE p.id = :proofId")
-    List<SkillInfo> findAllSkillsByProofId(Long proofId);
+            "WHERE p.status = :proofStatus AND p.talent.id = :talentId")
+    Page<Object[]> findAllTalentProofsByTalentIdAndStatus(Long currentTalentId,
+                                                          Long talentId,
+                                                          ProofStatus proofStatus, Pageable pageable);
 
-    @Query("SELECT new com.uptalent.proof.model.response.ProofSponsorDetailInfo(p.id, p.iconNumber, p.title, p.summary, " +
-            "p.content, p.published, p.kudos, p.status, coalesce(sum(kh.kudos), 0)) " +
+    @Query("SELECT p, coalesce(sum(kh.kudos), 0) " +
             "FROM proof p LEFT JOIN kudos_history kh ON kh.proof.id = p.id AND kh.sponsor.id = :sponsorId " +
             "WHERE p.status = :proofStatus " +
-            "GROUP BY p.id having p.talent.id = :talentId")
-    Page<ProofSponsorDetailInfo> findAllTalentProofsBySponsorIdAndStatus(Long sponsorId, Long talentId, ProofStatus proofStatus, PageRequest of);
+            "GROUP BY p.id " +
+            "HAVING coalesce((SELECT count(sk) FROM p.skills sk WHERE sk.name IN :skills GROUP BY p.id), 0) = :skillsSize")
+    Page<Object[]> findProofsAndKudosSumBySponsorId(Long sponsorId,
+                                                    ProofStatus proofStatus,
+                                                    Pageable pageable, String [] skills, int skillsSize);
 
-    @Query("SELECT new com.uptalent.proof.model.response.ProofTalentDetailInfo(p.id, p.iconNumber, p.title, p.summary, " +
-            "p.content, p.published, p.kudos, p.status, " +
-            "CASE WHEN (p.talent.id = :currentTalentId)  THEN TRUE ELSE FALSE END) " +
-            "FROM proof p" +
-            " WHERE p.status = :proofStatus and p.talent.id = :talentId")
-    Page<ProofTalentDetailInfo> findAllTalentProofsByTalentIdAndStatus(Long currentTalentId, Long talentId, ProofStatus proofStatus, PageRequest of);
-
-    @Query("SELECT new com.uptalent.proof.model.response.ProofSponsorGeneralInfo(p.id, p.iconNumber, p.title, p.summary, p.kudos, p.published, " +
-            "coalesce(sum(kh.kudos), 0)) " +
-            "FROM proof p LEFT JOIN kudos_history kh ON kh.proof.id = p.id AND kh.sponsor.id = :sponsorId " +
-            "WHERE p.status = :proofStatus " +
-            "GROUP BY p.id having coalesce((SELECT count(sk) FROM p.skills sk WHERE sk.name IN :skills GROUP BY p.id), 0) = :skillsSize")
-    Page<ProofSponsorGeneralInfo> findAllWithKudosedBySponsorId(Long sponsorId,
-                                                                ProofStatus proofStatus,
-                                                                Pageable pageable, String [] skills, int skillsSize);
-
-    @Query("SELECT new com.uptalent.proof.model.response.ProofTalentGeneralInfo(p.id, p.iconNumber, p.title, p.summary, p.kudos, p.published, " +
-            "CASE WHEN (p.talent.id = :talentId)  THEN TRUE ELSE FALSE END) " +
-            "FROM proof p WHERE p.status = :proofStatus group by p.id having " +
+    @Query("SELECT p, CASE WHEN (p.talent.id = :talentId) THEN TRUE ELSE FALSE END " +
+            "FROM proof p " +
+            "WHERE p.status = :proofStatus AND " +
             "coalesce((SELECT count(sk) FROM p.skills sk WHERE sk.name IN :skills GROUP BY p.id), 0) = :skillsSize")
-    Page<ProofTalentGeneralInfo> findAllWithTalentProofByTalentId(Long talentId,
-                                                                  ProofStatus proofStatus,
-                                                                  Pageable pageable, String [] skills, int skillsSize);
-
+    Page<Object[]> findProofsAndIsMyProofByTalentId(Long talentId,
+                                                    ProofStatus proofStatus,
+                                                    Pageable pageable, String[] skills, int skillsSize);
 }
