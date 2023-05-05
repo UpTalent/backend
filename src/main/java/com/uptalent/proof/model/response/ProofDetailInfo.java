@@ -2,9 +2,11 @@ package com.uptalent.proof.model.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.skill.model.entity.Skill;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -22,4 +24,5 @@ public class ProofDetailInfo {
     private LocalDateTime published;
     private int kudos;
     private ProofStatus status;
+    private Set<Skill> skills;
 }
