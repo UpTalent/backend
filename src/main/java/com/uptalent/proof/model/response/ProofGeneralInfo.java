@@ -1,14 +1,11 @@
 package com.uptalent.proof.model.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.uptalent.skill.model.SkillInfo;
 import com.uptalent.skill.model.entity.Skill;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -24,4 +21,5 @@ public class ProofGeneralInfo {
     private int kudos;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime published;
+    private Set<Skill> skills;
 }
