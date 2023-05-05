@@ -105,9 +105,6 @@ public class TalentService {
                 "You are not allowed to edit this talent"
         );
 
-        if(updatedTalent.getSkills().isEmpty()){
-            throw new EmptySkillsException("Skills should not be empty");
-        }
 
         talentToUpdate.setLastname(updatedTalent.getLastname());
         talentToUpdate.setFirstname(updatedTalent.getFirstname());
