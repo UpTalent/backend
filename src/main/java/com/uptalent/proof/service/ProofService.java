@@ -67,11 +67,11 @@ public class ProofService {
     private int KUDOS_MAX_VALUE;
 
 
-    public PageWithMetadata<? extends ProofGeneralInfo> getProofs(int page, int size, String sort, String [] filter) {
+    public PageWithMetadata<? extends ProofGeneralInfo> getProofs(int page, int size, String sort, String [] skills) {
         Sort sortOrder = getSortByString(sort, PUBLISHED);
         PageRequest pageRequest = PageRequest.of(page, size, sortOrder);
         Long principalId = accessVerifyService.getPrincipalId();
-        Page<? extends ProofGeneralInfo> proofsPage = getPageProofsWithGeneralInfo(principalId, pageRequest, filter);
+        Page<? extends ProofGeneralInfo> proofsPage = getPageProofsWithGeneralInfo(principalId, pageRequest, skills);
 
         return new PageWithMetadata<>(proofsPage.getContent(), proofsPage.getTotalPages());
     }
@@ -337,16 +337,18 @@ public class ProofService {
     }
 
     private Page<? extends ProofGeneralInfo> getPageProofsWithGeneralInfo(Long principalId,
-                                                                          PageRequest pageRequest, String [] filter) {
+                                                                          PageRequest pageRequest, String [] skills) {
 
-        int size = (filter == null) ? 0 : filter.length;
+        int skillsSize = (skills == null) ? 0 : skills.length;
 
         if (accessVerifyService.hasRole(SPONSOR))
-            return proofRepository.findAllWithKudosedBySponsorId(principalId, PUBLISHED, pageRequest, filter, size);
+            return proofRepository.findAllWithKudosedBySponsorId(principalId, PUBLISHED, pageRequest,
+                    skills, skillsSize);
         else if (accessVerifyService.hasRole(TALENT))
-            return proofRepository.findAllWithTalentProofByTalentId(principalId, PUBLISHED, pageRequest, filter, size);
+            return proofRepository.findAllWithTalentProofByTalentId(principalId, PUBLISHED, pageRequest,
+                    skills, skillsSize);
         else
-            return proofRepository.findAllByStatus(ProofStatus.PUBLISHED, pageRequest, filter, size);
+            return proofRepository.findAllByStatus(ProofStatus.PUBLISHED, pageRequest, skills, skillsSize);
     }
 
     private void validateGetTalentProofs(Long talentId, ProofStatus proofStatus) {
