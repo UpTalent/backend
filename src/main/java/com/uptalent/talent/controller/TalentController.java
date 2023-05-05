@@ -60,8 +60,9 @@ public class TalentController {
             @Min(value = 0, message = "Page should be greater or equals 0")
             @RequestParam(defaultValue = "0") int page,
             @Positive(message = "Size should be positive")
-            @RequestParam(defaultValue = "9") int size){
-        return talentService.getAllTalents(page, size);
+            @RequestParam(defaultValue = "9") int size,
+            @RequestParam(required = false) String [] skills){
+        return talentService.getAllTalents(page, size, skills);
     }
 
     @SecurityRequirement(name = "bearerAuth")
