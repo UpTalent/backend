@@ -28,6 +28,7 @@ import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,8 +49,8 @@ public class TalentService {
     private final FileStoreService fileStoreService;
     private final SkillRepository skillRepository;
 
-    public PageWithMetadata<TalentGeneralInfo> getAllTalents(int page, int size){
-        Page<Talent> talentPage = talentRepository.findAllByOrderByIdDesc(PageRequest.of(page, size));
+    public PageWithMetadata<TalentGeneralInfo> getAllTalents(int page, int size, String [] skills){
+        Page<Talent> talentPage = retrieveAllTalents(page, size, skills);
         List<TalentGeneralInfo> talentGeneralInfos = talentMapper.toTalentGeneralInfos(talentPage.getContent());
         return new PageWithMetadata<>(talentGeneralInfos, talentPage.getTotalPages());
     }
@@ -162,5 +163,13 @@ public class TalentService {
         talent.getSkills().forEach(skill -> skill.getTalents().remove(talent));
         talent.getSkills().clear();
         talentRepository.save(talent);
+    }
+
+    private Page<Talent> retrieveAllTalents(int page, int size, String[] skills) {
+        if (skills != null)
+            return talentRepository.filterAllBySkills(skills, skills.length,
+                    PageRequest.of(page, size, Sort.by("id").descending()));
+        else
+            return talentRepository.findAllByOrderByIdDesc(PageRequest.of(page, size));
     }
 }
