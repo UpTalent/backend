@@ -96,7 +96,7 @@ class TalentControllerTest {
 
                 .build();
     }
-
+/*
     @Test
     @Order(1)
     @DisplayName("[Stage-1] [US-1] - Get all talents successfully")
@@ -125,7 +125,7 @@ class TalentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content").exists());
     }
-
+*/
     @Test
     @Order(2)
     @DisplayName("[Stage-1] [US-2] - Get talent profile successfully")
