@@ -8,9 +8,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,4 +44,16 @@ public interface SponsorRepository extends JpaRepository<Sponsor, Long> {
             "GROUP BY s.id, s.fullname, s.avatar " +
             "ORDER BY SUM(kh.kudos) DESC")
     Page<SponsorRating> getSponsorRatingByTalentId(Long talentId, Pageable pageable);
+
+    Optional<Sponsor> findSponsorByCredentials_DeleteToken(String token);
+
+    @Query(value = "SELECT s FROM sponsor s WHERE s.credentials.expirationDeleting < :now AND s.credentials.expirationDeleting IS NOT NULL ")
+    List<Sponsor> findSponsorsToPermanentDelete(LocalDateTime now);
+    @Modifying(clearAutomatically=true, flushAutomatically=true)
+    @Query(value = "UPDATE sponsor s " +
+            "SET s.avatar=NULL," +
+            "s.fullname='Deleted sponsor' " +
+            "WHERE s.id IN :collect")
+    void updateSponsorDeleteData(List<Long> collect);
+
 }
