@@ -7,6 +7,8 @@ import com.uptalent.talent.model.entity.Talent;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity(name = "credentials")
 @Table(name = "credentials")
 @Setter
@@ -39,4 +41,10 @@ public class Credentials {
 
     @OneToOne(mappedBy = "credentials")
     private Talent talent;
+
+    @Column(name = "delete_token")
+    private String deleteToken;
+
+    @Column(name = "expiration_deleting")
+    private LocalDateTime expirationDeleting;
 }

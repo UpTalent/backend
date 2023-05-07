@@ -37,9 +37,7 @@ public class Sponsor {
     @Column(name = "kudos")
     private int kudos;
 
-    @Column(name = "expiration_deleting")
-    private LocalDateTime expirationDeleting;
-
     @OneToMany(mappedBy = "sponsor")
     private Set<KudosHistory> kudosHistory;
+
 }
