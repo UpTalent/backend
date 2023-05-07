@@ -65,6 +65,11 @@ public class FileStoreService {
     @Transactional(readOnly = true)
     public void deleteImageByUserId(Long id) {
         Role role = accessVerifyService.getRole();
+        deleteImageByUserIdAndRole(id, role);
+    }
+
+    @Transactional(readOnly = true)
+    public void deleteImageByUserIdAndRole(Long id, Role role) {
         if (role.equals(TALENT)) {
             deleteImageIfPresent(talentRepository.findAvatarByTalentId(id));
             deleteImageIfPresent(talentRepository.findBannerByTalentId(id));
