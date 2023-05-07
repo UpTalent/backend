@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
@@ -33,6 +34,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/sponsors")
@@ -194,6 +196,40 @@ public class SponsorController {
     @GetMapping("/rating")
     public List<SponsorRating> getSponsorRating() {
         return sponsorService.getSponsorRating();
+    }
+
+    @Operation(
+            summary = "Sponsor delete account",
+            description = "As a sponsor, I want to delete account")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "403", description = "Do not have permission",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Sponsor with email was not found",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })
+    })
+    @PreAuthorize("hasAuthority('SPONSOR')")
+    @DeleteMapping("/{sponsorId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteSponsor(@PathVariable Long sponsorId, HttpServletRequest request) {
+        sponsorService.deleteSponsor(sponsorId, request);
+    }
+
+    @Operation(
+            summary = "Sponsor restore account",
+            description = "As a sponsor, I want to restore account in 7 days")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "404", description = "Sponsor with email was not found",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })
+    })
+    @PostMapping("/restore")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void restoreSponsor(@RequestParam String token) {
+        sponsorService.restoreAccount(token);
     }
 
 }

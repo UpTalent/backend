@@ -3,6 +3,7 @@ package com.uptalent.auth.service;
 import com.uptalent.auth.model.request.AuthLogin;
 import com.uptalent.auth.model.response.AuthResponse;
 import com.uptalent.credentials.model.entity.Credentials;
+import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -29,12 +30,11 @@ public class AuthService {
     public AuthResponse login(AuthLogin authLogin) {
         String email = authLogin.getEmail();
 
-        Credentials foundUser = credentialsRepository.findByEmailIgnoreCase(email)
+        Credentials foundUser = credentialsRepository.findActiveEmailIgnoreCase(email)
                 .orElseThrow(() -> new BadCredentialsException("Account with email [" + email + "] does not exist"));
 
         if (!passwordEncoder.matches(authLogin.getPassword(), foundUser.getPassword()))
             throw new BadCredentialsException("Invalid email or password");
-
         authenticateUser(authLogin);
 
         String jwtToken = generateJwtToken(foundUser);
