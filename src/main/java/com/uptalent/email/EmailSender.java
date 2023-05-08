@@ -23,7 +23,7 @@ public class EmailSender{
 
     public void sendMail(String email, String token, HttpServletRequest request){
         SimpleMailMessage msg = new SimpleMailMessage();
-        String url_address = request.getHeader(HttpHeaders.REFERER);
+        String url_address = request.getRequestURL().toString();
         msg.setFrom(EmailConstant.ADMIN_MAIL);
         msg.setTo("uptalentinfo@gmail.com");
         //msg.setTo(email);
