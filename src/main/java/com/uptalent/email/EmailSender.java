@@ -23,12 +23,14 @@ public class EmailSender{
 
     public void sendMail(String email, String token, HttpServletRequest request){
         SimpleMailMessage msg = new SimpleMailMessage();
+        log.info(request.getRequestURL().toString());
         String url_address = request.getRequestURL().toString();
         msg.setFrom(EmailConstant.ADMIN_MAIL);
         msg.setTo("uptalentinfo@gmail.com");
         //msg.setTo(email);
         msg.setSubject(EmailConstant.SUBJECT);
         msg.setText(EmailConstant.DELETE_MESSAGE + '\n' + url_address + "/restore?token=" + token);
+        log.info(msg.getText());
         try {
             sender.send(msg);
         }
