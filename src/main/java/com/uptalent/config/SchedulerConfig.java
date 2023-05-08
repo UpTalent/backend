@@ -22,17 +22,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SchedulerConfig {
     private final SponsorRepository sponsorRepository;
-    private final CredentialsRepository credentialsRepositor;
+    private final CredentialsRepository credentialsRepository;
     private final FileStoreService fileStoreService;
 
     @Async
-    @Scheduled(cron = "10 11 * * * ?")
+    @Scheduled(cron = "* */5 * * * ?")
+    //@Scheduled(cron = "* 10 11 * * ?")
     @Transactional
     public void deletePermanently(){
         List<Sponsor> sponsors = sponsorRepository.findSponsorsToPermanentDelete(LocalDateTime.now());
         sponsors.forEach(s -> fileStoreService.deleteImageByUserIdAndRole(s.getId(), s.getCredentials().getRole()));
         sponsorRepository.updateSponsorDeleteData(sponsors.stream().map(Sponsor::getId).collect(Collectors.toList()));
-        credentialsRepositor.updateCredentialsDeleteData(sponsors.stream().map(s -> s.getCredentials().getId()).collect(Collectors.toList()));
+        credentialsRepository.updateCredentialsDeleteData(sponsors.stream().map(s -> s.getCredentials().getId()).collect(Collectors.toList()));
     }
 }
 
