@@ -12,6 +12,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.UUID;
 
@@ -23,14 +24,12 @@ public class EmailSender{
 
     public void sendMail(String email, String token, HttpServletRequest request){
         SimpleMailMessage msg = new SimpleMailMessage();
-        log.info(request.getRequestURL().toString());
-        String url_address = request.getRequestURL().toString();
+        String referer_address = request.getHeader(HttpHeaders.REFERER);
+        String servlet_path = request.getServletPath();
         msg.setFrom(EmailConstant.ADMIN_MAIL);
         msg.setTo("uptalentinfo@gmail.com");
         //msg.setTo(email);
-        msg.setSubject(EmailConstant.SUBJECT);
-        msg.setText(EmailConstant.DELETE_MESSAGE + '\n' + url_address + "/restore?token=" + token);
-        log.info(msg.getText());
+        msg.setText(EmailConstant.DELETE_MESSAGE + '\n' + referer_address + servlet_path.substring(1) + "/restore?token=" + token);
         try {
             sender.send(msg);
         }
