@@ -173,7 +173,6 @@ public class SponsorService {
 
         Sponsor deletedSponsor = sponsorRepository.findById(sponsorId)
                 .orElseThrow(() -> new SponsorNotFoundException("Sponsor was not found"));
-
         if(isStatusEquals(deletedSponsor, AccountStatus.ACTIVE)) {
             String token = UUID.randomUUID().toString();
             deletedSponsor.getCredentials().setExpirationDeleting(LocalDateTime.now().plusDays(7));
