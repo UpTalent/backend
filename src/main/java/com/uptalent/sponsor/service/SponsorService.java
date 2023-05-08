@@ -175,7 +175,8 @@ public class SponsorService {
                 .orElseThrow(() -> new SponsorNotFoundException("Sponsor was not found"));
         if(isStatusEquals(deletedSponsor, AccountStatus.ACTIVE)) {
             String token = UUID.randomUUID().toString();
-            deletedSponsor.getCredentials().setExpirationDeleting(LocalDateTime.now().plusDays(7));
+            //deletedSponsor.getCredentials().setExpirationDeleting(LocalDateTime.now().plusDays(7));
+            deletedSponsor.getCredentials().setExpirationDeleting(LocalDateTime.now().plusMinutes(5));
             deletedSponsor.getCredentials().setStatus(AccountStatus.TEMPORARY_DELETED);
             deletedSponsor.getCredentials().setDeleteToken(token);
             sender.sendMail(deletedSponsor.getCredentials().getEmail(), token, request);
