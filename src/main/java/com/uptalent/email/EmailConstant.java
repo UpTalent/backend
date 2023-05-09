@@ -12,8 +12,6 @@ public class EmailConstant {
     public static String ADMIN_MAIL;
     public static final String SUBJECT = "Your UpTalent account was temporary deleted";
 
-    public static final String DELETE_MESSAGE = "Your account will be permanent deleted in 7 days, if you want to restore it follow this link: ";
-
     //public static final String FRONT_ADDRESS = "http://dev.uptalent.pepega.cloud/api/v1/sponsors/";
 
     @Value("${spring.mail.username}")
