@@ -179,7 +179,13 @@ public class SponsorService {
             deletedSponsor.getCredentials().setExpirationDeleting(LocalDateTime.now().plusMinutes(5));
             deletedSponsor.getCredentials().setStatus(AccountStatus.TEMPORARY_DELETED);
             deletedSponsor.getCredentials().setDeleteToken(token);
-            sender.sendMail(deletedSponsor.getCredentials().getEmail(), token, request);
+            sender.sendMail(
+                    deletedSponsor.getCredentials().getEmail(),
+                    token,
+                    request,
+                    deletedSponsor.getFullname(),
+                    deletedSponsor.getCredentials().getExpirationDeleting()
+            );
             sponsorRepository.save(deletedSponsor);
         }
         else {

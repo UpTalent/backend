@@ -1,6 +1,7 @@
 package com.uptalent.credentials.principal;
 
 import com.uptalent.credentials.model.entity.Credentials;
+import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,11 +13,13 @@ public class AccountPrincipal implements UserDetails {
     private final String email;
     private final String password;
     private final Role role;
+    private final AccountStatus status;
 
     public AccountPrincipal(Credentials credentials) {
         this.email = credentials.getEmail();
         this.password = credentials.getPassword();
         this.role = credentials.getRole();
+        this.status = credentials.getStatus();
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -40,7 +43,7 @@ public class AccountPrincipal implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return status.equals(AccountStatus.ACTIVE);
     }
 
     @Override
