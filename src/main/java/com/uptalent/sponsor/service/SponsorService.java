@@ -21,6 +21,7 @@ import com.uptalent.sponsor.model.response.SponsorProfile;
 import com.uptalent.sponsor.model.response.SponsorRating;
 import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.util.service.AccessVerifyService;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -164,7 +165,7 @@ public class SponsorService {
     }
 
     @Transactional
-    public void deleteSponsor(Long sponsorId, HttpServletRequest request) {
+    public void deleteSponsor(Long sponsorId, HttpServletRequest request) throws MessagingException {
         accessVerifyService.tryGetAccess(
                 sponsorId,
                 SPONSOR,

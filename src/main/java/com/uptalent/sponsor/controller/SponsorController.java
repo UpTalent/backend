@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -213,7 +214,7 @@ public class SponsorController {
     @PreAuthorize("hasAuthority('SPONSOR')")
     @DeleteMapping("/{sponsorId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteSponsor(@PathVariable Long sponsorId, HttpServletRequest request) {
+    public void deleteSponsor(@PathVariable Long sponsorId, HttpServletRequest request) throws MessagingException {
         sponsorService.deleteSponsor(sponsorId, request);
     }
 
