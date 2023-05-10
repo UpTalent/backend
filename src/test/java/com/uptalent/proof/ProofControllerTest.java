@@ -172,23 +172,6 @@ public class ProofControllerTest {
                 3, ProofStatus.PUBLISHED.name(), Set.of(skillInfo));
     }
 
-
-    /*
-    @Test
-    @DisplayName("[Stage 2] [US 1-2] - Get all proofs with wrong sort order should return exception")
-    public void getProofGeneralInfoWithWrongSortOrder() throws Exception {
-          String wrongSortName = "dgss";
-        given(proofService.getProofs(0, 9, wrongSortName)).willThrow(new WrongSortOrderException("Unexpected input of sort order"));
-            ResultActions response = mockMvc
-                .perform(MockMvcRequestBuilders.get("/api/v1/proofs")
-                        .param("sort", wrongSortName)
-                        .accept(MediaType.APPLICATION_JSON));
-          response
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
-    }
-*/
     @Test
     @DisplayName("[Stage 2] [US 3] - Create new proof successfully")
     void createProofSuccessfully() throws Exception {
@@ -617,42 +600,6 @@ public class ProofControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
-
-
-    /*
-    @Test
-    @DisplayName("[Stage 2] [US 1-2] - Get all proofs successfully")
-    public void getProofGeneralInfoSuccessfully() throws Exception {
-        List<ProofGeneralInfo> mappedProof = Arrays.asList(ProofGeneralInfo.builder()
-                        .id(proof.getId())
-                        .title(proof.getTitle())
-                        .summary(proof.getSummary())
-                        .published(proof.getPublished())
-                        .iconNumber(5)
-                        .build(),
-                ProofGeneralInfo.builder()
-                        .id(2L)
-                        .title("Proof title")
-                        .summary("Proof summary")
-                        .published(LocalDateTime.now())
-                        .iconNumber(2)
-                        .build()
-        );
-
-
-        doReturn(new PageWithMetadata<>(mappedProof, 1))
-                .when(proofService).getProofs(0, 9, "desc");
-
-        ResultActions response = mockMvc
-                .perform(MockMvcRequestBuilders.get("/api/v1/proofs")
-                        .accept(MediaType.APPLICATION_JSON));
-
-        response
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.content").exists());
-    }
-*/
 
     @Test
     @DisplayName("[Stage-2] [US-6] - Delete proof successfully")

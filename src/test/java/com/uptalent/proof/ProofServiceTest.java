@@ -189,41 +189,6 @@ public class ProofServiceTest {
                 3, ProofStatus.PUBLISHED.name(), Set.of(skillInfo));
     }
 
-/*
-    @Test
-    @DisplayName("[Stage 2] [US 1-2] - Get all proofs successfully in service")
-    public void getProofGeneralInfoSuccessfully() {
-
-        List<ProofGeneralInfo> proofGeneralInfos = List.of(
-                ProofGeneralInfo.builder()
-                        .id(proof.getId())
-                        .title(proof.getTitle())
-                        .iconNumber(proof.getIconNumber())
-                        .published(proof.getPublished())
-                        .summary(proof.getSummary())
-                        .build(),
-                ProofGeneralInfo.builder()
-                        .id(publishedProof.getId())
-                        .title(publishedProof.getTitle())
-                        .summary(publishedProof.getSummary())
-                        .iconNumber(publishedProof.getIconNumber())
-                        .published(publishedProof.getPublished())
-                        .build()
-        );
-
-        Page<ProofGeneralInfo> proofsPage = new PageImpl<>(proofGeneralInfos);
-
-        when(proofRepository.findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(0, 9, Sort.by("published").descending())))
-                .thenReturn(proofsPage);
-
-        PageWithMetadata<? extends ProofGeneralInfo> result = proofService.getProofs(0, 9, "desc");
-
-        verify(proofRepository, times(1)).findAllByStatus(ProofStatus.PUBLISHED, PageRequest.of(0, 9, Sort.by("published").descending()));
-
-        assertThat(result.getContent()).isEqualTo(proofGeneralInfos);
-        assertThat(result.getContent().get(0).getPublished()).isEqualTo(proofGeneralInfos.get(0).getPublished());
-    }
-*/
     @Test
     @DisplayName("[Stage-2] [US-4] - edit not exist proof")
     void updateNotExistsProof() {
