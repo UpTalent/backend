@@ -3,41 +3,32 @@ package com.uptalent.util;
 import com.uptalent.filestore.exception.EmptyFileException;
 import com.uptalent.filestore.exception.IncorrectFileFormatException;
 import org.apache.commons.lang3.StringUtils;
+import org.imgscalr.Scalr;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Iterator;
 
 import static org.apache.http.entity.ContentType.*;
 
 public class ImageUtils {
+    private static final double IMAGE_RESIZE_RATIO = 1.2;
 
     public static InputStream compressImage(MultipartFile image) throws IOException {
         BufferedImage originalImage = ImageIO.read(image.getInputStream());
-        ByteArrayOutputStream compressedImage = new ByteArrayOutputStream();
-        ImageOutputStream outputStream = ImageIO.createImageOutputStream(compressedImage);
-
-        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(getFileExtension(image));
-        ImageWriter writer = writers.next();
-
-        ImageWriteParam writeParam = writer.getDefaultWriteParam();
-        writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        writeParam.setCompressionQuality(0.5f);
-
-        writer.setOutput(outputStream);
-        writer.write(null, new IIOImage(originalImage, null, null), writeParam);
-
-        return new ByteArrayInputStream(compressedImage.toByteArray());
+        BufferedImage compressedImage = Scalr.resize(
+                originalImage,
+                Scalr.Method.BALANCED,
+                Scalr.Mode.AUTOMATIC,
+                (int) (originalImage.getWidth()/IMAGE_RESIZE_RATIO),
+                (int) (originalImage.getHeight()/IMAGE_RESIZE_RATIO));
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        ImageIO.write(compressedImage, image.getContentType().split("/")[1], os);
+        return new ByteArrayInputStream(os.toByteArray());
     }
 
 
@@ -47,16 +38,30 @@ public class ImageUtils {
         return StringUtils.substring(originalFilename, dotIndex + 1);
     }
 
-    public static void isImage(MultipartFile file) {
-        if(!Arrays.asList(
-                IMAGE_JPEG.getMimeType(),
-                IMAGE_PNG.getMimeType(),
-                IMAGE_BMP.getMimeType(),
-                IMAGE_WEBP.getMimeType(),
-                IMAGE_GIF.getMimeType()
-                ).contains(file.getContentType())){
+    public static void validateCorrectFileFormat(MultipartFile file) {
+        if(!isPng(file) && !isJpeg(file) && !isGif(file) && !isBmp(file) && !isWebp(file)){
             throw new IncorrectFileFormatException("File format must be JPEG, PNG, BMP, WEBP or GIF");
         }
+    }
+
+    public static boolean isPng(MultipartFile file) {
+        return file.getContentType().equals(IMAGE_PNG.getMimeType());
+    }
+
+    public static boolean isJpeg(MultipartFile file) {
+        return file.getContentType().equals(IMAGE_JPEG.getMimeType());
+    }
+
+    public static boolean isGif(MultipartFile file) {
+        return file.getContentType().equals(IMAGE_GIF.getMimeType());
+    }
+
+    public static boolean isBmp(MultipartFile file) {
+        return file.getContentType().equals(IMAGE_BMP.getMimeType());
+    }
+
+    public static boolean isWebp(MultipartFile file) {
+        return file.getContentType().equals(IMAGE_WEBP.getMimeType());
     }
 
     public static void isFileEmpty(MultipartFile file) {
