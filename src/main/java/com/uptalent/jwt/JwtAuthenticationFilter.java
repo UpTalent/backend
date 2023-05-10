@@ -1,5 +1,7 @@
 package com.uptalent.jwt;
 
+import com.uptalent.credentials.model.entity.Credentials;
+import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -14,7 +16,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Optional;
 
+import static com.uptalent.credentials.model.enums.AccountStatus.ACTIVE;
 import static com.uptalent.jwt.JwtConstant.*;
 
 @Component
@@ -41,7 +45,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 Long id = jwtTokenProvider.getId(jwtToken);
-                if (credentialsRepository.existsByEmailIgnoreCase(email)) {
+                Optional<Credentials> credentials = credentialsRepository.findByEmailIgnoreCase((email));
+
+                if (credentials.isPresent() && credentials.get().getStatus().equals(ACTIVE)) {
                     GrantedAuthority authority = jwtTokenProvider.getAuthority(jwtToken);
                     Authentication authentication = jwtTokenProvider.getAuthentication(id, authority, request);
                     SecurityContextHolder.getContext().setAuthentication(authentication);

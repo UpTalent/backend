@@ -27,18 +27,18 @@ public class EmailSender{
     public void sendMail(String email, String token, HttpServletRequest request, String fullname, LocalDateTime localDateTime){
         SimpleMailMessage msg = new SimpleMailMessage();
         String refererAddress = request.getHeader(HttpHeaders.REFERER);
-        String servletPath = request.getServletPath();
+        // String servletPath = request.getServletPath();
         msg.setFrom(EmailConstant.ADMIN_MAIL);
         //msg.setTo("uptalentinfo@gmail.com");
         msg.setSubject(EmailConstant.SUBJECT);
-        String url = refererAddress + servletPath.substring(1) + "restore?token=" + token;
+        String url = refererAddress + "restore?token=" + token;
         msg.setTo(email);
         msg.setText("""
-                       Dear %s,
+                       Dear %s, \n
                        We are sorry to hear that you have deleted your account,\040
                        so to restore it no later than %s, please follow the link\040
                        %s\040
-                       and click on the restore account button.\040
+                       and click on the restore account button.\040 \n
                        Best regards,
                        UPTALENT
                 """.formatted(fullname, localDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE), url));
