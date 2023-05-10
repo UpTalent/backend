@@ -54,12 +54,18 @@ public class FileStoreService {
         String filename = getFilename(imageType, image);
         String url = generateUrl(id, filename, role);
 
-        try (InputStream inputStream = compressImage(image)) {
+        try {
+            InputStream inputStream;
+            if (isJpeg(image) || isPng(image))
+                inputStream = compressImage(image);
+            else
+                inputStream = image.getInputStream();
             saveImage(key, filename, inputStream);
             updateEntity(id, role, url, operation);
         } catch (IOException e) {
             throw new FailedToUploadFileException(e.getMessage());
         }
+
     }
 
     @Transactional(readOnly = true)
@@ -102,7 +108,7 @@ public class FileStoreService {
 
     private void validateFile(MultipartFile image) {
         isFileEmpty(image);
-        isImage(image);
+        validateCorrectFileFormat(image);
     }
 
     private String getImageType(FileStoreOperation operation) {
