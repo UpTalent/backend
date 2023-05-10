@@ -95,48 +95,6 @@ class TalentServiceTest {
 
                 .build();
     }
-/*
-    @Test
-    @Order(1)
-    @DisplayName("[Stage-1] [US-1] - Get all talents successfully")
-    void getAllTalentsSuccessfully() {
-        List<Talent> talents = Arrays.asList(
-                talent,
-                talent
-        );
-
-        Page<Talent> talentsPage = new PageImpl<>(talents);
-
-        List<TalentGeneralInfo> talentGeneralInfos = Arrays.asList(
-                TalentGeneralInfo.builder()
-                        .id(talent.getId())
-                        .lastname(talent.getLastname())
-                        .firstname(talent.getFirstname())
-
-                        .build(),
-                TalentGeneralInfo.builder()
-                        .id(2L)
-                        .lastname("Himonov")
-                        .firstname("Mark")
-
-                        .build()
-        );
-
-        when(talentMapper.toTalentGeneralInfos(anyList())).thenReturn(talentGeneralInfos);
-
-        when(talentRepository.findAllByOrderByIdDesc(any(PageRequest.class))).thenReturn(talentsPage);
-
-        PageWithMetadata<TalentGeneralInfo> result = talentService.getAllTalents(0, 9);
-
-        verify(talentRepository, times(1)).findAllByOrderByIdDesc(PageRequest.of(0, 9));
-
-        verify(talentMapper, times(1)).toTalentGeneralInfos(talents);
-
-        assertThat(result.getContent()).isEqualTo(talentGeneralInfos);
-        assertThat(result.getTotalPages()).isEqualTo(1);
-        assertThat(result.getContent().get(0).getId()).isEqualTo(talentGeneralInfos.get(0).getId());
-    }
-*/
     @Test
     @Order(2)
     @DisplayName("[Stage-1] [US-2] - Get talent profile successfully")

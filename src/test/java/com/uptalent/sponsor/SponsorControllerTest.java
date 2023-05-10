@@ -166,36 +166,6 @@ public class SponsorControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.email").exists());
     }
 
-    /*
-    @Test
-    @DisplayName("[Stage-3.2] [US-2] - Get list of kudosed proof successfully")
-    public void getListKudosedProofSuccessfully() throws Exception {
-        List<KudosedProofDetail> kudosedProofDetails =
-                List.of(new KudosedProofDetail(
-                        new KudosedProofInfo(proof.getId(), proof.getIconNumber(), proof.getTitle(), 50),
-                        List.of(new KudosedProofHistory(LocalDateTime.now(), 50))));
-
-      // when(sponsorService.getListKudosedProofDetailsBySponsorId(anyLong()))
-      //         .thenReturn(kudosedProofDetails);
-
-        ResultActions response = mockMvc
-                .perform(MockMvcRequestBuilders.get("/api/v1/sponsors/{sponsorId}/kudos",
-                                sponsor.getId())
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON));
-
-        response
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].proof_info").isNotEmpty())
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].proof_info.id").value(proof.getId()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].histories[0].kudos").value(50));
-
-
-    }
-
-     */
-
     @Test
     @DisplayName("[Stage-3.2] [US-1] - Edit own profile successfully")
     void editOwnProfileSuccessfully() throws Exception {

@@ -215,40 +215,4 @@ public class SponsorServiceTest {
                 .willReturn(Optional.of(sponsor));
 
     }
-    /*
-    @Test
-    @DisplayName("[Stage-3.2] [US-2] - Get list of kudosed proof successfully")
-    public void getListKudosedProofSuccessfully() {
-        KudosedProof kudosedProof = new KudosedProof(proof.getId(), proof.getIconNumber(),
-                proof.getTitle(), LocalDateTime.now(), 50);
-        List<KudosedProof> kudosedProofs = List.of(
-                kudosedProof,
-                kudosedProof,
-                kudosedProof,
-                kudosedProof);
-
-        List<KudosedProofHistory> kudosedProofHistories = new ArrayList<>();
-        int testSum = kudosedProofs.stream().mapToInt(KudosedProof::getTotalSumKudos).sum();
-
-        kudosedProofs.forEach(k ->
-                kudosedProofHistories.add(new KudosedProofHistory(k.getSent(), k.getTotalSumKudos())));
-
-
-        given(sponsorRepository.findAllKudosedProofBySponsorId(anyLong())).willReturn(kudosedProofs);
-
-        given(kudosHistoryMapper.toKudosedProofInfo(kudosedProof)).willReturn(new KudosedProofInfo(proof.getId(),
-                proof.getIconNumber(),
-                proof.getTitle(), testSum));
-
-        given(kudosHistoryMapper.toKudosedProofHistories(kudosedProofs)).willReturn(kudosedProofHistories);
-
-       // List<KudosedProofDetail> kudosedProofDetails = sponsorService
-       //         .getListKudosedProofDetailsBySponsorId(sponsor.getId());
-
-
-
-       // assertEquals(1, kudosedProofDetails.size());
-       // assertEquals(testSum, kudosedProofDetails.get(0).getProofInfo().getTotalSumKudos());
-    }
-*/
 }

@@ -96,36 +96,7 @@ class TalentControllerTest {
 
                 .build();
     }
-/*
-    @Test
-    @Order(1)
-    @DisplayName("[Stage-1] [US-1] - Get all talents successfully")
-    void getAllTalentsSuccessfully() throws Exception {
-        List<TalentGeneralInfo> talentGeneralInfos = Arrays.asList(
-                TalentGeneralInfo.builder()
-                        .id(talent.getId())
-                        .lastname(talent.getLastname())
-                        .firstname(talent.getFirstname())
-                        .build(),
-                TalentGeneralInfo.builder()
-                        .id(2L)
-                        .lastname("Himonov")
-                        .firstname("Mark").build()
-        );
 
-        given(talentService.getAllTalents(0, 9))
-                .willReturn(new PageWithMetadata<>(talentGeneralInfos, 1));
-
-        ResultActions response = mockMvc
-                .perform(MockMvcRequestBuilders.get("/api/v1/talents")
-                        .accept(MediaType.APPLICATION_JSON));
-
-        response
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.content").exists());
-    }
-*/
     @Test
     @Order(2)
     @DisplayName("[Stage-1] [US-2] - Get talent profile successfully")
