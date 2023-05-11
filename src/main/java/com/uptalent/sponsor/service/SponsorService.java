@@ -209,7 +209,7 @@ public class SponsorService {
     public void restoreAccount(String token) {
         Sponsor sponsor = sponsorRepository
                 .findSponsorByCredentials_DeleteToken(token)
-                .orElseThrow(() -> new SponsorNotFoundException("Sponsor was not found"));
+                .orElseThrow(() -> new SponsorNotFoundException("Token is invalid"));
         changeStatusToActive(sponsor);
     }
 }
