@@ -30,6 +30,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -109,8 +111,12 @@ public class TalentService {
         clearSkillsFromTalent(talentToUpdate);
         updateSkillsIfExists(updatedTalent.getSkills(),talentToUpdate);
 
-        if(updatedTalent.getBirthday() != null) {
-            talentToUpdate.setBirthday(updatedTalent.getBirthday());
+        LocalDate birthday = updatedTalent.getBirthday();
+        if(birthday != null &&
+                birthday.isAfter(LocalDate.now().minusYears(100)) &&
+                birthday.isBefore(LocalDate.now().minusYears(13))) {
+
+            talentToUpdate.setBirthday(birthday);
         }
         if(updatedTalent.getLocation() != null) {
             talentToUpdate.setLocation(updatedTalent.getLocation());
