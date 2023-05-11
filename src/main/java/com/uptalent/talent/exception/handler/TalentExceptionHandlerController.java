@@ -3,6 +3,7 @@ package com.uptalent.talent.exception.handler;
 import com.uptalent.filestore.exception.FileStoreException;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.talent.exception.EmptySkillsException;
+import com.uptalent.talent.exception.TalentIllegalEditingException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.util.exception.handler.ExceptionHandlerController;
 import org.springframework.core.Ordered;
@@ -36,6 +37,12 @@ public class TalentExceptionHandlerController extends ExceptionHandlerController
             MaxUploadSizeExceededException.class,
             EmptySkillsException.class})
     public HttpResponse handlerFileStoreExceptions(RuntimeException e) {
+        return new HttpResponse(e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({TalentIllegalEditingException.class})
+    public HttpResponse handlerTalentIllegalEditingException(TalentIllegalEditingException e) {
         return new HttpResponse(e.getMessage());
     }
 
