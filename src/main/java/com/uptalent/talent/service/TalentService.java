@@ -12,8 +12,10 @@ import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.skill.model.SkillInfo;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.skill.repository.SkillRepository;
+import com.uptalent.talent.exception.TalentIllegalEditingException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
+import com.uptalent.talent.model.property.TalentAgeRange;
 import com.uptalent.talent.model.request.TalentEdit;
 import com.uptalent.talent.model.request.TalentRegistration;
 import com.uptalent.talent.model.response.TalentGeneralInfo;
@@ -23,6 +25,7 @@ import com.uptalent.auth.model.response.AuthResponse;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -31,7 +34,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,6 +51,7 @@ public class TalentService {
     private final CredentialsRepository credentialsRepository;
     private final FileStoreService fileStoreService;
     private final SkillRepository skillRepository;
+    private final TalentAgeRange talentAgeRange;
 
     public PageWithMetadata<TalentGeneralInfo> getAllTalents(int page, int size, String [] skills){
         Page<Talent> talentPage = retrieveAllTalents(page, size, skills);
@@ -112,11 +117,14 @@ public class TalentService {
         updateSkillsIfExists(updatedTalent.getSkills(),talentToUpdate);
 
         LocalDate birthday = updatedTalent.getBirthday();
-        if(birthday != null &&
-                birthday.isAfter(LocalDate.now().minusYears(100)) &&
-                birthday.isBefore(LocalDate.now().minusYears(13))) {
 
-            talentToUpdate.setBirthday(birthday);
+        if(birthday != null) {
+            if (birthday.isBefore(LocalDate.now().minusYears(talentAgeRange.getMaxAge())) &&
+                    birthday.isAfter(LocalDate.now().minusYears(talentAgeRange.getMinAge()))) {
+                throw new TalentIllegalEditingException(talentAgeRange.getErrorMessage());
+            }
+            talentToUpdate.setBirthday(updatedTalent.getBirthday());
+
         }
         if(updatedTalent.getLocation() != null) {
             talentToUpdate.setLocation(updatedTalent.getLocation());
