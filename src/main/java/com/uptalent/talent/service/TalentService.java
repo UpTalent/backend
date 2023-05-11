@@ -34,6 +34,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -115,12 +117,14 @@ public class TalentService {
         updateSkillsIfExists(updatedTalent.getSkills(),talentToUpdate);
 
         LocalDate birthday = updatedTalent.getBirthday();
+
         if(birthday != null) {
             if (birthday.isBefore(LocalDate.now().minusYears(talentAgeRange.getMaxAge())) &&
                     birthday.isAfter(LocalDate.now().minusYears(talentAgeRange.getMinAge()))) {
                 throw new TalentIllegalEditingException(talentAgeRange.getErrorMessage());
             }
             talentToUpdate.setBirthday(updatedTalent.getBirthday());
+
         }
         if(updatedTalent.getLocation() != null) {
             talentToUpdate.setLocation(updatedTalent.getLocation());
