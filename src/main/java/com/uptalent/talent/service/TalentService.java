@@ -119,7 +119,7 @@ public class TalentService {
         LocalDate birthday = updatedTalent.getBirthday();
 
         if(birthday != null) {
-            if (birthday.isBefore(LocalDate.now().minusYears(talentAgeRange.getMaxAge())) &&
+            if (birthday.isBefore(LocalDate.now().minusYears(talentAgeRange.getMaxAge())) ||
                     birthday.isAfter(LocalDate.now().minusYears(talentAgeRange.getMinAge()))) {
                 throw new TalentIllegalEditingException(talentAgeRange.getErrorMessage());
             }
