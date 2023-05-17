@@ -1,6 +1,6 @@
 package com.uptalent.talent.model.request;
 
-import com.uptalent.skill.model.SkillInfo;
+import com.uptalent.skill.model.SkillTalentInfo;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -25,7 +25,7 @@ public class TalentEdit {
     private LocalDate birthday;
 
 
-    private Set<SkillInfo> skills;
+    private Set<SkillTalentInfo> skills;
 
     @Size(max = 255, message = "Location should be less than 255 characters")
     private String location;

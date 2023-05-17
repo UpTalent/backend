@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 public interface ProofRepository extends JpaRepository<Proof, Long> {
     @Query("SELECT p " +
             "FROM proof p WHERE p.status = :proofStatus AND " +
-            "coalesce((SELECT count(sk) FROM p.skills sk WHERE sk.name IN :skills GROUP BY p.id), 0) = :skillsSize")
+            "coalesce((SELECT count(sk) FROM p.skillKudos sk WHERE sk.skill.name IN :skills GROUP BY p.id), 0) = :skillsSize")
     Page<Proof> findAllByStatus(ProofStatus proofStatus,
                                 Pageable pageable,
                                 String [] skills, int skillsSize);
@@ -34,7 +34,7 @@ public interface ProofRepository extends JpaRepository<Proof, Long> {
             "FROM proof p LEFT JOIN kudos_history kh ON kh.proof.id = p.id AND kh.sponsor.id = :sponsorId " +
             "WHERE p.status = :proofStatus " +
             "GROUP BY p.id " +
-            "HAVING coalesce((SELECT count(sk) FROM p.skills sk WHERE sk.name IN :skills GROUP BY p.id), 0) = :skillsSize")
+            "HAVING coalesce((SELECT count(sk) FROM p.skillKudos sk WHERE sk.skill.name IN :skills GROUP BY p.id), 0) = :skillsSize")
     Page<Object[]> findProofsAndKudosSumBySponsorId(Long sponsorId,
                                                     ProofStatus proofStatus,
                                                     Pageable pageable, String [] skills, int skillsSize);
@@ -42,7 +42,7 @@ public interface ProofRepository extends JpaRepository<Proof, Long> {
     @Query("SELECT p, CASE WHEN (p.talent.id = :talentId) THEN TRUE ELSE FALSE END " +
             "FROM proof p " +
             "WHERE p.status = :proofStatus AND " +
-            "coalesce((SELECT count(sk) FROM p.skills sk WHERE sk.name IN :skills GROUP BY p.id), 0) = :skillsSize")
+            "coalesce((SELECT count(sk) FROM p.skillKudos sk WHERE sk.skill.name IN :skills GROUP BY p.id), 0) = :skillsSize")
     Page<Object[]> findProofsAndIsMyProofByTalentId(Long talentId,
                                                     ProofStatus proofStatus,
                                                     Pageable pageable, String[] skills, int skillsSize);

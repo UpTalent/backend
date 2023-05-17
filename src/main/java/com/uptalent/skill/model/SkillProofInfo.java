@@ -9,7 +9,9 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class SkillInfo {
+public class SkillProofInfo {
     private Long id;
     private String name;
+    private Long kudos;
+
 }

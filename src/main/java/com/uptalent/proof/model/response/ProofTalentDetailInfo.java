@@ -1,7 +1,7 @@
 package com.uptalent.proof.model.response;
 
 import com.uptalent.proof.model.enums.ProofStatus;
-import com.uptalent.skill.model.entity.Skill;
+import com.uptalent.skill.model.SkillProofInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -15,7 +15,7 @@ public class ProofTalentDetailInfo extends ProofDetailInfo {
 
     public ProofTalentDetailInfo(Long id, Integer iconNumber, String title, String summary, String content,
                                  LocalDateTime published, int kudos, ProofStatus status, boolean myProof,
-                                 Set<Skill> skills) {
+                                 Set<SkillProofInfo> skills) {
         super(id, iconNumber, title, summary, content, published, kudos, status, skills);
         this.myProof = myProof;
     }

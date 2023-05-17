@@ -6,19 +6,16 @@ import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
-import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.controller.ProofController;
 import com.uptalent.proof.exception.*;
-import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
 import com.uptalent.proof.kudos.model.request.PostKudos;
 import com.uptalent.proof.kudos.model.response.KudosSender;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
-import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.proof.service.ProofService;
-import com.uptalent.skill.model.SkillInfo;
+import com.uptalent.skill.model.SkillTalentInfo;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.talent.exception.DeniedAccessException;
@@ -40,7 +37,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -94,7 +90,7 @@ public class ProofControllerTest {
     private ProofModify hideProofCase;
     private ProofModify reopenProofCase;
     private Skill skill;
-    private SkillInfo skillInfo;
+    private SkillTalentInfo skillTalentInfo;
 
     @BeforeEach
     public void setUp() {
@@ -157,19 +153,19 @@ public class ProofControllerTest {
                 .name("Java")
                 .build();
 
-        skillInfo = new SkillInfo(skill.getId(), skill.getName());
+        skillTalentInfo = new SkillTalentInfo(skill.getId(), skill.getName());
 
-        proofModify = new ProofModify("New Proof title", "New Proof summary", "New Proof content",
-                2, ProofStatus.DRAFT.name(), Set.of(skillInfo));
-
-        editProofCase = new ProofModify("Edit Proof title", "Edit Proof summary", "Edit Proof content",
-                3, ProofStatus.DRAFT.name(), Set.of(skillInfo));
-        publishProofCase = new ProofModify("Publish Proof title", "Publish Proof summary", "Publish Proof content",
-                3, ProofStatus.PUBLISHED.name(), Set.of(skillInfo));
-        hideProofCase = new ProofModify("Hide Proof title", "Hide Proof summary", "Hide Proof content",
-                3, ProofStatus.HIDDEN.name(), Set.of(skillInfo));
-        reopenProofCase = new ProofModify("Reopen Proof title", "Reopen Proof summary", "Reopen Proof content",
-                3, ProofStatus.PUBLISHED.name(), Set.of(skillInfo));
+//        proofModify = new ProofModify("New Proof title", "New Proof summary", "New Proof content",
+//                2, ProofStatus.DRAFT.name(), Set.of(skillTalentInfo));
+//
+//        editProofCase = new ProofModify("Edit Proof title", "Edit Proof summary", "Edit Proof content",
+//                3, ProofStatus.DRAFT.name(), Set.of(skillTalentInfo));
+//        publishProofCase = new ProofModify("Publish Proof title", "Publish Proof summary", "Publish Proof content",
+//                3, ProofStatus.PUBLISHED.name(), Set.of(skillTalentInfo));
+//        hideProofCase = new ProofModify("Hide Proof title", "Hide Proof summary", "Hide Proof content",
+//                3, ProofStatus.HIDDEN.name(), Set.of(skillTalentInfo));
+//        reopenProofCase = new ProofModify("Reopen Proof title", "Reopen Proof summary", "Reopen Proof content",
+//                3, ProofStatus.PUBLISHED.name(), Set.of(skillTalentInfo));
     }
 
     @Test

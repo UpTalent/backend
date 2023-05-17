@@ -1,6 +1,6 @@
 package com.uptalent.talent.model.response;
 
-import com.uptalent.skill.model.SkillInfo;
+import com.uptalent.skill.model.SkillTalentInfo;
 import lombok.*;
 
 import java.util.Set;
@@ -16,5 +16,5 @@ public class TalentGeneralInfo {
     private String firstname;
     private String avatar;
     private String banner;
-    private Set<SkillInfo> skills;
+    private Set<SkillTalentInfo> skills;
 }

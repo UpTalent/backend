@@ -101,9 +101,9 @@ public class FakeDataLoader implements CommandLineRunner {
                 .status(ProofStatus.PUBLISHED)
                 .published(faker.date().past(5, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
                 .talent(talent)
-                .skills(new HashSet<>(List.of(skill)))
+                .skillKudos(null)
                 .build();
-        skill.setProofs(new HashSet<>(List.of(proof)));
+        skill.setSkillKudos(null);
         proofRepository.save(proof);
         skillRepository.save(skill);
         return proof;

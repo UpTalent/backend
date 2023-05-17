@@ -4,18 +4,32 @@ import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.*;
+import com.uptalent.skill.model.SkillProofInfo;
 import org.mapstruct.Mapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface ProofMapper {
-    ProofDetailInfo toProofDetailInfo(Proof proof);
+    default ProofDetailInfo toProofDetailInfo(Proof proof) {
+        return new ProofDetailInfo(
+                proof.getId(),
+                proof.getIconNumber(),
+                proof.getTitle(),
+                proof.getSummary(),
+                proof.getContent(),
+                proof.getPublished(),
+                proof.getKudos(),
+                proof.getStatus(),
+                proof.getSkillKudos().stream()
+                        .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
+                        .collect(Collectors.toSet())
+        );
+    }
     default Proof toProof(ProofModify proofModify) {
         return Proof.builder()
                 .iconNumber(proofModify.getIconNumber())
@@ -23,7 +37,6 @@ public interface ProofMapper {
                 .summary(proofModify.getSummary())
                 .content(proofModify.getContent())
                 .status(ProofStatus.valueOf(proofModify.getStatus()))
-                .skills(new HashSet<>())
                 .build();
     }
 
@@ -31,7 +44,19 @@ public interface ProofMapper {
         return proofs.map(this::toProofGeneralInfo);
     }
 
-    ProofGeneralInfo toProofGeneralInfo(Proof proof);
+    default ProofGeneralInfo toProofGeneralInfo(Proof proof) {
+        return new ProofGeneralInfo(
+                proof.getId(),
+                proof.getIconNumber(),
+                proof.getTitle(),
+                proof.getSummary(),
+                proof.getKudos(),
+                proof.getPublished(),
+                proof.getSkillKudos().stream()
+                        .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
+                        .collect(Collectors.toSet())
+        );
+    }
 
     default ProofTalentGeneralInfo toProofTalentGeneralInfo(Proof proof, Boolean isMyProof) {
         return new ProofTalentGeneralInfo(
@@ -42,7 +67,9 @@ public interface ProofMapper {
                 proof.getKudos(),
                 proof.getPublished(),
                 isMyProof,
-                proof.getSkills()
+                proof.getSkillKudos().stream()
+                        .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
+                        .collect(Collectors.toSet())
         );
     }
 
@@ -55,7 +82,9 @@ public interface ProofMapper {
                 proof.getKudos(),
                 proof.getPublished(),
                 kudosSumFromMe,
-                proof.getSkills()
+                proof.getSkillKudos().stream()
+                        .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
+                        .collect(Collectors.toSet())
         );
     }
 
@@ -70,7 +99,9 @@ public interface ProofMapper {
                 proof.getKudos(),
                 proof.getStatus(),
                 kudosSumFromMe,
-                proof.getSkills()
+                proof.getSkillKudos().stream()
+                        .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
+                        .collect(Collectors.toSet())
         );
     }
 
@@ -85,7 +116,9 @@ public interface ProofMapper {
                 proof.getKudos(),
                 proof.getStatus(),
                 isMyProof,
-                proof.getSkills()
+                proof.getSkillKudos().stream()
+                        .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
+                        .collect(Collectors.toSet())
         );
     }
 
@@ -97,7 +130,7 @@ public interface ProofMapper {
                     Boolean isMyProof = (Boolean) tuple[1];
                     return toProofTalentGeneralInfo(proof, isMyProof);
                 })
-                .collect(Collectors.toList());;
+                .collect(Collectors.toList());
         return new PageImpl<>(proofTalentGeneralInfos, pageRequest, proofsAndIsMyProofList.getTotalElements());
     }
 

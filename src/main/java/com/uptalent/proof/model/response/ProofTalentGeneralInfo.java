@@ -1,6 +1,6 @@
 package com.uptalent.proof.model.response;
 
-import com.uptalent.skill.model.entity.Skill;
+import com.uptalent.skill.model.SkillProofInfo;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -14,7 +14,7 @@ public class ProofTalentGeneralInfo extends ProofGeneralInfo {
 
     public ProofTalentGeneralInfo(Long id, Integer iconNumber, String title,
                                   String summary, int kudos, LocalDateTime published, boolean myProof,
-                                  Set<Skill> skills) {
+                                  Set<SkillProofInfo> skills) {
         super(id, iconNumber, title, summary, kudos, published, skills);
         this.myProof = myProof;
     }
