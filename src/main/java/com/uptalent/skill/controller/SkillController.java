@@ -1,6 +1,6 @@
 package com.uptalent.skill.controller;
 
-import com.uptalent.skill.model.SkillInfo;
+import com.uptalent.skill.model.SkillTalentInfo;
 import com.uptalent.skill.service.SkillService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,7 @@ public class SkillController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<SkillInfo> getAllSkills() {
+    public List<SkillTalentInfo> getAllSkills() {
         return skillService.getAllSkills();
     }
 }
