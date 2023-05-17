@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class SkillInfo {
+public class SkillTalentInfo {
     private Long id;
     private String name;
 }
