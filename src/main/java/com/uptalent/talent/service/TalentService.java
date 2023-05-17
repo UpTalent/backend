@@ -9,7 +9,7 @@ import com.uptalent.filestore.FileStoreService;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
-import com.uptalent.skill.model.SkillInfo;
+import com.uptalent.skill.model.SkillTalentInfo;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.skill.repository.SkillRepository;
 import com.uptalent.talent.exception.TalentIllegalEditingException;
@@ -25,7 +25,6 @@ import com.uptalent.auth.model.response.AuthResponse;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -154,20 +153,20 @@ public class TalentService {
         return talentRepository.findById(id)
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
     }
-    private Set<Skill> getAllMappedSkills(Set <SkillInfo> skillInfo, Talent talent) {
+    private Set<Skill> getAllMappedSkills(Set <SkillTalentInfo> skillTalentInfo, Talent talent) {
         return skillRepository.findAllById(
-                       skillInfo.stream()
-                                .map(SkillInfo::getId)
+                       skillTalentInfo.stream()
+                                .map(SkillTalentInfo::getId)
                                 .collect(Collectors.toSet())
                 )
                 .stream()
                 .peek(skill -> skill.getTalents().add(talent))
                 .collect(Collectors.toSet());
     }
-    private void updateSkillsIfExists(Set <SkillInfo> skillInfo, Talent talent) {
-        Optional.ofNullable(skillInfo)
+    private void updateSkillsIfExists(Set <SkillTalentInfo> skillTalentInfo, Talent talent) {
+        Optional.ofNullable(skillTalentInfo)
                 .filter(skills -> !skills.isEmpty())
-                .map(skills -> getAllMappedSkills(skillInfo, talent))
+                .map(skills -> getAllMappedSkills(skillTalentInfo, talent))
                 .ifPresent(talent::setSkills);
     }
     private void clearSkillsFromTalent(Talent talent) {

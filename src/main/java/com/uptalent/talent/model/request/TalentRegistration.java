@@ -1,6 +1,6 @@
 package com.uptalent.talent.model.request;
 
-import com.uptalent.skill.model.SkillInfo;
+import com.uptalent.skill.model.SkillTalentInfo;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,7 +22,7 @@ public class TalentRegistration {
     private String firstname;
 
 
-    private Set<SkillInfo> skills;
+    private Set<SkillTalentInfo> skills;
 
     @NotNull(message = "Email should not be null")
     @NotBlank(message = "Email should not be blank")
