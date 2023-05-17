@@ -302,7 +302,7 @@ public class ProofService {
     private boolean hasTalentProof(Long talentId, Proof proof) {
         return Objects.equals(proof.getTalent().getId(), talentId);
     }
-    
+
 
     private Proof getProofById(Long id) {
         return proofRepository.findById(id)
