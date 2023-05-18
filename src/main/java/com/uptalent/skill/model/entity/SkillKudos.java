@@ -21,7 +21,9 @@ public class SkillKudos {
     @ManyToOne()
     @JoinColumn(name = "proof_id", referencedColumnName = "id")
     private Proof proof;
-    private Long kudos;
+
+    @Column(name = "kudos")
+    private long kudos;
 
     @Override
     public String toString() {
