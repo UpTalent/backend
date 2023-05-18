@@ -14,7 +14,7 @@ public class ProofTalentDetailInfo extends ProofDetailInfo {
     private boolean myProof;
 
     public ProofTalentDetailInfo(Long id, Integer iconNumber, String title, String summary, String content,
-                                 LocalDateTime published, int kudos, ProofStatus status, boolean myProof,
+                                 LocalDateTime published, long kudos, ProofStatus status, boolean myProof,
                                  Set<SkillProofInfo> skills) {
         super(id, iconNumber, title, summary, content, published, kudos, status, skills);
         this.myProof = myProof;

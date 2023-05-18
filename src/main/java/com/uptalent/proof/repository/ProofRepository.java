@@ -15,7 +15,7 @@ public interface ProofRepository extends JpaRepository<Proof, Long> {
                                 Pageable pageable,
                                 String [] skills, int skillsSize);
 
-    @Query("SELECT p, coalesce(sum(kh.kudos), 0) " +
+    @Query("SELECT p, coalesce(sum(kh.totalKudos), 0) " +
             "FROM proof p LEFT JOIN kudos_history kh ON kh.proof.id = p.id AND kh.sponsor.id = :sponsorId " +
             "WHERE p.status = :proofStatus " +
             "GROUP BY p.id HAVING p.talent.id = :talentId")
@@ -30,7 +30,7 @@ public interface ProofRepository extends JpaRepository<Proof, Long> {
                                                           Long talentId,
                                                           ProofStatus proofStatus, Pageable pageable);
 
-    @Query("SELECT p, coalesce(sum(kh.kudos), 0) " +
+    @Query("SELECT p, coalesce(sum(kh.totalKudos), 0) " +
             "FROM proof p LEFT JOIN kudos_history kh ON kh.proof.id = p.id AND kh.sponsor.id = :sponsorId " +
             "WHERE p.status = :proofStatus " +
             "GROUP BY p.id " +

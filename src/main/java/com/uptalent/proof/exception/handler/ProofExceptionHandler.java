@@ -33,8 +33,11 @@ public class ProofExceptionHandler extends ExceptionHandlerController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(WrongSortOrderException.class)
-    public HttpResponse handlerWrongSortOrderException(WrongSortOrderException e) {
+    @ExceptionHandler({
+            WrongSortOrderException.class,
+            ProofNotContainSkillException.class
+    })
+    public HttpResponse handlerWrongSortOrderException(RuntimeException e) {
         return new HttpResponse(e.getMessage());
     }
 

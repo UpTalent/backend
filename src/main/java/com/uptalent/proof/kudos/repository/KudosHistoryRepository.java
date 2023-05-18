@@ -13,11 +13,11 @@ public interface KudosHistoryRepository extends JpaRepository<KudosHistory, Long
     Boolean pressedProofBySponsorId(Long sponsorId, Long proofId);
 
     @Query("SELECT new com.uptalent.proof.kudos.model.response.KudosSender" +
-            "(kh.sponsor.fullname, kh.sponsor.avatar, kh.sent, kh.kudos) " +
+            "(kh.sponsor.fullname, kh.sponsor.avatar, kh.sent, kh.totalKudos) " +
             "FROM kudos_history kh WHERE kh.proof.id = :proofId")
     List<KudosSender> findKudosSendersByProofId(Long proofId);
 
-    @Query("select sum(kh.kudos) from kudos_history kh " +
+    @Query("select sum(kh.totalKudos) from kudos_history kh " +
             "group by kh.proof.id, kh.sponsor.id having kh.proof.id = :proofId and kh.sponsor.id = :sponsorId")
     Integer sumKudosProofBySponsorId(Long sponsorId, Long proofId);
 }

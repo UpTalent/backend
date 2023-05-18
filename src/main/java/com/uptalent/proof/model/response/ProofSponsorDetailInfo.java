@@ -14,7 +14,7 @@
         private long sumKudosFromMe;
 
         public ProofSponsorDetailInfo(Long id, Integer iconNumber, String title, String summary, String content,
-                                      LocalDateTime published, int kudos, ProofStatus status, long sumKudosFromMe,
+                                      LocalDateTime published, long kudos, ProofStatus status, long sumKudosFromMe,
                                       Set<SkillProofInfo> skills) {
             super(id, iconNumber, title, summary, content, published, kudos, status, skills);
             this.sumKudosFromMe = sumKudosFromMe;
