@@ -35,9 +35,8 @@ public class Sponsor {
     private String avatar;
 
     @Column(name = "kudos")
-    private int kudos;
+    private long kudos;
 
     @OneToMany(mappedBy = "sponsor")
     private Set<KudosHistory> kudosHistory;
-
 }
