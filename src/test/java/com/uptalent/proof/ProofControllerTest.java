@@ -9,6 +9,7 @@ import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.proof.controller.ProofController;
 import com.uptalent.proof.exception.*;
 import com.uptalent.proof.kudos.model.request.PostKudos;
+import com.uptalent.proof.kudos.model.request.PostKudosSkill;
 import com.uptalent.proof.kudos.model.response.KudosSender;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
@@ -667,7 +668,8 @@ public class ProofControllerTest {
     @Test
     @DisplayName("[Stage-3.2] [US-1] - post kudos successfully as sponsor")
     public void postKudosSuccessfullyAsSponsor() throws Exception {
-        PostKudos postKudos = new PostKudos(1);
+        List<PostKudosSkill> postKudosSkills = List.of(new PostKudosSkill(1L, 1L));
+        PostKudos postKudos = new PostKudos(postKudosSkills);
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.post("/api/v1/proofs/{proofId}/kudos",
@@ -685,7 +687,8 @@ public class ProofControllerTest {
     @Test
     @DisplayName("[Stage-3.2] [US-1] - post kudos to proof which has not status PUBLISHED")
     public void postKudosToProofWhichHasNotStatusPublished() throws Exception {
-        PostKudos postKudos = new PostKudos(1);
+        List<PostKudosSkill> postKudosSkills = List.of(new PostKudosSkill(1L, 1L));
+        PostKudos postKudos = new PostKudos(postKudosSkills);
 
         String errorMessage = "Proof was not found";
 
