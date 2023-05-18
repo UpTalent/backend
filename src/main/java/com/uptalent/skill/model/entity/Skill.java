@@ -32,6 +32,11 @@ public class Skill {
             inverseJoinColumns = @JoinColumn(name = "talent_id")
     )
     private Set<Talent> talents;
+
+    @OneToOne
+    @JoinColumn(name = "skill_kudos_history_id" , referencedColumnName = "id")
+    private SkillKudosHistory skillKudosHistory;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
