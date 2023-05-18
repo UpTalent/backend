@@ -22,7 +22,7 @@ public class ProofDetailInfo {
     private String content;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime published;
-    private int kudos;
+    private long kudos;
     private ProofStatus status;
     private Set<SkillProofInfo> skills;
 }
