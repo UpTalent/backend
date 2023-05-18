@@ -5,6 +5,7 @@ import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
+import com.uptalent.proof.kudos.model.request.PostKudosSkill;
 import com.uptalent.proof.kudos.model.response.KudosSender;
 import com.uptalent.proof.kudos.repository.KudosHistoryRepository;
 import com.uptalent.proof.kudos.model.request.PostKudos;
@@ -487,23 +488,25 @@ public class ProofServiceTest {
     @Test
     @DisplayName("[Stage-3.2] [US-2] - post kudos successfully as sponsor")
     public void postKudosSuccessfullyAsSponsor() {
-        PostKudos postKudos = new PostKudos(1);
+        List<PostKudosSkill> postKudosSkills = List.of(new PostKudosSkill(1L, 1L));
+        PostKudos postKudos = new PostKudos(postKudosSkills);
         given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
         given(sponsorRepository.findById(sponsor.getId())).willReturn(Optional.of(sponsor));
         given(accessVerifyService.getPrincipalId()).willReturn(sponsor.getId());
 
-        int balanceKudosBeforePosting = sponsor.getKudos();
-        int countKudosProofBeforePosting = proof.getKudos();
+        long balanceKudosBeforePosting = sponsor.getKudos();
+        long countKudosProofBeforePosting = proof.getKudos();
 
         proofService.postKudos(postKudos, proof.getId());
-        Assertions.assertEquals(countKudosProofBeforePosting + postKudos.getKudos(), proof.getKudos());
-        Assertions.assertEquals(balanceKudosBeforePosting - postKudos.getKudos(), sponsor.getKudos());
+        Assertions.assertEquals(countKudosProofBeforePosting + postKudos.getPostKudosSkills().get(0).getKudos(), proof.getKudos());
+        Assertions.assertEquals(balanceKudosBeforePosting - postKudos.getPostKudosSkills().get(0).getKudos(), sponsor.getKudos());
     }
 
     @Test
     @DisplayName("[Stage-3.2] [US-2] - post kudos with negative balance")
     public void postKudosToOwnProof() {
-        PostKudos postKudos = new PostKudos(1);
+        List<PostKudosSkill> postKudosSkills = List.of(new PostKudosSkill(1L, 1L));
+        PostKudos postKudos = new PostKudos(postKudosSkills);
         sponsor.setKudos(-50);
 
         given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
@@ -519,7 +522,8 @@ public class ProofServiceTest {
     @Test
     @DisplayName("[Stage-3.2] [US-2] - post kudos to proof which has not status PUBLISHED")
     public void postKudosToProofWhichHasNotStatusPublished() {
-        PostKudos postKudos = new PostKudos(1);
+        List<PostKudosSkill> postKudosSkills = List.of(new PostKudosSkill(1L, 1L));
+        PostKudos postKudos = new PostKudos(postKudosSkills);
 
         given(proofRepository.findById(draftProof.getId())).willReturn(Optional.of(draftProof));
         given(sponsorRepository.findById(sponsor.getId())).willReturn(Optional.of(sponsor));
