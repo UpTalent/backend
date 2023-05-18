@@ -54,11 +54,10 @@ public class SponsorService {
 
     private final EmailSender sender;
     @Value("${sponsor.initial-kudos-number}")
-    private int INITIAL_KUDOS_NUMBER;
+    private long INITIAL_KUDOS_NUMBER;
     @Value("${kudos.max-value}")
-    private int KUDOS_MAX_VALUE;
+    private long KUDOS_MAX_VALUE;
 
-    @Transactional
     public AuthResponse registerSponsor(SponsorRegistration sponsorRegistration) {
         if (credentialsRepository.existsByEmailIgnoreCase(sponsorRegistration.getEmail())){
             throw new AccountExistsException("The user has already exists with email [" + sponsorRegistration.getEmail() + "]");
@@ -164,7 +163,6 @@ public class SponsorService {
                 .orElseThrow(() -> new SponsorNotFoundException("Sponsor was not found"));
     }
 
-    @Transactional
     public void deleteSponsor(Long sponsorId, HttpServletRequest request) throws MessagingException {
         accessVerifyService.tryGetAccess(
                 sponsorId,
@@ -197,9 +195,7 @@ public class SponsorService {
     private boolean isStatusEquals(Sponsor sponsor, AccountStatus status){
         return sponsor.getCredentials().getStatus().equals(status);
     }
-    @Transactional
-    void changeStatusToActive(Sponsor sponsor)
-    {
+    void changeStatusToActive(Sponsor sponsor) {
         sponsor.getCredentials().setStatus(AccountStatus.ACTIVE);
         sponsor.getCredentials().setExpirationDeleting(null);
         sponsor.getCredentials().setDeleteToken(null);
