@@ -18,7 +18,7 @@ public class ProofGeneralInfo {
     private Integer iconNumber;
     private String title;
     private String summary;
-    private int kudos;
+    private long kudos;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime published;
     private Set<SkillProofInfo> skills;
