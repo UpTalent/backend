@@ -1,6 +1,5 @@
 package com.uptalent.skill.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.uptalent.talent.model.entity.Talent;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,9 +21,10 @@ public class Skill {
 
     @Column(length = 30, nullable = false, name = "name")
     private String name;
+
     @OneToMany(mappedBy = "skill")
     private Set<SkillKudos> skillKudos;
-    @JsonIgnore
+
     @ManyToMany
     @JoinTable(
             name = "skill_talent",
