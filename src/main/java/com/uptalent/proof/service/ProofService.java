@@ -107,11 +107,10 @@ public class ProofService {
         );
 
         Proof proof = mapper.toProof(proofModify);
+        proof.setTalent(talent);
+        proof = proofRepository.save(proof);
 
         setUpSkillsToProof(proofModify, proof);
-
-        proof.setTalent(talent);
-        proofRepository.save(proof);
 
         talent.getProofs().add(proof);
         talentRepository.save(talent);
@@ -135,7 +134,9 @@ public class ProofService {
         Proof foundProof = getProofById(proofId);
         verifyTalentContainProof(talentId, foundProof);
 
-        Consumer<Proof> modifyingStrategy = selectProofModifyStrategy(proofModify, foundProof.getStatus());
+        Consumer<Proof> modifyingStrategy = selectProofModifyStrategy(proofModify,
+                foundProof.getId(),
+                foundProof.getStatus());
 
         modifyingStrategy.accept(foundProof);
 
@@ -200,6 +201,7 @@ public class ProofService {
         List<Long> skillsIdList = postKudos.getPostKudosSkills().stream()
                 .map(PostKudosSkill::getSkillId)
                 .toList();
+
         int uniqueSkillIds = skillIdsSet.size();
         validateNotContainsDuplicates(uniqueSkillIds, postKudos.getPostKudosSkills().size());
 
@@ -258,7 +260,9 @@ public class ProofService {
         }
     }
 
-    private Consumer<Proof> selectProofModifyStrategy(ProofModify proofModify, ProofStatus currentStatus) {
+    private Consumer<Proof> selectProofModifyStrategy(ProofModify proofModify,
+                                                      Long proofId,
+                                                      ProofStatus currentStatus) {
         Consumer<Proof> strategy;
         ProofStatus modifyingStatus = ProofStatus.valueOf(proofModify.getStatus());
         BiPredicate<ProofModify, ProofStatus> editCase = (proofEdit, status) ->
@@ -302,7 +306,7 @@ public class ProofService {
     }
 
     private void clearSkillsFromProof(Proof proof) {
-        proof.getSkillKudos().forEach(skill -> skill.setProof(null));
+        skillKudosRepository.deleteAll(proof.getSkillKudos());
         proof.getSkillKudos().clear();
         proofRepository.save(proof);
     }
@@ -421,15 +425,13 @@ public class ProofService {
         }
 
         Set<SkillKudos> skillKudos = skills.stream()
-                .map(sk->SkillKudos.builder().skill(sk).proof(proof).kudos(0L).build())
+                .map(sk-> SkillKudos.builder().skill(sk).proof(proof).kudos(0L).build())
                 .collect(Collectors.toSet());
 
-        skillKudosRepository.saveAll(skillKudos);
-        for(SkillKudos skill:skillKudos) {
-            log.info(skill.toString());
-        }
-        skillRepository.saveAll(skills);
-        proof.setSkillKudos(skillKudos);
+
+        proof.setSkillKudos(new HashSet<>(skillKudosRepository.saveAll(skillKudos)));
+
+        proofRepository.save(proof);
     }
 
     private void validateNotContainsDuplicates(int uniqueSkillIds, int countSkillsIds) {

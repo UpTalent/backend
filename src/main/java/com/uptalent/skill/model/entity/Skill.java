@@ -33,8 +33,8 @@ public class Skill {
     )
     private Set<Talent> talents;
 
-    @OneToOne
-    @JoinColumn(name = "skill_kudos_history_id" , referencedColumnName = "id")
+
+    @OneToOne(mappedBy = "skill")
     private SkillKudosHistory skillKudosHistory;
 
     @Override

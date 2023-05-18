@@ -16,7 +16,8 @@ public class SkillKudosHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(mappedBy = "skillKudosHistory")
+    @OneToOne
+    @JoinColumn(name = "skill_id" , referencedColumnName = "id")
     private Skill skill;
 
     @ManyToOne

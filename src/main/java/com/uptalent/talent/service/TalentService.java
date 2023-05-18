@@ -7,8 +7,14 @@ import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.filestore.FileStoreService;
 import com.uptalent.jwt.JwtTokenProvider;
+import com.uptalent.mapper.ProofMapper;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.proof.model.entity.Proof;
+import com.uptalent.proof.model.response.ProofDetailInfo;
+import com.uptalent.proof.model.response.ProofTalentDetailInfo;
+import com.uptalent.proof.repository.ProofRepository;
+import com.uptalent.skill.model.SkillInfo;
 import com.uptalent.skill.model.SkillTalentInfo;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.skill.repository.SkillRepository;
@@ -22,6 +28,7 @@ import com.uptalent.talent.model.response.TalentGeneralInfo;
 import com.uptalent.talent.model.response.TalentOwnProfile;
 import com.uptalent.talent.model.response.TalentProfile;
 import com.uptalent.auth.model.response.AuthResponse;
+import com.uptalent.talent.model.response.TalentStatistic;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +57,9 @@ public class TalentService {
     private final CredentialsRepository credentialsRepository;
     private final FileStoreService fileStoreService;
     private final SkillRepository skillRepository;
+    private final ProofRepository proofRepository;
     private final TalentAgeRange talentAgeRange;
+    private final ProofMapper proofMapper;
 
     public PageWithMetadata<TalentGeneralInfo> getAllTalents(int page, int size, String [] skills){
         Page<Talent> talentPage = retrieveAllTalents(page, size, skills);
@@ -149,6 +158,21 @@ public class TalentService {
         talentRepository.delete(talentToDelete);
     }
 
+
+    public TalentStatistic getStatistic() {
+        long talentId = accessVerifyService.getPrincipalId();
+        Long totalCountKudos = talentRepository.getTotalCountKudosByTalentId(talentId);
+        totalCountKudos = (totalCountKudos == null) ? 0L : totalCountKudos;
+        Set<SkillInfo> mostKudosedSkills = getMostKudosedSkills(talentId);
+        ProofTalentDetailInfo mostKudosedProof = getMostKudosedProof(talentId);
+
+        return TalentStatistic.builder()
+                .totalCountKudos(totalCountKudos)
+                .mostKudosedSkills(mostKudosedSkills)
+                .mostKudosedProof(mostKudosedProof)
+                .build();
+    }
+
     private Talent getTalentById(Long id) {
         return talentRepository.findById(id)
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
@@ -181,5 +205,20 @@ public class TalentService {
                     PageRequest.of(page, size, Sort.by("id").descending()));
         else
             return talentRepository.findAllByOrderByIdDesc(PageRequest.of(page, size));
+    }
+
+    private Set<SkillInfo> getMostKudosedSkills(Long talentId) {
+        PageRequest limitSkills = PageRequest.of(0, 3);
+        return new LinkedHashSet<>(skillRepository
+                .getMostKudosedSkillsByTalentId(talentId, limitSkills)
+                .getContent());
+    }
+
+    private ProofTalentDetailInfo getMostKudosedProof(Long talentId) {
+        PageRequest limitProof = PageRequest.of(0, 1);
+        Page<Proof> mostKudosedProofResult = proofRepository.getMostKudosedProofByTalentId(talentId, limitProof);
+        return  (mostKudosedProofResult.getTotalElements() == 0) ? null :
+                proofMapper.toProofTalentDetailInfo(mostKudosedProofResult.getContent().get(0), true);
+
     }
 }

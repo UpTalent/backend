@@ -46,4 +46,8 @@ public interface ProofRepository extends JpaRepository<Proof, Long> {
     Page<Object[]> findProofsAndIsMyProofByTalentId(Long talentId,
                                                     ProofStatus proofStatus,
                                                     Pageable pageable, String[] skills, int skillsSize);
+
+    @Query("select p from proof p join talent t on t.id = p.talent.id " +
+            "where t.id = :talentId and p.kudos = (select max(pr.kudos) from proof pr)")
+    Page<Proof> getMostKudosedProofByTalentId(Long talentId, Pageable pageable);
 }

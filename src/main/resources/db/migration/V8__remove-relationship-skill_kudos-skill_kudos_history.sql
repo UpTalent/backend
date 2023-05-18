@@ -1,0 +1,1 @@
+ALTER TABLE skill_kudos DROP COLUMN skill_kudos_history_id;
