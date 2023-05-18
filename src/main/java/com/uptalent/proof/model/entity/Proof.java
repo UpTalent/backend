@@ -51,7 +51,7 @@ public class Proof {
     private Talent talent;
 
     @Column(nullable = false, name = "kudos")
-    private int kudos;
+    private long kudos;
 
     @OneToMany(mappedBy = "proof")
     private Set<KudosHistory> kudosHistory;
