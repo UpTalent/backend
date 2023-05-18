@@ -3,6 +3,7 @@ package com.uptalent.talent.controller;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.auth.model.response.AuthResponse;
 import com.uptalent.payload.HttpResponse;
+import com.uptalent.talent.model.response.TalentStatistic;
 import com.uptalent.talent.service.TalentService;
 import com.uptalent.talent.model.request.TalentEdit;
 import com.uptalent.talent.model.request.TalentRegistration;
@@ -160,5 +161,26 @@ public class TalentController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTalent(@PathVariable Long id) {
         talentService.deleteTalent(id);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+            summary = "Talent statistic",
+            description = "As a talent, I would like to get statistic of my profile.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Get statistic",
+                    content = { @Content(schema = @Schema(implementation = TalentStatistic.class),
+                    mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "403", description = "You cannot delete profile other talent",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })})
+    @PreAuthorize("hasAuthority('TALENT')")
+    @GetMapping("/statistic")
+    @ResponseStatus(HttpStatus.OK)
+    public TalentStatistic getTalentStatistic() {
+        return talentService.getStatistic();
     }
 }
