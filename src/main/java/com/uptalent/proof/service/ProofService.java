@@ -7,6 +7,7 @@ import com.uptalent.proof.exception.*;
 import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
 import com.uptalent.proof.kudos.model.entity.KudosHistory;
 import com.uptalent.proof.kudos.model.request.PostKudos;
+import com.uptalent.proof.kudos.model.request.PostKudosSkill;
 import com.uptalent.proof.kudos.model.response.KudosSender;
 import com.uptalent.proof.kudos.model.response.UpdatedProofKudos;
 import com.uptalent.proof.kudos.repository.KudosHistoryRepository;
@@ -16,8 +17,12 @@ import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.proof.repository.ProofRepository;
+import com.uptalent.skill.exception.DuplicateSkillException;
+import com.uptalent.skill.exception.SkillNotFoundException;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.skill.model.entity.SkillKudos;
+import com.uptalent.skill.model.entity.SkillKudosHistory;
+import com.uptalent.skill.repository.SkillKudosHistoryRepository;
 import com.uptalent.skill.repository.SkillKudosRepository;
 import com.uptalent.skill.repository.SkillRepository;
 import com.uptalent.sponsor.exception.SponsorNotFoundException;
@@ -61,10 +66,10 @@ public class ProofService {
     private final AccessVerifyService accessVerifyService;
     private final SponsorRepository sponsorRepository;
     private final SkillRepository skillRepository;
-
     private final SkillKudosRepository skillKudosRepository;
+    private final SkillKudosHistoryRepository skillKudosHistoryRepository;
     @Value("${kudos.max-value}")
-    private int KUDOS_MAX_VALUE;
+    private long KUDOS_MAX_VALUE;
 
 
     public PageWithMetadata<? extends ProofGeneralInfo> getProofs(int page, int size, String sort, String [] skills) {
@@ -179,27 +184,58 @@ public class ProofService {
 
     @PreAuthorize("hasAuthority('SPONSOR')")
     @Transactional
-    public UpdatedProofKudos postKudos(PostKudos kudos, Long proofId) {
+    public UpdatedProofKudos postKudos(PostKudos postKudos, Long proofId) {
         Long sponsorId = accessVerifyService.getPrincipalId();
         Proof proof = getProofById(proofId);
         Sponsor sponsor = getSponsorById(sponsorId);
 
-        validatePostingKudos(sponsor, kudos, proof);
+        long sumKudos = postKudos.getPostKudosSkills().stream()
+                .mapToLong(PostKudosSkill::getKudos)
+                .sum();
+        validatePostingKudos(sponsor, sumKudos, proof);
+
+        Set<Long> skillIdsSet = postKudos.getPostKudosSkills().stream()
+                .map(PostKudosSkill::getSkillId)
+                .collect(Collectors.toSet());
+        List<Long> skillsIdList = postKudos.getPostKudosSkills().stream()
+                .map(PostKudosSkill::getSkillId)
+                .toList();
+        int uniqueSkillIds = skillIdsSet.size();
+        validateNotContainsDuplicates(uniqueSkillIds, postKudos.getPostKudosSkills().size());
+
+        Set<Skill> skills = new HashSet<>(skillRepository.findAllById(skillsIdList));
+        if(uniqueSkillIds != skills.size()) {
+            throw new SkillNotFoundException("Some skills which are not exist");
+        }
+        validateProofContainSkills(proof, skills);
 
         KudosHistory kudosHistory = KudosHistory.builder()
                 .sponsor(sponsor)
                 .proof(proof)
                 .sent(LocalDateTime.now())
-                .kudos(kudos.getKudos())
+                .totalKudos(sumKudos)
                 .build();
 
+        List<SkillKudosHistory> skillKudosHistories = postKudos.getPostKudosSkills().stream()
+                .map(postKudosSkill -> {
+                    Skill skill = skills.stream()
+                            .filter(s -> s.getId().equals(postKudosSkill.getSkillId()))
+                            .findFirst()
+                            .orElse(null);
+                    SkillKudosHistory skillKudosHistory = SkillKudosHistory.builder()
+                            .skill(skill)
+                            .kudos(postKudosSkill.getKudos())
+                            .kudosHistory(kudosHistory)
+                            .build();
+                    skillKudosHistoryRepository.save(skillKudosHistory);
+                    return skillKudosHistory;
+                })
+                .collect(Collectors.toList());
 
-        if (KUDOS_MAX_VALUE - proof.getKudos() < kudos.getKudos()) {
-            throw new IllegalPostingKudos("You reached max value of posting kudos");
-        }
+        kudosHistory.setSkillKudosHistories(skillKudosHistories);
 
-        int currentCountKudos = proof.getKudos() + kudos.getKudos();
-        int currentBalance = sponsor.getKudos() - kudos.getKudos();
+        long currentCountKudos = proof.getKudos() + sumKudos;
+        long currentBalance = sponsor.getKudos() - sumKudos;
 
         proof.setKudos(currentCountKudos);
         sponsor.setKudos(currentBalance);
@@ -208,9 +244,18 @@ public class ProofService {
         proofRepository.save(proof);
         sponsorRepository.save(sponsor);
 
-        int currentSumKudos = kudosHistoryRepository.sumKudosProofBySponsorId(sponsorId, proofId);
+        long currentSumKudos = kudosHistoryRepository.sumKudosProofBySponsorId(sponsorId, proofId);
 
         return new UpdatedProofKudos(currentCountKudos, currentSumKudos, currentBalance);
+    }
+
+    private void validateProofContainSkills(Proof proof, Set<Skill> skills) {
+        List<Skill> proofSkills = proof.getSkillKudos().stream()
+                .map(SkillKudos::getSkill)
+                .toList();
+        if(!new HashSet<>(proofSkills).containsAll(skills)) {
+            throw new ProofNotContainSkillException("Proof does not contain all skills");
+        }
     }
 
     private Consumer<Proof> selectProofModifyStrategy(ProofModify proofModify, ProofStatus currentStatus) {
@@ -262,25 +307,6 @@ public class ProofService {
         proofRepository.save(proof);
     }
 
-//    private void updateSkillsIfExists(ProofModify proofModify, Proof proof) {
-//        Optional.ofNullable(proofModify.getSkills())
-//                .filter(skills -> !skills.isEmpty())
-//                .map(skills -> getAllMappedSkills(proofModify, proof))
-//                .ifPresent(proof::setSkills);
-//    }
-
-//    private Set<Skill> getAllMappedSkills(ProofModify proofModify, Proof proof) {
-//        return skillRepository.findAllById(
-//                        proofModify.getSkills()
-//                                .stream()
-//                                .map(SkillInfo::getId)
-//                                .collect(Collectors.toSet())
-//                )
-//                .stream()
-//                .peek(skill -> skill.getProofs().add(proof))
-//                .collect(Collectors.toSet());
-//    }
-
     private void verifyTalentExistsById(Long talentId) {
         if (!talentRepository.existsById(talentId)) {
             throw new TalentNotFoundException("Talent was not found");
@@ -319,11 +345,14 @@ public class ProofService {
                 .orElseThrow(() -> new SponsorNotFoundException("Sponsor was not found"));
     }
 
-    private void validatePostingKudos(Sponsor sponsor, PostKudos postKudosRequest, Proof proof) {
+    private void validatePostingKudos(Sponsor sponsor, Long sumKudos, Proof proof) {
         if (!proof.getStatus().equals(PUBLISHED))
             throw new ProofNotFoundException("Proof was not found");
-        else if (sponsor.getKudos() - postKudosRequest.getKudos() < 0)
+        else if (sponsor.getKudos() - sumKudos < 0)
             throw new IllegalPostingKudos("You do not have balance for posting kudos");
+        else if (KUDOS_MAX_VALUE - proof.getKudos() < sumKudos) {
+            throw new IllegalPostingKudos("You reached max value of posting kudos");
+        }
     }
 
     private Page<? extends ProofGeneralInfo> getPageProofsWithGeneralInfo(Long principalId,
@@ -380,18 +409,16 @@ public class ProofService {
         else
             throw new WrongSortOrderException("Unexpected input of sort order");
     }
+
     private void setUpSkillsToProof(ProofModify proofModify, Proof proof) {
-
         Set<Long> skillsIds = new HashSet<>(proofModify.getSkillIds());
-        int countSkillsIds = skillsIds.size();
-        if(countSkillsIds != proofModify.getSkillIds().size()) {
-            throw new IllegalCreatingProofException("Some skills have duplicates");
-        }
-        Set<Skill> skills = new HashSet<>(skillRepository.findAllById(proofModify.getSkillIds()));
-        if(countSkillsIds != skills.size()) {
-            throw new IllegalCreatingProofException("Some skills which are not exist");
-        }
+        int uniqueSkillIds = skillsIds.size();
+        validateNotContainsDuplicates(uniqueSkillIds, proofModify.getSkillIds().size());
 
+        Set<Skill> skills = new HashSet<>(skillRepository.findAllById(proofModify.getSkillIds()));
+        if(uniqueSkillIds != skills.size()) {
+            throw new SkillNotFoundException("Some skills which are not exist");
+        }
 
         Set<SkillKudos> skillKudos = skills.stream()
                 .map(sk->SkillKudos.builder().skill(sk).proof(proof).kudos(0L).build())
@@ -403,5 +430,11 @@ public class ProofService {
         }
         skillRepository.saveAll(skills);
         proof.setSkillKudos(skillKudos);
+    }
+
+    private void validateNotContainsDuplicates(int uniqueSkillIds, int countSkillsIds) {
+        if(uniqueSkillIds != countSkillsIds) {
+            throw new DuplicateSkillException("Some skills have duplicates");
+        }
     }
 }
