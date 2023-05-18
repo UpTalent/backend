@@ -15,6 +15,6 @@ public class SponsorProfile {
     private String fullname;
     private String avatar;
     private String email;
-    private int kudos;
+    private long kudos;
 
 }
