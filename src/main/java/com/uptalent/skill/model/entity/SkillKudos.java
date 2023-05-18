@@ -15,10 +15,10 @@ public class SkillKudos {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "skill_id", referencedColumnName = "id")
     private Skill skill;
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "proof_id", referencedColumnName = "id")
     private Proof proof;
 
