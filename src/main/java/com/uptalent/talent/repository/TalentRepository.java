@@ -25,4 +25,6 @@ public interface TalentRepository extends JpaRepository<Talent, Long> {
             "coalesce((SELECT count(sk) FROM t.skills sk WHERE sk.name IN :skills GROUP BY t.id), 0) = :skillsSize ")
     Page<Talent> filterAllBySkills(String [] skills, int skillsSize, PageRequest of);
 
+    @Query("select sum(p.kudos) from proof p join talent t on t.id = p.talent.id where t.id = :talentId")
+    Long getTotalCountKudosByTalentId(Long talentId);
 }
