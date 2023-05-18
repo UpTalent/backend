@@ -9,6 +9,8 @@ import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.repository.ProofRepository;
 import com.uptalent.skill.model.entity.Skill;
+import com.uptalent.skill.model.entity.SkillKudos;
+import com.uptalent.skill.repository.SkillKudosRepository;
 import com.uptalent.skill.repository.SkillRepository;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.repository.TalentRepository;
@@ -37,6 +39,7 @@ public class FakeDataLoader implements CommandLineRunner {
     private final ProofRepository proofRepository;
     private final CredentialsRepository credentialsRepository;
     private final SkillRepository skillRepository;
+    private final SkillKudosRepository skillKudosRepository;
     private final Faker faker;
     private final PasswordEncoder passwordEncoder;
     private final Environment env;
@@ -92,6 +95,14 @@ public class FakeDataLoader implements CommandLineRunner {
         Skill skill = Skill.builder()
                 .name(faker.job().keySkills())
                 .build();
+        skillRepository.save(skill);
+        SkillKudos skillKudos = SkillKudos.builder()
+                .skill(skill)
+                .build();
+        skillKudosRepository.save(skillKudos);
+        skill.setSkillKudos(new HashSet<>(List.of(skillKudos)));
+        skillRepository.save(skill);
+
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         Proof proof = Proof.builder()
                 .iconNumber(faker.random().nextInt(11))
@@ -101,11 +112,9 @@ public class FakeDataLoader implements CommandLineRunner {
                 .status(ProofStatus.PUBLISHED)
                 .published(faker.date().past(5, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
                 .talent(talent)
-                .skillKudos(null)
+                .skillKudos(new HashSet<>(List.of(skillKudos)))
                 .build();
-        skill.setSkillKudos(null);
         proofRepository.save(proof);
-        skillRepository.save(skill);
         return proof;
     }
 
