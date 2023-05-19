@@ -224,11 +224,30 @@ public class ProofService {
                             .filter(s -> s.getId().equals(postKudosSkill.getSkillId()))
                             .findFirst()
                             .orElse(null);
+
+                    SkillKudos skillKudos = proof.getSkillKudos().stream()
+                            .filter(skillKds -> skillKds.getSkill().getId().equals(skill.getId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (skillKudos == null) {
+                        skillKudos = SkillKudos.builder()
+                                .skill(skill)
+                                .kudos(postKudosSkill.getKudos())
+                                .build();
+                        proof.getSkillKudos().add(skillKudos);
+                    } else {
+                        skillKudos.setKudos(skillKudos.getKudos() + postKudosSkill.getKudos());
+                    }
+
                     SkillKudosHistory skillKudosHistory = SkillKudosHistory.builder()
                             .skill(skill)
                             .kudos(postKudosSkill.getKudos())
                             .kudosHistory(kudosHistory)
                             .build();
+
+                    skillRepository.save(skill);
+                    skillKudosRepository.save(skillKudos);
                     skillKudosHistoryRepository.save(skillKudosHistory);
                     return skillKudosHistory;
                 })
