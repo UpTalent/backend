@@ -16,8 +16,8 @@ public class SkillKudosHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "skill_id" , referencedColumnName = "id")
+    @ManyToOne
+    @JoinColumn(name = "skill_id", referencedColumnName = "id")
     private Skill skill;
 
     @ManyToOne

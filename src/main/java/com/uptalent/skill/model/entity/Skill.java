@@ -4,6 +4,7 @@ import com.uptalent.talent.model.entity.Talent;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -33,9 +34,8 @@ public class Skill {
     )
     private Set<Talent> talents;
 
-
-    @OneToOne(mappedBy = "skill")
-    private SkillKudosHistory skillKudosHistory;
+    @OneToMany(mappedBy = "skill")
+    private List<SkillKudosHistory> skillKudosHistories;
 
     @Override
     public boolean equals(Object o) {
