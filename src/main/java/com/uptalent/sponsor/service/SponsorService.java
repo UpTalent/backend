@@ -6,11 +6,14 @@ import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.email.EmailSender;
 import com.uptalent.jwt.JwtTokenProvider;
+import com.uptalent.mapper.KudosHistoryMapper;
 import com.uptalent.mapper.SponsorMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.auth.model.response.AuthResponse;
+import com.uptalent.proof.kudos.model.entity.KudosHistory;
 import com.uptalent.proof.kudos.model.response.KudosedProof;
 import com.uptalent.proof.kudos.model.response.KudosedProofHistory;
+import com.uptalent.skill.repository.SkillKudosHistoryRepository;
 import com.uptalent.sponsor.exception.IllegalAddingKudosException;
 import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.sponsor.model.entity.Sponsor;
@@ -38,6 +41,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.uptalent.credentials.model.enums.Role.SPONSOR;
 
@@ -51,6 +55,8 @@ public class SponsorService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AccessVerifyService accessVerifyService;
+    private final KudosHistoryMapper kudosHistoryMapper;
+    private final SkillKudosHistoryRepository skillKudosHistoryRepository;
 
     private final EmailSender sender;
     @Value("${sponsor.initial-kudos-number}")
@@ -93,6 +99,10 @@ public class SponsorService {
 
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<KudosedProof> kudosedProofPage = sponsorRepository.findAllKudosedProofBySponsorId(sponsorId, pageRequest);
+
+        kudosedProofPage.stream().forEach(kp -> kp.setSkills(skillKudosHistoryRepository
+                                .findSumSkillsBySponsorIdAndProofId(sponsorId, kp.getProofId())));
+
         return new PageWithMetadata<>(kudosedProofPage.getContent(), kudosedProofPage.getTotalPages());
     }
 
@@ -103,10 +113,13 @@ public class SponsorService {
         accessVerifyService.tryGetAccess(sponsorId, SPONSOR, errorMessage);
 
         PageRequest pageRequest = PageRequest.of(page, size);
-        Page<KudosedProofHistory> kudosedProofHistoriesPage =
+        Page<KudosHistory> kudosedProofHistoriesPage =
                 sponsorRepository.findAllKudosedProofHistoryBySponsorIdAndProofId(sponsorId, proofId, pageRequest);
 
-        return new PageWithMetadata<>(kudosedProofHistoriesPage.getContent(),
+        List<KudosedProofHistory> kudosedProofHistories = kudosedProofHistoriesPage.getContent().stream()
+                .map(kudosHistoryMapper::toKudosedProofHistory).toList();
+
+        return new PageWithMetadata<>(kudosedProofHistories,
                 kudosedProofHistoriesPage.getTotalPages());
     }
 
