@@ -18,6 +18,7 @@ public class SkillKudos {
     @ManyToOne
     @JoinColumn(name = "skill_id", referencedColumnName = "id")
     private Skill skill;
+
     @ManyToOne
     @JoinColumn(name = "proof_id", referencedColumnName = "id")
     private Proof proof;
