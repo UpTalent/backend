@@ -19,6 +19,7 @@ import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.proof.repository.ProofRepository;
 import com.uptalent.skill.exception.DuplicateSkillException;
 import com.uptalent.skill.exception.SkillNotFoundException;
+import com.uptalent.skill.model.SkillProofInfo;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.skill.model.entity.SkillKudos;
 import com.uptalent.skill.model.entity.SkillKudosHistory;
@@ -218,6 +219,8 @@ public class ProofService {
                 .totalKudos(sumKudos)
                 .build();
 
+        List<SkillProofInfo> skillProofInfos = new ArrayList<>();
+
         List<SkillKudosHistory> skillKudosHistories = postKudos.getPostKudosSkills().stream()
                 .map(postKudosSkill -> {
                     Skill skill = skills.stream()
@@ -249,6 +252,9 @@ public class ProofService {
                     skillRepository.save(skill);
                     skillKudosRepository.save(skillKudos);
                     skillKudosHistoryRepository.save(skillKudosHistory);
+
+                    skillProofInfos.add(new SkillProofInfo(skill.getId(), skill.getName(), skillKudos.getKudos()));
+
                     return skillKudosHistory;
                 })
                 .collect(Collectors.toList());
@@ -267,7 +273,7 @@ public class ProofService {
 
         long currentSumKudos = kudosHistoryRepository.sumKudosProofBySponsorId(sponsorId, proofId);
 
-        return new UpdatedProofKudos(currentCountKudos, currentSumKudos, currentBalance);
+        return new UpdatedProofKudos(currentCountKudos, currentSumKudos, currentBalance, skillProofInfos);
     }
 
     private void validateProofContainSkills(Proof proof, Set<Skill> skills) {
