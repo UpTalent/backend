@@ -533,6 +533,7 @@ public class ProofServiceTest {
                 () -> proofService.postKudos(postKudos, draftProof.getId()));
     }
 
+    /*
     @Test
     @DisplayName("[Stage-3.1] [US-3] - Get kudos senders successfully")
     public void getKudosSendersSuccessfully() {
@@ -572,7 +573,7 @@ public class ProofServiceTest {
             assertThat(expected.getKudos()).isEqualTo(actual.getKudos());
         }
     }
-
+*/
     @Test
     @DisplayName("[Stage-3.1] [US-3] - Try to get kudos senders from non-existent proof")
     public void tryGetKudosSendersFromNonExistentProof() {

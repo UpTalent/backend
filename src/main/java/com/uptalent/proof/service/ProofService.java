@@ -1,6 +1,7 @@
 package com.uptalent.proof.service;
 
 import com.uptalent.credentials.model.enums.Role;
+import com.uptalent.mapper.KudosHistoryMapper;
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.exception.*;
@@ -69,6 +70,7 @@ public class ProofService {
     private final SkillRepository skillRepository;
     private final SkillKudosRepository skillKudosRepository;
     private final SkillKudosHistoryRepository skillKudosHistoryRepository;
+    private final KudosHistoryMapper kudosHistoryMapper;
     @Value("${kudos.max-value}")
     private long KUDOS_MAX_VALUE;
 
@@ -180,7 +182,9 @@ public class ProofService {
     public List<KudosSender> getKudosSenders(Long proofId) {
         verifyProofExistsById(proofId);
         verifyTalentContainProof(accessVerifyService.getPrincipalId(), getProofById(proofId));
-        return kudosHistoryRepository.findKudosSendersByProofId(proofId);
+        return kudosHistoryRepository.findKudosSendersByProofId(proofId).stream()
+                .map(kudosHistoryMapper::toKudosedSender)
+                .collect(Collectors.toList());
     }
 
 
