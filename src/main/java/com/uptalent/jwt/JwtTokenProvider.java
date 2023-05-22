@@ -3,7 +3,9 @@ package com.uptalent.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.uptalent.credentials.model.enums.Role;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -75,15 +77,18 @@ public class JwtTokenProvider {
     /**
      * Check if jwt-token is valid
      *
-     * @param email Talent email
      * @param token JWT-Token
      *
      * @return is expired token
      * */
-    public boolean isTokenValid(String email, String token) {
-        return StringUtils.isNotEmpty(email) &&
-                !isTokenExpired(token) &&
-                getSubject(token).equals(email);
+    public boolean isTokenValid(String token) {
+        try{
+            DecodedJWT decodedJWT = JWT.decode(token);
+            return !isTokenExpired(decodedJWT) &&
+                    StringUtils.isNotBlank(decodedJWT.getSubject());
+        } catch (JWTDecodeException e) {
+            return false;
+        }
     }
 
     /**
@@ -105,12 +110,12 @@ public class JwtTokenProvider {
     /**
      * Check if jwt-token is expired
      *
-     * @param token JWT-Token
+     * @param decodedJWT Decoded-JWT
      *
      * @return is expired token
      * */
-    private boolean isTokenExpired(String token) {
-        Date expiration = JWT.decode(token).getExpiresAt();
+    private boolean isTokenExpired(DecodedJWT decodedJWT) {
+        Date expiration = decodedJWT.getExpiresAt();
         return expiration.before(new Date());
     }
 
