@@ -1,13 +1,17 @@
 package com.uptalent.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.credentials.repository.CredentialsRepository;
+import com.uptalent.payload.HttpResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +29,7 @@ import static com.uptalent.jwt.JwtConstant.*;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final CredentialsRepository credentialsRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -38,19 +43,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             String jwtToken = authorizationHeader.substring(TOKEN_HEADER.length());
 
-            /* check if token valid */
-            if (jwtTokenProvider.isTokenValid(jwtToken) &&
+            if(!jwtTokenProvider.isTokenValid(jwtToken)&&
                     SecurityContextHolder.getContext().getAuthentication() == null) {
-                String email = jwtTokenProvider.getSubject(jwtToken);
+                response.setStatus(HttpStatus.FORBIDDEN.value());
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                String responseBody = objectMapper.writeValueAsString(new HttpResponse(FORBIDDEN_MESSAGE));
+                response.getWriter().write(responseBody);
+                return;
+            }
 
-                Long id = jwtTokenProvider.getId(jwtToken);
-                Optional<Credentials> credentials = credentialsRepository.findByEmailIgnoreCase((email));
+            String email = jwtTokenProvider.getSubject(jwtToken);
+            Long id = jwtTokenProvider.getId(jwtToken);
+            Optional<Credentials> credentials = credentialsRepository.findByEmailIgnoreCase((email));
 
-                if (credentials.isPresent() && credentials.get().getStatus().equals(ACTIVE)) {
-                    GrantedAuthority authority = jwtTokenProvider.getAuthority(jwtToken);
-                    Authentication authentication = jwtTokenProvider.getAuthentication(id, authority, request);
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
+            if (credentials.isPresent() && credentials.get().getStatus().equals(ACTIVE)) {
+                GrantedAuthority authority = jwtTokenProvider.getAuthority(jwtToken);
+                Authentication authentication = jwtTokenProvider.getAuthentication(id, authority, request);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
 
