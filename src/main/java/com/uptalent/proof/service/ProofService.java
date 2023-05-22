@@ -329,6 +329,9 @@ public class ProofService {
     }
 
     private void publishProof(ProofModify proofModify, Proof proof) {
+        if (proofModify.getSkillIds() != null && proofModify.getSkillIds().isEmpty()) {
+            throw new IllegalProofModifyingException("Skills should be set for publishing");
+        }
         updateProofData(proofModify, proof);
         proof.setPublished(LocalDateTime.now());
         proof.setStatus(PUBLISHED);
