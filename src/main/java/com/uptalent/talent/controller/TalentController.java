@@ -177,10 +177,9 @@ public class TalentController {
             @ApiResponse(responseCode = "403", description = "You cannot delete profile other talent",
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                             mediaType = "application/json") })})
-    @PreAuthorize("hasAuthority('TALENT')")
-    @GetMapping("/statistic")
+    @GetMapping("/{talentId}/statistic")
     @ResponseStatus(HttpStatus.OK)
-    public TalentStatistic getTalentStatistic() {
-        return talentService.getStatistic();
+    public TalentStatistic getTalentStatistic(@PathVariable Long talentId) {
+        return talentService.getStatistic(talentId);
     }
 }

@@ -159,8 +159,7 @@ public class TalentService {
     }
 
 
-    public TalentStatistic getStatistic() {
-        long talentId = accessVerifyService.getPrincipalId();
+    public TalentStatistic getStatistic(Long talentId) {
         Long totalCountKudos = talentRepository.getTotalCountKudosByTalentId(talentId);
         totalCountKudos = (totalCountKudos == null) ? 0L : totalCountKudos;
         Set<SkillInfo> mostKudosedSkills = getMostKudosedSkills(talentId);

@@ -13,7 +13,7 @@ public interface SkillRepository extends JpaRepository<Skill, Long> {
             "join skill_kudos sks on sk.id = sks.skill.id " +
             "join proof p on p.id = sks.proof.id " +
             "join talent t on t.id = p.talent.id where t.id = :talentId " +
-            "group by sk.name, sks.kudos " +
+            "group by sk.name " +
             "order by sum(sks.kudos) desc")
     Page<SkillInfo> getMostKudosedSkillsByTalentId(Long talentId, Pageable pageable);
 }
