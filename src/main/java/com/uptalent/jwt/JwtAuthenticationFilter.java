@@ -1,7 +1,6 @@
 package com.uptalent.jwt;
 
 import com.uptalent.credentials.model.entity.Credentials;
-import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -38,11 +37,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (authorizationHeader != null && authorizationHeader.startsWith(TOKEN_HEADER)) {
 
             String jwtToken = authorizationHeader.substring(TOKEN_HEADER.length());
-            String email = jwtTokenProvider.getSubject(jwtToken);
 
             /* check if token valid */
-            if (jwtTokenProvider.isTokenValid(email, jwtToken) &&
+            if (jwtTokenProvider.isTokenValid(jwtToken) &&
                     SecurityContextHolder.getContext().getAuthentication() == null) {
+                String email = jwtTokenProvider.getSubject(jwtToken);
 
                 Long id = jwtTokenProvider.getId(jwtToken);
                 Optional<Credentials> credentials = credentialsRepository.findByEmailIgnoreCase((email));
