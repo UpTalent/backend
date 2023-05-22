@@ -48,6 +48,6 @@ public interface ProofRepository extends JpaRepository<Proof, Long> {
                                                     Pageable pageable, String[] skills, int skillsSize);
 
     @Query("select p from proof p join talent t on t.id = p.talent.id " +
-            "where t.id = :talentId and p.kudos = (select max(pr.kudos) from proof pr)")
+            "where t.id = :talentId order by p.kudos desc")
     Page<Proof> getMostKudosedProofByTalentId(Long talentId, Pageable pageable);
 }
