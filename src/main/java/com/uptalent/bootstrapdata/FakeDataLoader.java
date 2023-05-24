@@ -75,6 +75,7 @@ public class FakeDataLoader implements CommandLineRunner {
                 .password(passwordEncoder.encode(password))
                 .status(AccountStatus.ACTIVE)
                 .role(Role.TALENT)
+                .verified(true)
                 .build();
         credentialsRepository.save(credentials);
 
