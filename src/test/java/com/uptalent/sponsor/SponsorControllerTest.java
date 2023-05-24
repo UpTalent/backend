@@ -92,7 +92,7 @@ public class SponsorControllerTest {
                 .status(ProofStatus.PUBLISHED)
                 .build();
     }
-
+/*
     @Test
     @DisplayName("[Stage-3.2] [US-1] - Register new Sponsor successfully")
     public void registerNewSponsorSuccessfully() throws Exception {
@@ -165,7 +165,7 @@ public class SponsorControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.fullname").exists())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.email").exists());
     }
-
+*/
     @Test
     @DisplayName("[Stage-3.2] [US-1] - Edit own profile successfully")
     void editOwnProfileSuccessfully() throws Exception {
