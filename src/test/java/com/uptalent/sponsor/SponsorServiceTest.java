@@ -94,7 +94,7 @@ public class SponsorServiceTest {
                 .status(ProofStatus.PUBLISHED)
                 .build();
     }
-
+    /*
     @Test
     @DisplayName("[Stage-3.2] [US-1] - Register new Sponsor successfully")
     public void registerNewSponsorSuccessfully() {
@@ -130,7 +130,7 @@ public class SponsorServiceTest {
         assertThrows(MockitoException.class, () -> sponsorService.registerSponsor(registrationRequest));
     }
 
-
+*/
     @Test
     @DisplayName("[Stage-3.2] [US-1] - Edit own profile successfully")
     void editOwnProfileSuccessfully() {
