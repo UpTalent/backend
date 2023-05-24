@@ -47,4 +47,7 @@ public class Credentials {
 
     @Column(name = "expiration_deleting")
     private LocalDateTime expirationDeleting;
+
+    @Column(name = "verified")
+    private Boolean verified;
 }

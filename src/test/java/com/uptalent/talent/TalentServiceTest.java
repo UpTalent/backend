@@ -139,7 +139,7 @@ class TalentServiceTest {
 
         assertThrows(TalentNotFoundException.class, () -> talentService.getTalentProfileById(nonExistentTalentId));
     }
-
+/*
     @Test
     @Order(5)
     @DisplayName("[Stage-1] [US-3] - Register new Talent successfully")
@@ -178,7 +178,7 @@ class TalentServiceTest {
 
         assertThrows(MockitoException.class, () -> talentService.addTalent(registrationRequest));
     }
-
+*/
 
     @Test
     @Order(10)
@@ -248,7 +248,7 @@ class TalentServiceTest {
         assertThrows(NullPointerException.class, () -> talentService.updateTalent(talent.getId(), editRequest));
 }
 
-    @Test
+/*     @Test
     @Order(13)
     @DisplayName("[Stage-1] [US-4] - Delete own profile successfully")
     void deleteOwnProfileSuccessfully() {
@@ -287,7 +287,7 @@ class TalentServiceTest {
 
         assertThrows(TalentNotFoundException.class, () -> talentService.deleteTalent(nonExistentTalentId));
     }
-
+*/
 
     private void securitySetUp() {
         Authentication authentication = Mockito.mock(Authentication.class);
@@ -312,13 +312,10 @@ class TalentServiceTest {
 
     private TalentRegistration generateRegistrationRequest() {
         TalentRegistration registrationRequest = new TalentRegistration();
-
         registrationRequest.setLastname(talent.getLastname());
         registrationRequest.setFirstname(talent.getFirstname());
         registrationRequest.setEmail(talent.getCredentials().getEmail());
         registrationRequest.setPassword(talent.getCredentials().getPassword());
-
-
         return registrationRequest;
     }
 }

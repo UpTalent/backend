@@ -47,10 +47,6 @@ public interface SponsorRepository extends JpaRepository<Sponsor, Long> {
             "ORDER BY SUM(kh.totalKudos) DESC")
     Page<SponsorRating> getSponsorRatingByTalentId(Long talentId, Pageable pageable);
 
-    Optional<Sponsor> findSponsorByCredentials_DeleteToken(String token);
-
-    @Query(value = "SELECT s FROM sponsor s WHERE s.credentials.expirationDeleting < :now AND s.credentials.expirationDeleting IS NOT NULL ")
-    List<Sponsor> findSponsorsToPermanentDelete(LocalDateTime now);
     @Modifying(clearAutomatically=true, flushAutomatically=true)
     @Query(value = "UPDATE sponsor s " +
             "SET s.avatar=NULL," +

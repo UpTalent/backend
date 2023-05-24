@@ -5,6 +5,7 @@ import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.email.EmailSender;
+import com.uptalent.email.model.EmailType;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.KudosHistoryMapper;
 import com.uptalent.mapper.SponsorMapper;
@@ -31,17 +32,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static com.uptalent.credentials.model.enums.Role.SPONSOR;
 
@@ -53,7 +53,6 @@ public class SponsorService {
     private final SponsorRepository sponsorRepository;
     private final CredentialsRepository credentialsRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
     private final AccessVerifyService accessVerifyService;
     private final KudosHistoryMapper kudosHistoryMapper;
     private final SkillKudosHistoryRepository skillKudosHistoryRepository;
@@ -64,15 +63,20 @@ public class SponsorService {
     @Value("${kudos.max-value}")
     private long KUDOS_MAX_VALUE;
 
-    public AuthResponse registerSponsor(SponsorRegistration sponsorRegistration) {
+    public void registerSponsor(SponsorRegistration sponsorRegistration, HttpServletRequest request) throws MessagingException {
         if (credentialsRepository.existsByEmailIgnoreCase(sponsorRegistration.getEmail())){
             throw new AccountExistsException("The user has already exists with email [" + sponsorRegistration.getEmail() + "]");
         }
+        String token = UUID.randomUUID().toString();
         var credentials = Credentials.builder()
                 .email(sponsorRegistration.getEmail())
                 .password(passwordEncoder.encode(sponsorRegistration.getPassword()))
-                .status(AccountStatus.ACTIVE)
+                .status(AccountStatus.TEMPORARY_DELETED)
+                .expirationDeleting(LocalDateTime.now().plusMinutes(10))
+                //.expirationDeleting(LocalDateTime.now().plusSeconds(30))
+                .deleteToken(token)
                 .role(SPONSOR)
+                .verified(false)
                 .build();
 
         credentialsRepository.save(credentials);
@@ -83,13 +87,14 @@ public class SponsorService {
                 .kudos(INITIAL_KUDOS_NUMBER)
                 .build());
 
-        String jwtToken = jwtTokenProvider.generateJwtToken(
-                savedSponsor.getCredentials().getEmail(),
-                savedSponsor.getId(),
-                savedSponsor.getCredentials().getRole(),
-                savedSponsor.getFullname()
+        sender.sendMail(
+                credentials.getEmail(),
+                token,
+                request.getHeader(HttpHeaders.REFERER),
+                savedSponsor.getFullname(),
+                credentials.getExpirationDeleting(),
+                EmailType.VERIFY
         );
-        return new AuthResponse(jwtToken);
     }
 
     @Transactional(readOnly = true)
@@ -194,9 +199,10 @@ public class SponsorService {
             sender.sendMail(
                     deletedSponsor.getCredentials().getEmail(),
                     token,
-                    request,
+                    request.getHeader(HttpHeaders.REFERER),
                     deletedSponsor.getFullname(),
-                    deletedSponsor.getCredentials().getExpirationDeleting()
+                    deletedSponsor.getCredentials().getExpirationDeleting(),
+                    EmailType.RESTORE
             );
             sponsorRepository.save(deletedSponsor);
         }
@@ -207,18 +213,5 @@ public class SponsorService {
 
     private boolean isStatusEquals(Sponsor sponsor, AccountStatus status){
         return sponsor.getCredentials().getStatus().equals(status);
-    }
-    void changeStatusToActive(Sponsor sponsor) {
-        sponsor.getCredentials().setStatus(AccountStatus.ACTIVE);
-        sponsor.getCredentials().setExpirationDeleting(null);
-        sponsor.getCredentials().setDeleteToken(null);
-        sponsorRepository.save(sponsor);
-    }
-
-    public void restoreAccount(String token) {
-        Sponsor sponsor = sponsorRepository
-                .findSponsorByCredentials_DeleteToken(token)
-                .orElseThrow(() -> new SponsorNotFoundException("Token is invalid"));
-        changeStatusToActive(sponsor);
     }
 }

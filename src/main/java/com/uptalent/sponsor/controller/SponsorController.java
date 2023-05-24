@@ -30,6 +30,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -66,8 +67,8 @@ public class SponsorController {
             @ApiResponse(responseCode = "409", description = "User with email exists") })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponse registerSponsor(@Valid @RequestBody SponsorRegistration sponsorRegistration) {
-        return sponsorService.registerSponsor(sponsorRegistration);
+    public void registerSponsor(@Valid @RequestBody SponsorRegistration sponsorRegistration, HttpServletRequest request) throws MessagingException {
+        sponsorService.registerSponsor(sponsorRegistration, request);
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -216,21 +217,6 @@ public class SponsorController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteSponsor(@PathVariable Long sponsorId, HttpServletRequest request) throws MessagingException {
         sponsorService.deleteSponsor(sponsorId, request);
-    }
-
-    @Operation(
-            summary = "Sponsor restore account",
-            description = "As a sponsor, I want to restore account in 7 days")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204"),
-            @ApiResponse(responseCode = "404", description = "Sponsor with email was not found",
-                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
-                            mediaType = "application/json") })
-    })
-    @PostMapping("/restore")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void restoreSponsor(@RequestParam String token) {
-        sponsorService.restoreAccount(token);
     }
 
 }
