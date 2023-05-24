@@ -100,8 +100,8 @@ public class EmailSender{
         // String servletPath = request.getServletPath();
         helper = chooseMessage(helper, type, fullname, localDateTime, token, refererAddress);
         helper.setFrom(EmailConstant.ADMIN_MAIL);
-        //helper.setTo(email);
-        helper.setTo("uptalentinfo@gmail.com");
+        helper.setTo(email);
+        //helper.setTo("uptalentinfo@gmail.com");
         try {
             sender.send(mail);
         }
