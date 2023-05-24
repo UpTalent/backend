@@ -20,12 +20,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -104,10 +107,9 @@ public class TalentController {
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                             mediaType = "application/json") }) })
     @PostMapping
-    public ResponseEntity<?> registerTalent(@Valid @RequestBody TalentRegistration talent){
-        var response = talentService.addTalent(talent);
-
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    @ResponseStatus(HttpStatus.CREATED)
+    public void registerTalent(@Valid @RequestBody TalentRegistration talent, HttpServletRequest request) throws MessagingException {
+        talentService.addTalent(talent, request);
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -159,8 +161,8 @@ public class TalentController {
     @PreAuthorize("hasAuthority('TALENT')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteTalent(@PathVariable Long id) {
-        talentService.deleteTalent(id);
+    public void deleteTalent(@PathVariable Long id, HttpServletRequest request) throws MessagingException {
+        talentService.deleteTalent(id, request);
     }
 
     @SecurityRequirement(name = "bearerAuth")

@@ -5,13 +5,14 @@ import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
+import com.uptalent.email.EmailSender;
+import com.uptalent.email.model.EmailType;
 import com.uptalent.filestore.FileStoreService;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.model.entity.Proof;
-import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.model.response.ProofTalentDetailInfo;
 import com.uptalent.proof.repository.ProofRepository;
 import com.uptalent.skill.model.SkillInfo;
@@ -31,10 +32,14 @@ import com.uptalent.auth.model.response.AuthResponse;
 import com.uptalent.talent.model.response.TalentStatistic;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.util.service.AccessVerifyService;
+import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,14 +58,15 @@ public class TalentService {
     private final TalentRepository talentRepository;
     private final TalentMapper talentMapper;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
     private final AccessVerifyService accessVerifyService;
     private final CredentialsRepository credentialsRepository;
-    private final FileStoreService fileStoreService;
     private final SkillRepository skillRepository;
     private final ProofRepository proofRepository;
     private final TalentAgeRange talentAgeRange;
     private final ProofMapper proofMapper;
+
+    private final EmailSender sender;
+
 
     public PageWithMetadata<TalentGeneralInfo> getAllTalents(int page, int size, String [] skills){
         Page<Talent> talentPage = retrieveAllTalents(page, size, skills);
@@ -68,15 +75,20 @@ public class TalentService {
     }
 
     @Transactional
-    public AuthResponse addTalent(TalentRegistration talentRegistration){
+    public void addTalent(TalentRegistration talentRegistration, HttpServletRequest request) throws MessagingException {
         if (credentialsRepository.existsByEmailIgnoreCase(talentRegistration.getEmail())){
             throw new AccountExistsException("The user has already exists with email [" + talentRegistration.getEmail() + "]");
         }
+        String token = UUID.randomUUID().toString();
         var credentials = Credentials.builder()
                 .email(talentRegistration.getEmail())
                 .password(passwordEncoder.encode(talentRegistration.getPassword()))
-                .status(AccountStatus.ACTIVE)
+                .status(AccountStatus.TEMPORARY_DELETED)
                 .role(Role.TALENT)
+                .expirationDeleting(LocalDateTime.now().plusMinutes(10))
+                //.expirationDeleting(LocalDateTime.now().plusSeconds(30))
+                .deleteToken(token)
+                .verified(false)
                 .build();
 
         credentialsRepository.save(credentials);
@@ -89,13 +101,14 @@ public class TalentService {
 
         updateSkillsIfExists(talentRegistration.getSkills(), savedTalent);
 
-        String jwtToken = jwtTokenProvider.generateJwtToken(
-                savedTalent.getCredentials().getEmail(),
-                savedTalent.getId(),
-                savedTalent.getCredentials().getRole(),
-                savedTalent.getFirstname()
+        sender.sendMail(
+                credentials.getEmail(),
+                token,
+                request.getHeader(HttpHeaders.REFERER),
+                savedTalent.getFirstname(),
+                credentials.getExpirationDeleting(),
+                EmailType.VERIFY
         );
-        return new AuthResponse(jwtToken);
     }
 
 
@@ -146,16 +159,27 @@ public class TalentService {
     }
 
     @Transactional
-    public void deleteTalent(Long id) {
+    public void deleteTalent(Long id, HttpServletRequest request) throws MessagingException {
         Talent talentToDelete = getTalentById(id);
         accessVerifyService.tryGetAccess(
                 id,
                 talentToDelete.getCredentials().getRole(),
                 "You are not allowed to delete this talent"
         );
-        credentialsRepository.delete(talentToDelete.getCredentials());
-        fileStoreService.deleteImageByUserId(id);
-        talentRepository.delete(talentToDelete);
+        talentToDelete.getCredentials().setExpirationDeleting(LocalDateTime.now().plusMinutes(10));
+        //talentToDelete.getCredentials().setExpirationDeleting(LocalDateTime.now().plusSeconds(10));
+        talentToDelete.getCredentials().setStatus(AccountStatus.TEMPORARY_DELETED);
+        String token = UUID.randomUUID().toString();
+        talentToDelete.getCredentials().setDeleteToken(token);
+        sender.sendMail(
+                talentToDelete.getCredentials().getEmail(),
+                token,
+                request.getHeader(HttpHeaders.REFERER),
+                talentToDelete.getFirstname(),
+                talentToDelete.getCredentials().getExpirationDeleting(),
+                EmailType.RESTORE
+        );
+        talentRepository.save(talentToDelete);
     }
 
 
@@ -173,7 +197,7 @@ public class TalentService {
     }
 
     private Talent getTalentById(Long id) {
-        return talentRepository.findById(id)
+        return talentRepository.findByIdAndCredentialsVerified(id)
                 .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
     }
     private Set<Skill> getAllMappedSkills(Set <SkillTalentInfo> skillTalentInfo, Talent talent) {
