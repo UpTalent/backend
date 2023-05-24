@@ -5,7 +5,11 @@ import com.uptalent.proof.model.enums.ProofStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+import java.util.stream.Stream;
 
 public interface ProofRepository extends JpaRepository<Proof, Long> {
     @Query("SELECT p " +
@@ -50,4 +54,10 @@ public interface ProofRepository extends JpaRepository<Proof, Long> {
     @Query("select p from proof p join talent t on t.id = p.talent.id " +
             "where t.id = :talentId order by p.kudos desc")
     Page<Proof> getMostKudosedProofByTalentId(Long talentId, Pageable pageable);
+
+    @Modifying(clearAutomatically=true, flushAutomatically=true)
+    @Query(value = "UPDATE proof p " +
+            "SET p.status = com.uptalent.proof.model.enums.ProofStatus.HIDDEN " +
+            "WHERE p.id IN :ids")
+    void updateProofsDeleteData(List<Long> ids);
 }
