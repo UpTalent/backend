@@ -215,6 +215,7 @@ public class ProofService {
             throw new SkillNotFoundException("Some skills which are not exist");
         }
         validateProofContainSkills(proof, skills);
+        validatePositiveKudoses(postKudos);
 
         KudosHistory kudosHistory = KudosHistory.builder()
                 .sponsor(sponsor)
@@ -278,6 +279,15 @@ public class ProofService {
         long currentSumKudos = kudosHistoryRepository.sumKudosProofBySponsorId(sponsorId, proofId);
 
         return new UpdatedProofKudos(currentCountKudos, currentSumKudos, currentBalance, skillProofInfos);
+    }
+
+    private void validatePositiveKudoses(PostKudos postKudos) {
+        List<PostKudosSkill> postKudosSkills = postKudos.getPostKudosSkills().stream()
+                .filter(pks -> pks.getKudos() < 1L)
+                .toList();
+
+        if (!postKudosSkills.isEmpty())
+            throw new IllegalPostingKudos("Kudos should be positive");
     }
 
     private void validateProofContainSkills(Proof proof, Set<Skill> skills) {
