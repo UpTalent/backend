@@ -54,4 +54,11 @@ public interface SponsorRepository extends JpaRepository<Sponsor, Long> {
             "WHERE s.id IN :collect")
     void updateSponsorDeleteData(List<Long> collect);
 
+    @Query("SELECT coalesce(SUM(kh.totalKudos), 0) " +
+            "FROM kudos_history kh " +
+            "JOIN kh.proof p " +
+            "JOIN kh.sponsor s " +
+            "WHERE s.id = :sponsorId and p.id = :proofId")
+    Long sumKudosBySponsorAndProof(Long sponsorId, Long proofId);
+
 }
