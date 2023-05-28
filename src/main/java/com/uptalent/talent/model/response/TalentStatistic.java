@@ -16,5 +16,5 @@ import java.util.Set;
 public class TalentStatistic {
     private long totalCountKudos;
     private Set<SkillInfo> mostKudosedSkills;
-    private ProofTalentDetailInfo mostKudosedProof;
+    private ProofDetailInfo mostKudosedProof;
 }
