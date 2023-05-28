@@ -13,12 +13,14 @@ import com.uptalent.mapper.ProofMapper;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.model.entity.Proof;
+import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.model.response.ProofTalentDetailInfo;
 import com.uptalent.proof.repository.ProofRepository;
 import com.uptalent.skill.model.SkillInfo;
 import com.uptalent.skill.model.SkillTalentInfo;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.skill.repository.SkillRepository;
+import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.talent.exception.TalentIllegalEditingException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
@@ -51,6 +53,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.uptalent.credentials.model.enums.Role.TALENT;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -61,6 +65,7 @@ public class TalentService {
     private final AccessVerifyService accessVerifyService;
     private final CredentialsRepository credentialsRepository;
     private final SkillRepository skillRepository;
+    private final SponsorRepository sponsorRepository;
     private final ProofRepository proofRepository;
     private final TalentAgeRange talentAgeRange;
     private final ProofMapper proofMapper;
@@ -84,7 +89,7 @@ public class TalentService {
                 .email(talentRegistration.getEmail())
                 .password(passwordEncoder.encode(talentRegistration.getPassword()))
                 .status(AccountStatus.TEMPORARY_DELETED)
-                .role(Role.TALENT)
+                .role(TALENT)
                 .expirationDeleting(LocalDateTime.now().plusMinutes(10))
                 //.expirationDeleting(LocalDateTime.now().plusSeconds(30))
                 .deleteToken(token)
@@ -187,7 +192,7 @@ public class TalentService {
         Long totalCountKudos = talentRepository.getTotalCountKudosByTalentId(talentId);
         totalCountKudos = (totalCountKudos == null) ? 0L : totalCountKudos;
         Set<SkillInfo> mostKudosedSkills = getMostKudosedSkills(talentId);
-        ProofTalentDetailInfo mostKudosedProof = getMostKudosedProof(talentId);
+        ProofDetailInfo mostKudosedProof = getMostKudosedProof(talentId, accessVerifyService.getRole());
 
         return TalentStatistic.builder()
                 .totalCountKudos(totalCountKudos)
@@ -237,11 +242,25 @@ public class TalentService {
                 .getContent());
     }
 
-    private ProofTalentDetailInfo getMostKudosedProof(Long talentId) {
+    private ProofDetailInfo getMostKudosedProof(Long talentId, Role role) {
         PageRequest limitProof = PageRequest.of(0, 1);
         Page<Proof> mostKudosedProofResult = proofRepository.getMostKudosedProofByTalentId(talentId, limitProof);
-        return  (mostKudosedProofResult.getTotalElements() == 0) ? null :
-                proofMapper.toProofTalentDetailInfo(mostKudosedProofResult.getContent().get(0), true);
+        if (mostKudosedProofResult.getTotalElements() == 0) {
+            return null;
+        } else {
+            Proof proof = mostKudosedProofResult.getContent().get(0);
+            if (role.equals(TALENT)) {
+                return proofMapper.toProofTalentDetailInfo(proof, verifyOwnProof(talentId));
+            } else {
+                return proofMapper.toProofSponsorDetailInfo(proof, sponsorRepository
+                        .sumKudosBySponsorAndProof(accessVerifyService.getPrincipalId(), proof.getId()));
+            }
+        }
 
+
+    }
+
+    private boolean verifyOwnProof(Long talentId) {
+        return accessVerifyService.getPrincipalId().equals(talentId);
     }
 }
