@@ -6,11 +6,17 @@ import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
 import com.uptalent.proof.kudos.model.request.PostKudosSkill;
-import com.uptalent.proof.kudos.model.response.KudosSender;
+import com.uptalent.proof.kudos.model.response.UpdatedProofKudos;
 import com.uptalent.proof.kudos.repository.KudosHistoryRepository;
 import com.uptalent.proof.kudos.model.request.PostKudos;
+import com.uptalent.skill.exception.DuplicateSkillException;
+import com.uptalent.skill.model.SkillProofInfo;
 import com.uptalent.skill.model.SkillTalentInfo;
 import com.uptalent.skill.model.entity.Skill;
+import com.uptalent.skill.model.entity.SkillKudos;
+import com.uptalent.skill.repository.SkillKudosHistoryRepository;
+import com.uptalent.skill.repository.SkillKudosRepository;
+import com.uptalent.skill.repository.SkillRepository;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.talent.exception.DeniedAccessException;
@@ -39,9 +45,7 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.*;
 
 @ExtendWith({MockitoExtension.class})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -54,6 +58,12 @@ public class ProofServiceTest {
     private TalentRepository talentRepository;
     @Mock
     private KudosHistoryRepository kudosHistoryRepository;
+    @Mock
+    private SkillRepository skillRepository;
+    @Mock
+    private SkillKudosRepository skillKudosRepository;
+    @Mock
+    private SkillKudosHistoryRepository skillKudosHistoryRepository;
 
     @Mock
     private ProofMapper mapper;
@@ -62,8 +72,6 @@ public class ProofServiceTest {
 
     @Mock
     private SponsorRepository sponsorRepository;
-
-
     @Mock
     private PasswordEncoder passwordEncoder;
 
@@ -84,9 +92,11 @@ public class ProofServiceTest {
     private ProofModify reopenProofCase;
 
     private Sponsor sponsor;
-    private Skill skill;
+    private Skill javaSkill;
+    private Skill pythonSkill;
+    private SkillKudos javaSkillKudos;
+    private SkillKudos pythonSkillKudos;
     private SkillTalentInfo skillTalentInfo;
-
 
     @BeforeEach
     public void setUp() {
@@ -102,7 +112,6 @@ public class ProofServiceTest {
                 .credentials(credentials)
                 .lastname("Himonov")
                 .firstname("Mark")
-
                 .build();
 
         proof = Proof.builder()
@@ -114,6 +123,7 @@ public class ProofServiceTest {
                 .iconNumber(1)
                 .status(ProofStatus.PUBLISHED)
                 .talent(talent)
+                .kudos(0)
                 .build();
 
         draftProof = Proof.builder()
@@ -152,22 +162,37 @@ public class ProofServiceTest {
                 .id(2L)
                 .lastname("Doe")
                 .firstname("John")
-
                 .build();
 
         sponsor = Sponsor.builder()
                 .id(1L)
                 .fullname("SoftServe")
-                .kudos(50)
+                .kudos(500)
                 .build();
 
-
-        skill = Skill.builder()
+        javaSkill = Skill.builder()
                 .id(1L)
                 .name("Java")
                 .build();
 
-        skillTalentInfo = new SkillTalentInfo(skill.getId(), skill.getName());
+        pythonSkill = Skill.builder()
+                .id(2L)
+                .name("Python")
+                .build();
+
+        javaSkillKudos = SkillKudos.builder()
+                .id(1L)
+                .skill(javaSkill)
+                .build();
+
+        pythonSkillKudos = SkillKudos.builder()
+                .id(2L)
+                .skill(pythonSkill)
+                .build();
+
+        proof.setSkillKudos(new HashSet<>(Arrays.asList(javaSkillKudos, pythonSkillKudos)));
+
+        skillTalentInfo = new SkillTalentInfo(javaSkill.getId(), javaSkill.getName());
 
         talent.setProofs(new ArrayList<>(Arrays.asList(draftProof, publishedProof, hiddenProof)));
 
@@ -488,30 +513,54 @@ public class ProofServiceTest {
     @Test
     @DisplayName("[Stage-3.2] [US-2] - post kudos successfully as sponsor")
     public void postKudosSuccessfullyAsSponsor() {
-        List<PostKudosSkill> postKudosSkills = List.of(new PostKudosSkill(1L, 1L));
-        PostKudos postKudos = new PostKudos(postKudosSkills);
+        PostKudos postKudos = generatePostKudos();
         given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
         given(sponsorRepository.findById(sponsor.getId())).willReturn(Optional.of(sponsor));
         given(accessVerifyService.getPrincipalId()).willReturn(sponsor.getId());
 
+        given(skillRepository.findAllById(List.of(javaSkill.getId(), pythonSkill.getId())))
+                .willReturn(List.of(javaSkill, pythonSkill));
+
         long balanceKudosBeforePosting = sponsor.getKudos();
         long countKudosProofBeforePosting = proof.getKudos();
 
-        proofService.postKudos(postKudos, proof.getId());
-        Assertions.assertEquals(countKudosProofBeforePosting + postKudos.getPostKudosSkills().get(0).getKudos(), proof.getKudos());
-        Assertions.assertEquals(balanceKudosBeforePosting - postKudos.getPostKudosSkills().get(0).getKudos(), sponsor.getKudos());
+        long expectedKudosSum = postKudos.getPostKudosSkills().stream()
+                .mapToLong(PostKudosSkill::getKudos)
+                .sum();
+
+        UpdatedProofKudos result = proofService.postKudos(postKudos, proof.getId());
+        List<SkillProofInfo> skillProofInfos = result.getSkills();
+
+        assertThat(postKudos.getPostKudosSkills().size()).isEqualTo(skillProofInfos.size());
+        assertThat(skillProofInfos.get(0).getId()).isEqualTo(postKudos.getPostKudosSkills().get(0).getSkillId());
+        assertThat(skillProofInfos.get(0).getKudos()).isEqualTo(postKudos.getPostKudosSkills().get(0).getKudos());
+        assertThat(countKudosProofBeforePosting + expectedKudosSum).isEqualTo(proof.getKudos());
+        assertThat(balanceKudosBeforePosting - expectedKudosSum).isEqualTo(sponsor.getKudos());
+    }
+
+    @Test
+    @DisplayName("Try to post kudos when sponsor's balance is less than post kudos")
+    public void tryPostKudosWhenSponsorBalanceIsLessThanPostKudos() {
+        PostKudos postKudos = generatePostKudos();
+        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
+        given(sponsorRepository.findById(sponsor.getId())).willReturn(Optional.of(sponsor));
+        given(accessVerifyService.getPrincipalId()).willReturn(sponsor.getId());
+
+        postKudos.getPostKudosSkills().get(0).setKudos(sponsor.getKudos());
+
+        assertThrows(IllegalPostingKudos.class,
+                () -> proofService.postKudos(postKudos, proof.getId()));
     }
 
     @Test
     @DisplayName("[Stage-3.2] [US-2] - post kudos with negative balance")
     public void postKudosToOwnProof() {
-        List<PostKudosSkill> postKudosSkills = List.of(new PostKudosSkill(1L, 1L));
-        PostKudos postKudos = new PostKudos(postKudosSkills);
-        sponsor.setKudos(-50);
-
+        PostKudos postKudos = generatePostKudos();
         given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
         given(sponsorRepository.findById(sponsor.getId())).willReturn(Optional.of(sponsor));
         given(accessVerifyService.getPrincipalId()).willReturn(sponsor.getId());
+
+        sponsor.setKudos(-1);
 
         assertThrows(IllegalPostingKudos.class,
                 () -> proofService.postKudos(postKudos, proof.getId()));
@@ -522,15 +571,27 @@ public class ProofServiceTest {
     @Test
     @DisplayName("[Stage-3.2] [US-2] - post kudos to proof which has not status PUBLISHED")
     public void postKudosToProofWhichHasNotStatusPublished() {
-        List<PostKudosSkill> postKudosSkills = List.of(new PostKudosSkill(1L, 1L));
-        PostKudos postKudos = new PostKudos(postKudosSkills);
-
+        PostKudos postKudos = generatePostKudos();
         given(proofRepository.findById(draftProof.getId())).willReturn(Optional.of(draftProof));
         given(sponsorRepository.findById(sponsor.getId())).willReturn(Optional.of(sponsor));
         given(accessVerifyService.getPrincipalId()).willReturn(sponsor.getId());
 
         assertThrows(ProofNotFoundException.class,
                 () -> proofService.postKudos(postKudos, draftProof.getId()));
+    }
+
+    @Test
+    @DisplayName("Try to post kudos with duplicate skills")
+    public void tryPostKudosWithDuplicateSkills() {
+        PostKudos postKudos = generatePostKudos();
+        given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
+        given(sponsorRepository.findById(sponsor.getId())).willReturn(Optional.of(sponsor));
+        given(accessVerifyService.getPrincipalId()).willReturn(sponsor.getId());
+
+        postKudos.getPostKudosSkills().add(postKudos.getPostKudosSkills().get(0));
+
+        assertThrows(DuplicateSkillException.class,
+                () -> proofService.postKudos(postKudos, proof.getId()));
     }
 
     /*
@@ -581,5 +642,12 @@ public class ProofServiceTest {
 
         assertThrows(ProofNotFoundException.class,
                 () -> proofService.getKudosSenders(proof.getId()));
+    }
+
+    private PostKudos generatePostKudos() {
+        List<PostKudosSkill> postKudosSkills = new ArrayList<>(List.of(
+                new PostKudosSkill(25L, javaSkill.getId()),
+                new PostKudosSkill(25L, pythonSkill.getId())));
+        return new PostKudos(postKudosSkills);
     }
 }
