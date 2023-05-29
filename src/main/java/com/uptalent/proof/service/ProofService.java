@@ -71,8 +71,8 @@ public class ProofService {
     private final SkillKudosRepository skillKudosRepository;
     private final SkillKudosHistoryRepository skillKudosHistoryRepository;
     private final KudosHistoryMapper kudosHistoryMapper;
-    @Value("${kudos.max-value}")
-    private long KUDOS_MAX_VALUE;
+
+    private long KUDOS_MAX_VALUE = 9999999999L;
 
 
     public PageWithMetadata<? extends ProofGeneralInfo> getProofs(int page, int size, String sort, String [] skills) {

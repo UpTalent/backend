@@ -16,8 +16,10 @@ import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.service.ProofService;
+import com.uptalent.skill.exception.DuplicateSkillException;
 import com.uptalent.skill.model.SkillTalentInfo;
 import com.uptalent.skill.model.entity.Skill;
+import com.uptalent.skill.model.entity.SkillKudos;
 import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.talent.exception.TalentNotFoundException;
@@ -38,8 +40,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -90,7 +91,10 @@ public class ProofControllerTest {
     private ProofModify publishProofCase;
     private ProofModify hideProofCase;
     private ProofModify reopenProofCase;
-    private Skill skill;
+    private Skill javaSkill;
+    private Skill pythonSkill;
+    private SkillKudos javaSkillKudos;
+    private SkillKudos pythonSkillKudos;
     private SkillTalentInfo skillTalentInfo;
 
     @BeforeEach
@@ -107,7 +111,6 @@ public class ProofControllerTest {
                 .credentials(credentials)
                 .lastname("Himonov")
                 .firstname("Mark")
-
                 .build();
         proof = Proof.builder()
                 .id(1L)
@@ -117,7 +120,6 @@ public class ProofControllerTest {
                 .published(LocalDateTime.now())
                 .status(ProofStatus.PUBLISHED)
                 .talent(talent)
-                
                 .build();
         draftProof = Proof.builder()
                 .id(20L)
@@ -149,12 +151,29 @@ public class ProofControllerTest {
                 .talent(talent)
                 .build();
 
-        skill = Skill.builder()
+        javaSkill = Skill.builder()
                 .id(1L)
                 .name("Java")
                 .build();
 
-        skillTalentInfo = new SkillTalentInfo(skill.getId(), skill.getName());
+        pythonSkill = Skill.builder()
+                .id(2L)
+                .name("Python")
+                .build();
+
+        javaSkillKudos = SkillKudos.builder()
+                .id(1L)
+                .skill(javaSkill)
+                .build();
+
+        pythonSkillKudos = SkillKudos.builder()
+                .id(2L)
+                .skill(pythonSkill)
+                .build();
+
+        proof.setSkillKudos(new HashSet<>(Arrays.asList(javaSkillKudos, pythonSkillKudos)));
+
+        skillTalentInfo = new SkillTalentInfo(javaSkill.getId(), javaSkill.getName());
 
 //        proofModify = new ProofModify("New Proof title", "New Proof summary", "New Proof content",
 //                2, ProofStatus.DRAFT.name(), Set.of(skillTalentInfo));
@@ -668,8 +687,7 @@ public class ProofControllerTest {
     @Test
     @DisplayName("[Stage-3.2] [US-1] - post kudos successfully as sponsor")
     public void postKudosSuccessfullyAsSponsor() throws Exception {
-        List<PostKudosSkill> postKudosSkills = List.of(new PostKudosSkill(1L, 1L));
-        PostKudos postKudos = new PostKudos(postKudosSkills);
+        PostKudos postKudos = generatePostKudos();
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.post("/api/v1/proofs/{proofId}/kudos",
@@ -680,15 +698,14 @@ public class ProofControllerTest {
 
         response
                 .andDo(print())
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
     }
 
 
     @Test
     @DisplayName("[Stage-3.2] [US-1] - post kudos to proof which has not status PUBLISHED")
     public void postKudosToProofWhichHasNotStatusPublished() throws Exception {
-        List<PostKudosSkill> postKudosSkills = List.of(new PostKudosSkill(1L, 1L));
-        PostKudos postKudos = new PostKudos(postKudosSkills);
+        PostKudos postKudos = generatePostKudos();
 
         String errorMessage = "Proof was not found";
 
@@ -706,6 +723,28 @@ public class ProofControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(errorMessage));
+    }
+
+    @Test
+    @DisplayName("Try to post kudos with duplicate skills")
+    public void tryPostKudosWithDuplicateSkills() throws Exception {
+        PostKudos postKudos = generatePostKudos();
+        postKudos.getPostKudosSkills().add(postKudos.getPostKudosSkills().get(0));
+
+        willThrow(new DuplicateSkillException("Duplicate skills"))
+                .given(proofService).postKudos(any(PostKudos.class), anyLong());
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.post("/api/v1/proofs/{proofId}/kudos",
+                                proof.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postKudos)));
+
+        response
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 
     @Test
@@ -763,5 +802,12 @@ public class ProofControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+
+    private PostKudos generatePostKudos() {
+        List<PostKudosSkill> postKudosSkills = new ArrayList<>(List.of(
+                new PostKudosSkill(255L, javaSkill.getId()),
+                new PostKudosSkill(25L, pythonSkill.getId())));
+        return new PostKudos(postKudosSkills);
     }
 }
