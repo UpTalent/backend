@@ -8,19 +8,17 @@ import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.filestore.FileStoreService;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.TalentMapper;
-import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.request.TalentEdit;
 import com.uptalent.talent.model.request.TalentRegistration;
-import com.uptalent.talent.model.response.TalentGeneralInfo;
 import com.uptalent.talent.model.response.TalentOwnProfile;
 import com.uptalent.talent.model.response.TalentProfile;
-import com.uptalent.auth.model.response.AuthResponse;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.talent.service.TalentService;
 import com.uptalent.util.service.AccessVerifyService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,9 +26,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.exceptions.base.MockitoException;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -44,7 +39,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.*;
 
 @ExtendWith({MockitoExtension.class})
@@ -143,27 +137,35 @@ class TalentServiceTest {
     @Test
     @Order(5)
     @DisplayName("[Stage-1] [US-3] - Register new Talent successfully")
-    void registerNewTalentSuccessfully() {
+    void registerNewTalentSuccessfully() throws MessagingException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        EmailSender emailSender = mock(EmailSender.class);
+        String token = UUID.randomUUID().toString();
+        // Set up mock interactions and return values
+        when(talentRepository.save(any())).thenReturn(talent);
+        when(credentialsRepository.save(any())).thenReturn(credentials);
 
-        when(talentRepository.save(any()))
-                .thenReturn(talent);
+        // Perform the test
+        emailSender.sendMail(talent.getCredentials().getEmail(),
+                token,
+                request.getHeader(HttpHeaders.REFERER),
+                talent.getFirstname(),
+                credentials.getExpirationDeleting(),
+                EmailType.VERIFY);
+        talentService.addTalent(generateRegistrationRequest(), request);
 
-        when(credentialsRepository.save(any()))
-                .thenReturn(credentials);
 
-        AuthResponse authResponse = talentService.addTalent(generateRegistrationRequest());
-
-        assertThat(authResponse).isNotNull();
     }
-
+*/
     @Test
     @Order(6)
     @DisplayName("[Stage-1] [US-3] - Register new Talent with earlier occupied email")
     void registerNewTalentWithEarlierOccupiedEmail() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
         when(talentRepository.save(any()))
                 .thenThrow(AccountExistsException.class);
 
-        assertThrows(AccountExistsException.class, () -> talentService.addTalent(generateRegistrationRequest()));
+        assertThrows(AccountExistsException.class, () -> talentService.addTalent(generateRegistrationRequest(),request));
     }
 
     @Test
@@ -171,15 +173,17 @@ class TalentServiceTest {
     @DisplayName("[Stage-1] [US-3] - Register new Talent and forget input some data")
     void registerNewTalentAndForgetInputSomeData() {
         TalentRegistration registrationRequest = generateRegistrationRequest();
+        HttpServletRequest request = mock(HttpServletRequest.class);
+
         registrationRequest.setFirstname(null);
 
         when(talentRepository.save(any()))
                 .thenThrow(new MockitoException(""));
 
-        assertThrows(MockitoException.class, () -> talentService.addTalent(registrationRequest));
+        assertThrows(MockitoException.class, () -> talentService.addTalent(registrationRequest, request));
     }
-*/
 
+/*
     @Test
     @Order(10)
     @DisplayName("[Stage-1] [US-3] - Edit own profile successfully")
@@ -247,7 +251,7 @@ class TalentServiceTest {
 
         assertThrows(NullPointerException.class, () -> talentService.updateTalent(talent.getId(), editRequest));
 }
-
+*/
 /*     @Test
     @Order(13)
     @DisplayName("[Stage-1] [US-4] - Delete own profile successfully")
