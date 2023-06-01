@@ -43,13 +43,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static com.uptalent.proof.model.enums.ProofStatus.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith({MockitoExtension.class})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Disabled
 public class ProofServiceTest {
     @Mock
     private ProofRepository proofRepository;
@@ -82,15 +82,9 @@ public class ProofServiceTest {
     private Credentials credentials;
     private Talent talent;
     private Talent anotherTalent;
-    private ProofModify proofModify;
     private Proof publishedProof;
     private Proof hiddenProof;
     private Proof draftProof;
-    private ProofModify editProofCase;
-    private ProofModify publishProofCase;
-    private ProofModify hideProofCase;
-    private ProofModify reopenProofCase;
-
     private Sponsor sponsor;
     private Skill javaSkill;
     private Skill pythonSkill;
@@ -126,16 +120,6 @@ public class ProofServiceTest {
                 .kudos(0)
                 .build();
 
-        draftProof = Proof.builder()
-                .id(20L)
-                .title("Proof title")
-                .summary("Proof summary")
-                .content("Proof content")
-                .iconNumber(1)
-                .status(ProofStatus.DRAFT)
-                .talent(talent)
-                .build();
-
         publishedProof = Proof.builder()
                 .id(21L)
                 .title("Proof title")
@@ -154,7 +138,7 @@ public class ProofServiceTest {
                 .content("Proof content")
                 .published(LocalDateTime.now())
                 .iconNumber(1)
-                .status(ProofStatus.HIDDEN)
+                .status(HIDDEN)
                 .talent(talent)
                 .build();
 
@@ -190,28 +174,35 @@ public class ProofServiceTest {
                 .skill(pythonSkill)
                 .build();
 
+        draftProof = Proof.builder()
+                .id(20L)
+                .title("Proof title")
+                .summary("Proof summary")
+                .content("Proof content")
+                .iconNumber(1)
+                .status(DRAFT)
+                .talent(talent)
+                .build();
+
         proof.setSkillKudos(new HashSet<>(Arrays.asList(javaSkillKudos, pythonSkillKudos)));
 
         skillTalentInfo = new SkillTalentInfo(javaSkill.getId(), javaSkill.getName());
 
         talent.setProofs(new ArrayList<>(Arrays.asList(draftProof, publishedProof, hiddenProof)));
 
-//        proofModify = new ProofModify("New Proof title", "New Proof summary", "New Proof content",
-//                2, ProofStatus.DRAFT.name(), Set.of(skillTalentInfo));
-//
-//        editProofCase = new ProofModify("Edit Proof title", "Edit Proof summary", "Edit Proof content",
-//                3, ProofStatus.DRAFT.name(), Set.of(skillTalentInfo));
-//        publishProofCase = new ProofModify("Publish Proof title", "Publish Proof summary", "Publish Proof content",
-//                3, ProofStatus.PUBLISHED.name(), Set.of(skillTalentInfo));
-//        hideProofCase = new ProofModify("Hide Proof title", "Hide Proof summary", "Hide Proof content",
-//                3, ProofStatus.HIDDEN.name(), Set.of(skillTalentInfo));
-//        reopenProofCase = new ProofModify("Reopen Proof title", "Reopen Proof summary", "Reopen Proof content",
-//                3, ProofStatus.PUBLISHED.name(), Set.of(skillTalentInfo));
     }
 
+
     @Test
-    @DisplayName("[Stage-2] [US-4] - edit not exist proof")
+    @DisplayName("Edit not exist proof")
     void updateNotExistsProof() {
+        ProofModify proofModify = new ProofModify("Proof title",
+                "Proof summary",
+                "Proof content",
+                3,
+                ProofStatus.DRAFT.name(),
+                List.of(javaSkill.getId()));
+
         given(proofRepository.findById(proof.getId())).willReturn(Optional.empty());
 
         given(talentRepository.existsById(talent.getId())).willReturn(true);
@@ -221,8 +212,15 @@ public class ProofServiceTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-4] - edit proof other talent")
+    @DisplayName("Edit proof other talent")
     void updateProofOtherTalent() {
+        ProofModify proofModify = new ProofModify("Proof title",
+                "Proof summary",
+                "Proof content",
+                3,
+                ProofStatus.DRAFT.name(),
+                List.of(javaSkill.getId()));
+
         given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
 
         given(talentRepository.existsById(anotherTalent.getId())).willReturn(true);
@@ -232,36 +230,59 @@ public class ProofServiceTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-4] - edit data in proof with draft status")
+    @DisplayName("Edit data in proof with draft status")
     void updateDataInProofWithDraftStatus() {
-        ProofDetailInfo resultProof = ProofDetailInfo.builder()
+        // given
+        ProofModify editProofCase = new ProofModify("Edit Proof title",
+                "Edit Proof summary",
+                "Edit Proof content",
+                3,
+                ProofStatus.DRAFT.name(),
+                List.of(javaSkill.getId()));
+
+        ProofDetailInfo editProof = ProofDetailInfo.builder()
                 .id(draftProof.getId())
                 .title(editProofCase.getTitle())
                 .summary(editProofCase.getSummary())
                 .content(editProofCase.getContent())
                 .iconNumber(editProofCase.getIconNumber())
-                .published(draftProof.getPublished())
-                .status(draftProof.getStatus())
+                .status(DRAFT)
+                .skills(Set.of(new SkillProofInfo(javaSkill.getId(), javaSkill.getName(), javaSkillKudos.getKudos())))
                 .build();
 
         given(proofRepository.findById(draftProof.getId()))
                 .willReturn(Optional.of(draftProof));
-
         given(talentRepository.existsById(talent.getId())).willReturn(true);
+        given(skillRepository.findAllById(editProofCase.getSkillIds())).willReturn(List.of(javaSkill));
 
-        doReturn(resultProof).when(mapper).toProofDetailInfo(any(Proof.class));
+        // when
+        doReturn(editProof).when(mapper).toProofDetailInfo(any(Proof.class));
 
-        ProofDetailInfo proofDetailInfo = proofService.editProof(editProofCase, talent.getId(), draftProof.getId());
+        ProofDetailInfo proofDetailInfo = proofService.editProof(editProofCase,
+                talent.getId(),
+                draftProof.getId());
 
+        // then
         assertThat(editProofCase.getTitle()).isEqualTo(proofDetailInfo.getTitle());
         assertThat(editProofCase.getSummary()).isEqualTo(proofDetailInfo.getSummary());
         assertThat(editProofCase.getContent()).isEqualTo(proofDetailInfo.getContent());
         assertThat(editProofCase.getIconNumber()).isEqualTo(proofDetailInfo.getIconNumber());
+        assertTrue(proofDetailInfo.getSkills().stream()
+                .map(SkillProofInfo::getName)
+                .toList()
+                .contains(javaSkill.getName()));
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-4] - edit data in proof with other status")
+    @DisplayName("Edit data in proof with other status")
     void updateDataInProofWithOtherStatus() {
+        ProofModify editProofCase = new ProofModify("Edit Proof title",
+                "Edit Proof summary",
+                "Edit Proof content",
+                3,
+                ProofStatus.DRAFT.name(),
+                List.of(javaSkill.getId()));
+
         given(proofRepository.findById(hiddenProof.getId()))
                 .willReturn(Optional.of(hiddenProof));
 
@@ -272,34 +293,66 @@ public class ProofServiceTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-5] - publish proof with draft status")
+    @DisplayName("Publish proof with draft status")
     void publishProofWithDraftStatus() {
-        ProofDetailInfo resultProof = ProofDetailInfo.builder()
+        // given
+        ProofModify publishProofCase = new ProofModify(
+                "Publish Proof title",
+                "Publish Proof summary",
+                "Publish Proof content",
+                3,
+                ProofStatus.PUBLISHED.name(),
+                List.of(javaSkill.getId(), pythonSkill.getId()));
+        ProofDetailInfo publishProof = ProofDetailInfo.builder()
                 .id(draftProof.getId())
-                .title(draftProof.getTitle())
-                .summary(draftProof.getSummary())
-                .content(draftProof.getContent())
-                .iconNumber(draftProof.getIconNumber())
+                .title(publishProofCase.getTitle())
+                .summary(publishProofCase.getSummary())
+                .content(publishProofCase.getContent())
+                .iconNumber(publishProofCase.getIconNumber())
+                .status(PUBLISHED)
                 .published(LocalDateTime.now())
-                .status(ProofStatus.PUBLISHED)
+                .skills(Set.of(
+                        new SkillProofInfo(javaSkill.getId(), javaSkill.getName(), javaSkillKudos.getKudos()),
+                        new SkillProofInfo(pythonSkill.getId(), pythonSkill.getName(), pythonSkillKudos.getKudos())))
                 .build();
 
         given(proofRepository.findById(draftProof.getId()))
                 .willReturn(Optional.of(draftProof));
-
         given(talentRepository.existsById(talent.getId())).willReturn(true);
+        given(skillRepository.findAllById(publishProofCase.getSkillIds())).willReturn(List.of(javaSkill, pythonSkill));
 
-        doReturn(resultProof).when(mapper).toProofDetailInfo(any(Proof.class));
-
+        // when
+        doReturn(publishProof).when(mapper).toProofDetailInfo(any(Proof.class));
         ProofDetailInfo proofDetailInfo = proofService.editProof(publishProofCase, talent.getId(), draftProof.getId());
 
-        assertThat(proofDetailInfo.getPublished()).isNotNull();
-        assertThat(proofDetailInfo.getStatus()).isEqualTo(ProofStatus.PUBLISHED);
+        // then
+        assertThat(proofDetailInfo.getStatus()).isEqualTo(PUBLISHED);
+        assertThat(publishProofCase.getTitle()).isEqualTo(proofDetailInfo.getTitle());
+        assertThat(publishProofCase.getSummary()).isEqualTo(proofDetailInfo.getSummary());
+        assertThat(publishProofCase.getContent()).isEqualTo(proofDetailInfo.getContent());
+        assertThat(publishProofCase.getIconNumber()).isEqualTo(proofDetailInfo.getIconNumber());
+        assertTrue(proofDetailInfo.getSkills().stream()
+                .map(SkillProofInfo::getName)
+                .toList()
+                .contains(javaSkill.getName()));
+        assertTrue(proofDetailInfo.getSkills().stream()
+                .map(SkillProofInfo::getName)
+                .toList()
+                .contains(pythonSkill.getName()));
+        assertNotNull(proofDetailInfo.getPublished());
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-5] - publish proof with other status")
+    @DisplayName("Publish proof with other status")
     void publishProofWithOtherStatus() {
+        ProofModify publishProofCase = new ProofModify(
+                "Publish Proof title",
+                "Publish Proof summary",
+                "Publish Proof content",
+                3,
+                ProofStatus.PUBLISHED.name(),
+                List.of(javaSkill.getId(), pythonSkill.getId()));
+
         given(proofRepository.findById(publishedProof.getId()))
                 .willReturn(Optional.of(publishedProof));
 
@@ -310,33 +363,49 @@ public class ProofServiceTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-5] - hide proof with published status")
+    @DisplayName("Hide proof with published status")
     void hideProofWithPublishedStatus() {
-        ProofDetailInfo resultProof = ProofDetailInfo.builder()
+        // given
+        ProofModify hideProofCase = new ProofModify("Hide Proof title",
+                "Hide Proof summary",
+                "Hide Proof content",
+                3,
+                HIDDEN.name(),
+                List.of(javaSkill.getId()));
+
+        ProofDetailInfo hiddenProof = ProofDetailInfo.builder()
                 .id(publishedProof.getId())
-                .title(publishedProof.getTitle())
-                .summary(publishedProof.getSummary())
-                .content(publishedProof.getContent())
-                .iconNumber(publishedProof.getIconNumber())
+                .title(hideProofCase.getTitle())
+                .summary(hideProofCase.getSummary())
+                .content(hideProofCase.getContent())
+                .iconNumber(hideProofCase.getIconNumber())
                 .published(publishedProof.getPublished())
-                .status(ProofStatus.HIDDEN)
+                .status(HIDDEN)
+                .skills(Set.of(new SkillProofInfo(javaSkill.getId(), javaSkill.getName(), javaSkillKudos.getKudos())))
                 .build();
 
         given(proofRepository.findById(publishedProof.getId()))
                 .willReturn(Optional.of(publishedProof));
-
         given(talentRepository.existsById(talent.getId())).willReturn(true);
 
-        doReturn(resultProof).when(mapper).toProofDetailInfo(any(Proof.class));
-
+        // when
+        doReturn(hiddenProof).when(mapper).toProofDetailInfo(any(Proof.class));
         ProofDetailInfo proofDetailInfo = proofService.editProof(hideProofCase, talent.getId(), publishedProof.getId());
 
-        assertThat(proofDetailInfo.getStatus()).isEqualTo(ProofStatus.HIDDEN);
+        // then
+        assertThat(proofDetailInfo.getStatus()).isEqualTo(HIDDEN);
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-5] - hide proof with other status")
+    @DisplayName("Hide proof with other status")
     void hideProofWithOtherStatus() {
+        ProofModify hideProofCase = new ProofModify("Hide Proof title",
+                "Hide Proof summary",
+                "Hide Proof content",
+                3,
+                HIDDEN.name(),
+                List.of(javaSkill.getId()));
+
         given(proofRepository.findById(draftProof.getId()))
                 .willReturn(Optional.of(draftProof));
 
@@ -347,16 +416,25 @@ public class ProofServiceTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-5] - reopen proof with hidden status")
+    @DisplayName("Reopen proof with hidden status")
     void reopenProofWithHiddenStatus() {
-        ProofDetailInfo resultProof = ProofDetailInfo.builder()
+        // given
+        ProofModify reopenProofCase = new ProofModify("Reopen Proof title",
+                "Reopen Proof summary",
+                "Reopen Proof content",
+                3,
+                PUBLISHED.name(),
+                List.of(javaSkill.getId()));
+
+        ProofDetailInfo reopenedProof = ProofDetailInfo.builder()
                 .id(hiddenProof.getId())
                 .title(hiddenProof.getTitle())
                 .summary(hiddenProof.getSummary())
                 .content(hiddenProof.getContent())
                 .iconNumber(hiddenProof.getIconNumber())
                 .published(hiddenProof.getPublished())
-                .status(ProofStatus.PUBLISHED)
+                .status(PUBLISHED)
+                .skills(Set.of(new SkillProofInfo(javaSkill.getId(), javaSkill.getName(), javaSkillKudos.getKudos())))
                 .build();
 
         given(proofRepository.findById(hiddenProof.getId()))
@@ -364,16 +442,26 @@ public class ProofServiceTest {
 
         given(talentRepository.existsById(talent.getId())).willReturn(true);
 
-        doReturn(resultProof).when(mapper).toProofDetailInfo(any(Proof.class));
+        // when
+        doReturn(reopenedProof).when(mapper).toProofDetailInfo(any(Proof.class));
 
         ProofDetailInfo proofDetailInfo = proofService.editProof(reopenProofCase, talent.getId(), hiddenProof.getId());
 
-        assertThat(proofDetailInfo.getStatus()).isEqualTo(ProofStatus.PUBLISHED);
+        // then
+        assertThat(proofDetailInfo.getStatus()).isEqualTo(PUBLISHED);
+        assertThat(proofDetailInfo.getId()).isEqualTo(reopenedProof.getId());
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-5] - reopen proof with other status")
+    @DisplayName("Reopen proof with other status")
     void reopenProofWithOtherStatus() {
+        ProofModify reopenProofCase = new ProofModify("Reopen Proof title",
+                "Reopen Proof summary",
+                "Reopen Proof content",
+                3,
+                PUBLISHED.name(),
+                List.of(javaSkill.getId()));
+
         given(proofRepository.findById(publishedProof.getId()))
                 .willReturn(Optional.of(publishedProof));
 

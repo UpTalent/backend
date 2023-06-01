@@ -42,7 +42,6 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
-@Disabled
 public class SponsorServiceTest {
     @Mock
     private SponsorRepository sponsorRepository;

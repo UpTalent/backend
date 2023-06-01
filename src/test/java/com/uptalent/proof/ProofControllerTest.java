@@ -42,6 +42,8 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static com.uptalent.proof.model.enums.ProofStatus.HIDDEN;
+import static com.uptalent.proof.model.enums.ProofStatus.PUBLISHED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -54,7 +56,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(ProofController.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Disabled
 public class ProofControllerTest {
     @Autowired
     MockMvc mockMvc;
@@ -82,20 +83,15 @@ public class ProofControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    private ProofModify proofModify;
     private Proof publishedProof;
     private Proof hiddenProof;
     private Proof draftProof;
-    private ProofModify editProofCase;
-    private ProofModify publishProofCase;
-    private ProofModify hideProofCase;
-    private ProofModify reopenProofCase;
     private Skill javaSkill;
     private Skill pythonSkill;
     private SkillKudos javaSkillKudos;
     private SkillKudos pythonSkillKudos;
     private SkillTalentInfo skillTalentInfo;
+    private ProofModify proofModify;
 
     @BeforeEach
     public void setUp() {
@@ -174,26 +170,29 @@ public class ProofControllerTest {
         proof.setSkillKudos(new HashSet<>(Arrays.asList(javaSkillKudos, pythonSkillKudos)));
 
         skillTalentInfo = new SkillTalentInfo(javaSkill.getId(), javaSkill.getName());
+        proofModify = new ProofModify("Proof title",
+                "Proof summary",
+                "Proof content",
+                3,
+                ProofStatus.DRAFT.name(),
+                List.of(javaSkill.getId()));
 
-//        proofModify = new ProofModify("New Proof title", "New Proof summary", "New Proof content",
-//                2, ProofStatus.DRAFT.name(), Set.of(skillTalentInfo));
-//
-//        editProofCase = new ProofModify("Edit Proof title", "Edit Proof summary", "Edit Proof content",
-//                3, ProofStatus.DRAFT.name(), Set.of(skillTalentInfo));
-//        publishProofCase = new ProofModify("Publish Proof title", "Publish Proof summary", "Publish Proof content",
-//                3, ProofStatus.PUBLISHED.name(), Set.of(skillTalentInfo));
-//        hideProofCase = new ProofModify("Hide Proof title", "Hide Proof summary", "Hide Proof content",
-//                3, ProofStatus.HIDDEN.name(), Set.of(skillTalentInfo));
-//        reopenProofCase = new ProofModify("Reopen Proof title", "Reopen Proof summary", "Reopen Proof content",
-//                3, ProofStatus.PUBLISHED.name(), Set.of(skillTalentInfo));
     }
 
     @Test
-    @DisplayName("[Stage 2] [US 3] - Create new proof successfully")
+    @DisplayName("Create new proof successfully")
     void createProofSuccessfully() throws Exception {
+        // given
+        ProofModify proofModify = new ProofModify("Proof title",
+                "Proof summary",
+                "Proof content",
+                3,
+                ProofStatus.DRAFT.name(),
+                List.of(javaSkill.getId()));
         URI proofLocation = new URI("http://mock/api/v1/talents/1/proofs/1");
         given(proofService.createProof(any(ProofModify.class), anyLong())).willReturn(proofLocation);
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.post("/api/v1/talents/{talentId}/proofs",
                         talent.getId())
@@ -201,6 +200,7 @@ public class ProofControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(proofModify)));
 
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isCreated())
@@ -208,11 +208,13 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage 2] [US 3] - Try to create proof in another talent profile")
+    @DisplayName("Try to create proof in another talent profile")
     void createProofInAnotherTalentProfile() throws Exception {
+        // given
         given(proofService.createProof(any(ProofModify.class), anyLong()))
                 .willThrow(new DeniedAccessException("You do not have permission"));
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.post("/api/v1/talents/{talentId}/proofs",
                         talent.getId())
@@ -220,6 +222,7 @@ public class ProofControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(proofModify)));
 
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isForbidden())
@@ -227,11 +230,13 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage 2] [US 3] - Try to create proof in non-existent talent profile")
+    @DisplayName("Try to create proof in non-existent talent profile")
     void createProofInNonExistentTalentProfile() throws Exception {
+        // given
         given(proofService.createProof(any(ProofModify.class), anyLong()))
                 .willThrow(new TalentNotFoundException("Talent not found"));
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.post("/api/v1/talents/{talentId}/proofs",
                         talent.getId())
@@ -239,6 +244,7 @@ public class ProofControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(proofModify)));
 
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isNotFound())
@@ -246,8 +252,9 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage 2] [US 3] - Try to create proof with other status")
+    @DisplayName("Try to create proof with other status")
     void createProofWithOtherStatus() throws Exception {
+        // given
         String errorMessage = "Proof status for creating should be DRAFT";
 
         given(proofService.createProof(any(ProofModify.class), anyLong()))
@@ -255,6 +262,7 @@ public class ProofControllerTest {
 
         proofModify.setStatus(ProofStatus.PUBLISHED.name());
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.post("/api/v1/talents/{talentId}/proofs",
                                 talent.getId())
@@ -262,6 +270,7 @@ public class ProofControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(proofModify)));
 
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isConflict())
@@ -270,17 +279,21 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-4] - edit proof with other auth")
+    @DisplayName("Edit proof with other auth")
     void editProofWithOtherAuth() throws Exception {
+        // given
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
                 .willThrow(new DeniedAccessException("You do not have permission"));
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{talentId}/proofs/{proofId}",
                                 talent.getId(), proof.getId())
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(proofModify)));
+
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isForbidden())
@@ -288,11 +301,13 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-4] - edit not exist proof")
+    @DisplayName("Edit not exist proof")
     public void editNotExistProof() throws Exception {
+        // given
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
                 .willThrow(new ProofNotFoundException("Proof not found"));
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{talentId}/proofs/{proofId}",
                         talent.getId(), proof.getId())
@@ -300,6 +315,7 @@ public class ProofControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(proofModify)));
 
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isNotFound())
@@ -307,11 +323,13 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-4] - edit proof other talent")
+    @DisplayName("Edit proof other talent")
     public void editProofOtherTalent() throws Exception {
+        // given
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
                 .willThrow(new UnrelatedProofException("Proof not related to talent"));
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{talentId}/proofs/{proofId}",
                         talent.getId(), proof.getId())
@@ -319,6 +337,7 @@ public class ProofControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(proofModify)));
 
+        // when
         response
                 .andDo(print())
                 .andExpect(status().isForbidden())
@@ -326,8 +345,16 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-4] - edit data in proof with draft status")
+    @DisplayName("Edit data in proof with draft status")
     public void editDataInProofWithDraftStatus() throws Exception {
+        // given
+        ProofModify editProofCase = new ProofModify("Edit Proof title",
+                "Edit Proof summary",
+                "Edit Proof content",
+                3,
+                ProofStatus.DRAFT.name(),
+                List.of(javaSkill.getId()));
+
         ProofDetailInfo resultProof = ProofDetailInfo.builder()
                 .id(draftProof.getId())
                 .title(editProofCase.getTitle())
@@ -341,6 +368,7 @@ public class ProofControllerTest {
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
                 .willReturn(resultProof);
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{talentId}/proofs/{proofId}",
                         talent.getId(), proof.getId())
@@ -348,6 +376,7 @@ public class ProofControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(editProofCase)));
 
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -360,11 +389,20 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-4] - edit data in proof with other status")
+    @DisplayName("Edit data in proof with other status")
     public void editDataInProofWithOtherStatus() throws Exception {
+        // given
+        ProofModify editProofCase = new ProofModify("Edit Proof title",
+                "Edit Proof summary",
+                "Edit Proof content",
+                3,
+                ProofStatus.DRAFT.name(),
+                List.of(javaSkill.getId()));
+
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
                 .willThrow(new IllegalProofModifyingException("Illegal operation for modifying status"));
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{talentId}/proofs/{proofId}",
                         talent.getId(), hiddenProof.getId())
@@ -372,6 +410,7 @@ public class ProofControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(editProofCase)));
 
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isConflict())
@@ -379,8 +418,16 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-5] - publish proof with draft status")
+    @DisplayName("Publish proof with draft status")
     public void publishProofWithDraftStatus() throws Exception {
+        // given
+        ProofModify publishProofCase = new ProofModify(
+                "Publish Proof title",
+                "Publish Proof summary",
+                "Publish Proof content",
+                3,
+                ProofStatus.PUBLISHED.name(),
+                List.of(javaSkill.getId(), pythonSkill.getId()));
         ProofDetailInfo resultProof = ProofDetailInfo.builder()
                 .id(draftProof.getId())
                 .title(draftProof.getTitle())
@@ -394,6 +441,7 @@ public class ProofControllerTest {
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
                 .willReturn(resultProof);
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{talentId}/proofs/{proofId}",
                         talent.getId(), draftProof.getId())
@@ -401,6 +449,7 @@ public class ProofControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(publishProofCase)));
 
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -408,11 +457,20 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-5] - publish proof with other status")
+    @DisplayName("Publish proof with other status")
     public void publishProofWithOtherStatus() throws Exception {
+        // given
+        ProofModify publishProofCase = new ProofModify(
+                "Publish Proof title",
+                "Publish Proof summary",
+                "Publish Proof content",
+                3,
+                ProofStatus.PUBLISHED.name(),
+                List.of(javaSkill.getId(), pythonSkill.getId()));
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
                 .willThrow(new IllegalProofModifyingException("Illegal operation for modifying status"));
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{talentId}/proofs/{proofId}",
                         talent.getId(), publishedProof.getId())
@@ -420,6 +478,7 @@ public class ProofControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(publishProofCase)));
 
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isConflict())
@@ -427,8 +486,15 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-5] - hide proof with published status")
+    @DisplayName("Hide proof with published status")
     public void hideProofWithPublishedStatus() throws Exception {
+        // given
+        ProofModify hideProofCase = new ProofModify("Hide Proof title",
+                "Hide Proof summary",
+                "Hide Proof content",
+                3,
+                HIDDEN.name(),
+                List.of(javaSkill.getId()));
         ProofDetailInfo resultProof = ProofDetailInfo.builder()
                 .id(publishedProof.getId())
                 .title(publishedProof.getTitle())
@@ -442,6 +508,7 @@ public class ProofControllerTest {
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
                 .willReturn(resultProof);
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{talentId}/proofs/{proofId}",
                         talent.getId(), publishedProof.getId())
@@ -449,6 +516,7 @@ public class ProofControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(hideProofCase)));
 
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -456,11 +524,20 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-5] - hide proof with other status")
+    @DisplayName("Hide proof with other status")
     public void hideProofWithOtherStatus() throws Exception {
+        // given
+        ProofModify hideProofCase = new ProofModify("Hide Proof title",
+                "Hide Proof summary",
+                "Hide Proof content",
+                3,
+                HIDDEN.name(),
+                List.of(javaSkill.getId()));
+
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
                 .willThrow(new IllegalProofModifyingException("Illegal operation for modifying status"));
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{talentId}/proofs/{proofId}",
                         talent.getId(), hiddenProof.getId())
@@ -468,6 +545,7 @@ public class ProofControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(hideProofCase)));
 
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isConflict())
@@ -475,8 +553,16 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-5] - reopen proof with hidden status")
+    @DisplayName("Reopen proof with hidden status")
     public void reopenProofWithHiddenStatus() throws Exception {
+        // given
+        ProofModify reopenProofCase = new ProofModify("Reopen Proof title",
+                "Reopen Proof summary",
+                "Reopen Proof content",
+                3,
+                PUBLISHED.name(),
+                List.of(javaSkill.getId()));
+
         ProofDetailInfo resultProof = ProofDetailInfo.builder()
                 .id(hiddenProof.getId())
                 .title(hiddenProof.getTitle())
@@ -490,6 +576,7 @@ public class ProofControllerTest {
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
                 .willReturn(resultProof);
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{talentId}/proofs/{proofId}",
                         talent.getId(), hiddenProof.getId())
@@ -497,6 +584,7 @@ public class ProofControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reopenProofCase)));
 
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -504,11 +592,20 @@ public class ProofControllerTest {
     }
 
     @Test
-    @DisplayName("[Stage-2] [US-5] - reopen proof with other status")
+    @DisplayName("Reopen proof with other status")
     public void reopenProofWithOtherStatus() throws Exception {
+        // given
+        ProofModify reopenProofCase = new ProofModify("Reopen Proof title",
+                "Reopen Proof summary",
+                "Reopen Proof content",
+                3,
+                PUBLISHED.name(),
+                List.of(javaSkill.getId()));
+
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
                 .willThrow(new IllegalProofModifyingException("Illegal operation for modifying status"));
 
+        // when
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.patch("/api/v1/talents/{talentId}/proofs/{proofId}",
                         talent.getId(), publishedProof.getId())
@@ -516,6 +613,7 @@ public class ProofControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reopenProofCase)));
 
+        // then
         response
                 .andDo(print())
                 .andExpect(status().isConflict())

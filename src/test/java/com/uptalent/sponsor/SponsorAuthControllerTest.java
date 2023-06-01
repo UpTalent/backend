@@ -33,7 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureWebMvc
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(AuthController.class)
-@Disabled
 public class SponsorAuthControllerTest {
     @MockBean
     private AuthService authService;
