@@ -189,6 +189,7 @@ public class TalentService {
 
 
     public TalentStatistic getStatistic(Long talentId) {
+        Talent talent = getTalentById(talentId);
         Long totalCountKudos = talentRepository.getTotalCountKudosByTalentId(talentId);
         totalCountKudos = (totalCountKudos == null) ? 0L : totalCountKudos;
         Set<SkillInfo> mostKudosedSkills = getMostKudosedSkills(talentId);

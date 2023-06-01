@@ -8,8 +8,17 @@ import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
+
+import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.proof.model.entity.Proof;
+import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.proof.model.response.ProofDetailInfo;
+import com.uptalent.skill.model.SkillInfo;
+import com.uptalent.skill.model.SkillProofInfo;
+import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.talent.controller.TalentController;
+import com.uptalent.talent.model.response.TalentStatistic;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.talent.service.TalentService;
 import com.uptalent.talent.model.entity.Talent;
@@ -38,6 +47,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -73,6 +83,9 @@ class TalentControllerTest {
     private MockMvc mockMvc;
     private Credentials credentials;
     private Talent talent;
+    private Proof proof;
+    private Skill javaSkill;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -90,8 +103,22 @@ class TalentControllerTest {
                 .credentials(credentials)
                 .lastname("Teliukov")
                 .firstname("Dmytro")
-
                 .build();
+        proof = Proof.builder()
+                .id(1L)
+                .title("Proof title")
+                .summary("Proof summary")
+                .content("Proof content")
+                .published(LocalDateTime.now())
+                .status(ProofStatus.PUBLISHED)
+                .talent(talent)
+                .build();
+
+        javaSkill = Skill.builder()
+                .id(1L)
+                .name("Java")
+                .build();
+
     }
 
     @Test
@@ -261,7 +288,6 @@ class TalentControllerTest {
         TalentEdit editRequest = TalentEdit.builder()
                 .lastname("Himonov")
                 .firstname("Mark")
-
                 .build();
 
         given(talentService.updateTalent(anyLong(), any(TalentEdit.class)))
@@ -278,14 +304,13 @@ class TalentControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
-/*
+
     @Test
     @Order(12)
     @DisplayName("[Stage-1] [US-3] - Fail editing own profile")
     void failEditingOwnProfile() throws Exception {
         TalentEdit editRequest = TalentEdit.builder()
                 .lastname("Himonov")
-                .firstname("Mark")
                 .build();
 
         given(talentService.updateTalent(anyLong(), any(TalentEdit.class)))
@@ -300,7 +325,7 @@ class TalentControllerTest {
         response
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.skills").exists());
+                .andExpect(MockMvcResultMatchers.jsonPath("$.firstname").exists());
     }
 
 /*    @Test
@@ -354,6 +379,73 @@ class TalentControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 */
+
+    @Test
+    @Order(16)
+    @DisplayName("[Stage-5] [US-] - Get statistic successfully ")
+    void getStatisticSuccessfully() throws Exception {
+
+        SkillProofInfo skillProofInfo = new SkillProofInfo();
+        skillProofInfo.setId(javaSkill.getId());
+        skillProofInfo.setKudos(100L);
+        skillProofInfo.setName(javaSkill.getName());
+
+        ProofDetailInfo proofDetailInfo = ProofDetailInfo.builder()
+                .id(proof.getId())
+                .content(proof.getContent())
+                .published(proof.getPublished())
+                .status(proof.getStatus())
+                .summary(proof.getSummary())
+                .title(proof.getTitle())
+                .iconNumber(proof.getIconNumber())
+                .kudos(100)
+                .skills(Set.of(skillProofInfo))
+                .build();
+
+        SkillInfo skillInfo = new SkillInfo();
+        skillInfo.setKudos(100L);
+        skillInfo.setName(javaSkill.getName());
+
+        TalentStatistic expectedDTO = TalentStatistic.builder()
+                .totalCountKudos(100)
+                .mostKudosedSkills(Set.of(skillInfo))
+                .mostKudosedProof(proofDetailInfo)
+                .build();
+
+        given(talentService.getStatistic(anyLong()))
+                .willReturn(expectedDTO);
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.get("/api/v1/talents/{talentId}/statistic", talent.getId())
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.total_count_kudos").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.most_kudosed_skills").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.most_kudosed_proof").exists());
+    }
+
+    @Test
+    @Order(17)
+    @DisplayName("[Stage-5] [US-] - Non-existing profile statistic")
+    void getStatisticFailed() throws Exception {
+
+        given(talentService.getStatistic(anyLong()))
+                .willThrow(new TalentNotFoundException("Talent was not found"));
+
+        ResultActions response = mockMvc
+                .perform(MockMvcRequestBuilders.get("/api/v1/talents/{talentId}/statistic", talent.getId())
+                        .accept(MediaType.APPLICATION_JSON));
+
+        response
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+
+
     private TalentRegistration generateRegistrationRequest() {
         TalentRegistration registrationRequest = new TalentRegistration();
 
