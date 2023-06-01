@@ -6,7 +6,6 @@ import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
-import com.uptalent.auth.model.response.AuthResponse;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ProofStatus;
 import com.uptalent.sponsor.model.entity.Sponsor;
@@ -16,6 +15,7 @@ import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.sponsor.service.SponsorService;
 import com.uptalent.talent.exception.DeniedAccessException;
 import com.uptalent.util.service.AccessVerifyService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -94,43 +94,50 @@ public class SponsorServiceTest {
                 .status(ProofStatus.PUBLISHED)
                 .build();
     }
-    /*
+/*
     @Test
     @DisplayName("[Stage-3.2] [US-1] - Register new Sponsor successfully")
-    public void registerNewSponsorSuccessfully() {
+    public void registerNewSponsorSuccessfully() throws MessagingException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+
         when(sponsorRepository.save(any()))
                 .thenReturn(sponsor);
 
         when(credentialsRepository.save(any()))
                 .thenReturn(credentials);
 
-        AuthResponse authResponse = sponsorService.registerSponsor(generateRegistrationRequest());
+        sponsorService.registerSponsor(generateRegistrationRequest(), request);
 
-        assertThat(authResponse).isNotNull();
+        // Add your assertions to verify the expected behavior or outcome
+        // For example, you can verify that the sponsor is saved or perform additional checks
+        verify(sponsorRepository, times(1)).save(any());
+        verify(credentialsRepository, times(1)).save(any());
     }
-
+*/
     @Test
     @DisplayName("[Stage-3.2] [US-1] - Register new Sponsor with earlier occupied email")
     public void registerNewSponsorWithEarlierOccupiedEmail() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
         when(sponsorRepository.save(any()))
                 .thenThrow(AccountExistsException.class);
 
-        assertThrows(AccountExistsException.class, () -> sponsorService.registerSponsor(generateRegistrationRequest()));
+        assertThrows(AccountExistsException.class, () -> sponsorService.registerSponsor(generateRegistrationRequest(), request));
     }
 
     @Test
     @DisplayName("[Stage-3.2] [US-3] - Register new Sponsor and forget input some data")
     public void registerNewSponsorAndForgetInputSomeData() {
         SponsorRegistration registrationRequest = generateRegistrationRequest();
+        HttpServletRequest request = mock(HttpServletRequest.class);
         registrationRequest.setFullname(null);
 
         when(sponsorRepository.save(any()))
                 .thenThrow(new MockitoException(""));
 
-        assertThrows(MockitoException.class, () -> sponsorService.registerSponsor(registrationRequest));
+        assertThrows(MockitoException.class, () -> sponsorService.registerSponsor(registrationRequest, request));
     }
 
-*/
+
     @Test
     @DisplayName("[Stage-3.2] [US-1] - Edit own profile successfully")
     void editOwnProfileSuccessfully() {
