@@ -349,7 +349,8 @@ public class ProofService {
 
     private void clearSkillsFromProof(Proof proof) {
         skillKudosRepository.deleteAll(proof.getSkillKudos());
-        proof.getSkillKudos().clear();
+        if (proof.getSkillKudos() != null && !proof.getSkillKudos().isEmpty())
+            proof.getSkillKudos().clear();
         proofRepository.save(proof);
     }
 

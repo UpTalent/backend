@@ -51,7 +51,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(TalentController.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Disabled
 class TalentControllerTest {
     @Value("${jwt.secret}")
     private String secret;

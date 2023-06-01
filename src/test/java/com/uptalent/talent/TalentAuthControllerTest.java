@@ -33,7 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(AuthController.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Disabled
 public class TalentAuthControllerTest {
     @MockBean
     private AuthService authService;

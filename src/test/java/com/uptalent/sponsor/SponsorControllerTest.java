@@ -43,7 +43,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureWebMvc
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(SponsorController.class)
-@Disabled
 public class SponsorControllerTest {
     @MockBean
     private SponsorService sponsorService;
