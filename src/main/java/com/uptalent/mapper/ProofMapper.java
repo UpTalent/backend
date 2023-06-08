@@ -54,7 +54,8 @@ public interface ProofMapper {
                 proof.getPublished(),
                 proof.getSkillKudos().stream()
                         .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
-                        .collect(Collectors.toSet())
+                        .collect(Collectors.toSet()),
+                new AuthorProof(proof.getTalent().getId(), proof.getTalent().getLastname(), proof.getTalent().getFirstname(), proof.getTalent().getAvatar())
         );
     }
 
@@ -69,8 +70,8 @@ public interface ProofMapper {
                 isMyProof,
                 proof.getSkillKudos().stream()
                         .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
-                        .collect(Collectors.toSet())
-        );
+                        .collect(Collectors.toSet()),
+                new AuthorProof(proof.getTalent().getId(), proof.getTalent().getLastname(), proof.getTalent().getFirstname(), proof.getTalent().getAvatar()));
     }
 
     default ProofSponsorGeneralInfo toProofSponsorGeneralInfo(Proof proof, Long kudosSumFromMe) {
@@ -84,7 +85,8 @@ public interface ProofMapper {
                 kudosSumFromMe,
                 proof.getSkillKudos().stream()
                         .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
-                        .collect(Collectors.toSet())
+                        .collect(Collectors.toSet()),
+                new AuthorProof(proof.getTalent().getId(), proof.getTalent().getLastname(), proof.getTalent().getFirstname(), proof.getTalent().getAvatar())
         );
     }
 
