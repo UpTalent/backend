@@ -13,8 +13,8 @@ public class ProofSponsorGeneralInfo extends ProofGeneralInfo {
 
     public ProofSponsorGeneralInfo(Long id, Integer iconNumber, String title,
                                    String summary, long kudos, LocalDateTime published, long sumKudosFromMe,
-                                   Set<SkillProofInfo> skills) {
-        super(id, iconNumber, title, summary, kudos, published, skills);
+                                   Set<SkillProofInfo> skills, AuthorProof author) {
+        super(id, iconNumber, title, summary, kudos, published, skills, author);
         this.sumKudosFromMe = sumKudosFromMe;
     }
 }

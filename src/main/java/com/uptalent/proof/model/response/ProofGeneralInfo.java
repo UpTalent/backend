@@ -22,4 +22,5 @@ public class ProofGeneralInfo {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime published;
     private Set<SkillProofInfo> skills;
+    private AuthorProof author;
 }

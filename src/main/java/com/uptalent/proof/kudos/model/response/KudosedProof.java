@@ -1,6 +1,7 @@
 package com.uptalent.proof.kudos.model.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.uptalent.proof.model.response.AuthorProof;
 import com.uptalent.skill.model.SkillInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,5 +18,5 @@ public class KudosedProof {
     private final String title;
     private final Long totalSumKudos;
     private List<SkillInfo> skills;
-
+    private final AuthorProof author;
 }
