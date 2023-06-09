@@ -1,28 +1,24 @@
-package com.uptalent.proof.model.response;
+package com.uptalent.vacancy.model.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.uptalent.proof.model.enums.ContentStatus;
-import com.uptalent.skill.model.SkillProofInfo;
-import lombok.*;
+import com.uptalent.skill.model.SkillVacancyInfo;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.Set;
 
-@Getter
-@Setter
-@NoArgsConstructor
+@Data
 @AllArgsConstructor
-@ToString
 @Builder
-public class ProofDetailInfo {
+public class VacancyDetailInfo {
     private Long id;
-    private Integer iconNumber;
     private String title;
-    private String summary;
     private String content;
+    private ContentStatus status;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime published;
-    private long kudos;
-    private ContentStatus status;
-    private Set<SkillProofInfo> skills;
+    private Set<SkillVacancyInfo> skills;
 }

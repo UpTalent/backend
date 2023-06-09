@@ -1,6 +1,6 @@
     package com.uptalent.proof.model.response;
 
-    import com.uptalent.proof.model.enums.ProofStatus;
+    import com.uptalent.proof.model.enums.ContentStatus;
     import com.uptalent.skill.model.SkillProofInfo;
     import lombok.Data;
     import lombok.EqualsAndHashCode;
@@ -14,7 +14,7 @@
         private long sumKudosFromMe;
 
         public ProofSponsorDetailInfo(Long id, Integer iconNumber, String title, String summary, String content,
-                                      LocalDateTime published, long kudos, ProofStatus status, long sumKudosFromMe,
+                                      LocalDateTime published, long kudos, ContentStatus status, long sumKudosFromMe,
                                       Set<SkillProofInfo> skills) {
             super(id, iconNumber, title, summary, content, published, kudos, status, skills);
             this.sumKudosFromMe = sumKudosFromMe;

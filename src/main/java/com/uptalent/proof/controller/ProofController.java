@@ -6,7 +6,7 @@ import com.uptalent.payload.HttpResponse;
 import com.uptalent.proof.kudos.model.request.PostKudos;
 import com.uptalent.proof.kudos.model.response.KudosSender;
 import com.uptalent.proof.kudos.model.response.UpdatedProofKudos;
-import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.model.response.ProofGeneralInfo;
@@ -103,7 +103,7 @@ public class ProofController {
             @Positive(message = "Size should be positive")
             @RequestParam(defaultValue = "3") int size,
             @RequestParam(defaultValue = "published")
-            @EnumValue(enumClass = ProofStatus.class) String status,
+            @EnumValue(enumClass = ContentStatus.class) String status,
             @RequestParam(defaultValue = "desc") String sort,
             @PathVariable("talent-id") Long talentId) {
         return proofService.getTalentProofs(page, size, sort, talentId, status);

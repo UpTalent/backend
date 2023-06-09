@@ -10,7 +10,7 @@ import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.mapper.ProofMapper;
 import com.uptalent.mapper.TalentMapper;
 import com.uptalent.proof.model.entity.Proof;
-import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.proof.model.response.ProofTalentDetailInfo;
 import com.uptalent.proof.repository.ProofRepository;
 import com.uptalent.skill.model.SkillInfo;
@@ -133,7 +133,7 @@ class TalentServiceTest {
                 .content("Proof content")
                 .published(LocalDateTime.now())
                 .iconNumber(1)
-                .status(ProofStatus.PUBLISHED)
+                .status(ContentStatus.PUBLISHED)
                 .talent(talent)
                 .kudos(0)
                 .build();

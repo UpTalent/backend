@@ -12,7 +12,7 @@ import com.uptalent.proof.kudos.model.request.PostKudos;
 import com.uptalent.proof.kudos.model.request.PostKudosSkill;
 import com.uptalent.proof.kudos.model.response.KudosSender;
 import com.uptalent.proof.model.entity.Proof;
-import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.service.ProofService;
@@ -42,8 +42,8 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static com.uptalent.proof.model.enums.ProofStatus.HIDDEN;
-import static com.uptalent.proof.model.enums.ProofStatus.PUBLISHED;
+import static com.uptalent.proof.model.enums.ContentStatus.HIDDEN;
+import static com.uptalent.proof.model.enums.ContentStatus.PUBLISHED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -114,7 +114,7 @@ public class ProofControllerTest {
                 .summary("Proof summary")
                 .content("Proof content")
                 .published(LocalDateTime.now())
-                .status(ProofStatus.PUBLISHED)
+                .status(ContentStatus.PUBLISHED)
                 .talent(talent)
                 .build();
         draftProof = Proof.builder()
@@ -123,7 +123,7 @@ public class ProofControllerTest {
                 .summary("Proof summary")
                 .content("Proof content")
                 .iconNumber(1)
-                .status(ProofStatus.DRAFT)
+                .status(ContentStatus.DRAFT)
                 .talent(talent)
                 .build();
         publishedProof = Proof.builder()
@@ -133,7 +133,7 @@ public class ProofControllerTest {
                 .content("Proof content")
                 .published(LocalDateTime.now())
                 .iconNumber(1)
-                .status(ProofStatus.PUBLISHED)
+                .status(ContentStatus.PUBLISHED)
                 .talent(talent)
                 .build();
         hiddenProof = Proof.builder()
@@ -143,7 +143,7 @@ public class ProofControllerTest {
                 .content("Proof content")
                 .published(LocalDateTime.now())
                 .iconNumber(1)
-                .status(ProofStatus.HIDDEN)
+                .status(ContentStatus.HIDDEN)
                 .talent(talent)
                 .build();
 
@@ -174,7 +174,7 @@ public class ProofControllerTest {
                 "Proof summary",
                 "Proof content",
                 3,
-                ProofStatus.DRAFT.name(),
+                ContentStatus.DRAFT.name(),
                 List.of(javaSkill.getId()));
 
     }
@@ -187,7 +187,7 @@ public class ProofControllerTest {
                 "Proof summary",
                 "Proof content",
                 3,
-                ProofStatus.DRAFT.name(),
+                ContentStatus.DRAFT.name(),
                 List.of(javaSkill.getId()));
         URI proofLocation = new URI("http://mock/api/v1/talents/1/proofs/1");
         given(proofService.createProof(any(ProofModify.class), anyLong())).willReturn(proofLocation);
@@ -260,7 +260,7 @@ public class ProofControllerTest {
         given(proofService.createProof(any(ProofModify.class), anyLong()))
                 .willThrow(new IllegalCreatingProofException(errorMessage));
 
-        proofModify.setStatus(ProofStatus.PUBLISHED.name());
+        proofModify.setStatus(ContentStatus.PUBLISHED.name());
 
         // when
         ResultActions response = mockMvc
@@ -352,7 +352,7 @@ public class ProofControllerTest {
                 "Edit Proof summary",
                 "Edit Proof content",
                 3,
-                ProofStatus.DRAFT.name(),
+                ContentStatus.DRAFT.name(),
                 List.of(javaSkill.getId()));
 
         ProofDetailInfo resultProof = ProofDetailInfo.builder()
@@ -396,7 +396,7 @@ public class ProofControllerTest {
                 "Edit Proof summary",
                 "Edit Proof content",
                 3,
-                ProofStatus.DRAFT.name(),
+                ContentStatus.DRAFT.name(),
                 List.of(javaSkill.getId()));
 
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
@@ -426,7 +426,7 @@ public class ProofControllerTest {
                 "Publish Proof summary",
                 "Publish Proof content",
                 3,
-                ProofStatus.PUBLISHED.name(),
+                ContentStatus.PUBLISHED.name(),
                 List.of(javaSkill.getId(), pythonSkill.getId()));
         ProofDetailInfo resultProof = ProofDetailInfo.builder()
                 .id(draftProof.getId())
@@ -435,7 +435,7 @@ public class ProofControllerTest {
                 .content(draftProof.getContent())
                 .iconNumber(draftProof.getIconNumber())
                 .published(LocalDateTime.now())
-                .status(ProofStatus.PUBLISHED)
+                .status(ContentStatus.PUBLISHED)
                 .build();
 
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
@@ -453,7 +453,7 @@ public class ProofControllerTest {
         response
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(ProofStatus.PUBLISHED.toString()));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(ContentStatus.PUBLISHED.toString()));
     }
 
     @Test
@@ -465,7 +465,7 @@ public class ProofControllerTest {
                 "Publish Proof summary",
                 "Publish Proof content",
                 3,
-                ProofStatus.PUBLISHED.name(),
+                ContentStatus.PUBLISHED.name(),
                 List.of(javaSkill.getId(), pythonSkill.getId()));
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
                 .willThrow(new IllegalProofModifyingException("Illegal operation for modifying status"));
@@ -502,7 +502,7 @@ public class ProofControllerTest {
                 .content(publishedProof.getContent())
                 .iconNumber(publishedProof.getIconNumber())
                 .published(publishedProof.getPublished())
-                .status(ProofStatus.HIDDEN)
+                .status(ContentStatus.HIDDEN)
                 .build();
 
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
@@ -520,7 +520,7 @@ public class ProofControllerTest {
         response
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(ProofStatus.HIDDEN.toString()));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(ContentStatus.HIDDEN.toString()));
     }
 
     @Test
@@ -570,7 +570,7 @@ public class ProofControllerTest {
                 .content(hiddenProof.getContent())
                 .iconNumber(hiddenProof.getIconNumber())
                 .published(hiddenProof.getPublished())
-                .status(ProofStatus.PUBLISHED)
+                .status(ContentStatus.PUBLISHED)
                 .build();
 
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
@@ -588,7 +588,7 @@ public class ProofControllerTest {
         response
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(ProofStatus.PUBLISHED.toString()));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(ContentStatus.PUBLISHED.toString()));
     }
 
     @Test
@@ -697,7 +697,7 @@ public class ProofControllerTest {
                 .summary("Proof summary")
                 .content("Proof content")
                 .published(LocalDateTime.now())
-                .status(ProofStatus.PUBLISHED)
+                .status(ContentStatus.PUBLISHED)
                 .talent(anotherTalent)
                 .build();
 

@@ -6,7 +6,7 @@ import com.uptalent.credentials.model.enums.AccountStatus;
 import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.proof.model.entity.Proof;
-import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.proof.repository.ProofRepository;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.skill.model.entity.SkillKudos;
@@ -110,7 +110,7 @@ public class FakeDataLoader implements CommandLineRunner {
                 .title("Proof of " + talent.getFirstname() + " " + talent.getLastname())
                 .summary("Summary of " + talent.getFirstname() + " " + talent.getLastname())
                 .content(faker.lorem().paragraph())
-                .status(ProofStatus.PUBLISHED)
+                .status(ContentStatus.PUBLISHED)
                 .published(faker.date().past(5, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
                 .talent(talent)
                 .skillKudos(new HashSet<>(List.of(skillKudos)))

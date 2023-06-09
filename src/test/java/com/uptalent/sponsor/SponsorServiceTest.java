@@ -7,7 +7,7 @@ import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
 import com.uptalent.proof.model.entity.Proof;
-import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.model.request.SponsorEdit;
 import com.uptalent.sponsor.model.request.SponsorRegistration;
@@ -90,7 +90,7 @@ public class SponsorServiceTest {
                 .content("Proof content")
                 .published(LocalDateTime.now())
                 .iconNumber(1)
-                .status(ProofStatus.PUBLISHED)
+                .status(ContentStatus.PUBLISHED)
                 .build();
     }
 /*

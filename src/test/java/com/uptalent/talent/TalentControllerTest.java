@@ -9,9 +9,8 @@ import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.credentials.repository.CredentialsRepository;
 import com.uptalent.jwt.JwtTokenProvider;
 
-import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.model.entity.Proof;
-import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.skill.model.SkillInfo;
 import com.uptalent.skill.model.SkillProofInfo;
@@ -48,8 +47,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 import static org.mockito.BDDMockito.*;
@@ -110,7 +107,7 @@ class TalentControllerTest {
                 .summary("Proof summary")
                 .content("Proof content")
                 .published(LocalDateTime.now())
-                .status(ProofStatus.PUBLISHED)
+                .status(ContentStatus.PUBLISHED)
                 .talent(talent)
                 .build();
 
