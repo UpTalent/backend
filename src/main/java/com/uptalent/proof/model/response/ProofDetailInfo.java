@@ -1,7 +1,7 @@
 package com.uptalent.proof.model.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.skill.model.SkillProofInfo;
 import lombok.*;
 
@@ -23,6 +23,6 @@ public class ProofDetailInfo {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime published;
     private long kudos;
-    private ProofStatus status;
+    private ContentStatus status;
     private Set<SkillProofInfo> skills;
 }

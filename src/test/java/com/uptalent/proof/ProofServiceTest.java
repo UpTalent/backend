@@ -25,7 +25,7 @@ import com.uptalent.proof.exception.IllegalProofModifyingException;
 import com.uptalent.proof.exception.ProofNotFoundException;
 import com.uptalent.proof.exception.UnrelatedProofException;
 import com.uptalent.proof.model.entity.Proof;
-import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.repository.ProofRepository;
@@ -43,7 +43,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static com.uptalent.proof.model.enums.ProofStatus.*;
+import static com.uptalent.proof.model.enums.ContentStatus.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
@@ -115,7 +115,7 @@ public class ProofServiceTest {
                 .content("Proof content")
                 .published(LocalDateTime.now())
                 .iconNumber(1)
-                .status(ProofStatus.PUBLISHED)
+                .status(ContentStatus.PUBLISHED)
                 .talent(talent)
                 .kudos(0)
                 .build();
@@ -127,7 +127,7 @@ public class ProofServiceTest {
                 .content("Proof content")
                 .published(LocalDateTime.now())
                 .iconNumber(1)
-                .status(ProofStatus.PUBLISHED)
+                .status(ContentStatus.PUBLISHED)
                 .talent(talent)
                 .build();
 
@@ -200,7 +200,7 @@ public class ProofServiceTest {
                 "Proof summary",
                 "Proof content",
                 3,
-                ProofStatus.DRAFT.name(),
+                ContentStatus.DRAFT.name(),
                 List.of(javaSkill.getId()));
 
         given(proofRepository.findById(proof.getId())).willReturn(Optional.empty());
@@ -218,7 +218,7 @@ public class ProofServiceTest {
                 "Proof summary",
                 "Proof content",
                 3,
-                ProofStatus.DRAFT.name(),
+                ContentStatus.DRAFT.name(),
                 List.of(javaSkill.getId()));
 
         given(proofRepository.findById(proof.getId())).willReturn(Optional.of(proof));
@@ -237,7 +237,7 @@ public class ProofServiceTest {
                 "Edit Proof summary",
                 "Edit Proof content",
                 3,
-                ProofStatus.DRAFT.name(),
+                ContentStatus.DRAFT.name(),
                 List.of(javaSkill.getId()));
 
         ProofDetailInfo editProof = ProofDetailInfo.builder()
@@ -280,7 +280,7 @@ public class ProofServiceTest {
                 "Edit Proof summary",
                 "Edit Proof content",
                 3,
-                ProofStatus.DRAFT.name(),
+                ContentStatus.DRAFT.name(),
                 List.of(javaSkill.getId()));
 
         given(proofRepository.findById(hiddenProof.getId()))
@@ -301,7 +301,7 @@ public class ProofServiceTest {
                 "Publish Proof summary",
                 "Publish Proof content",
                 3,
-                ProofStatus.PUBLISHED.name(),
+                ContentStatus.PUBLISHED.name(),
                 List.of(javaSkill.getId(), pythonSkill.getId()));
         ProofDetailInfo publishProof = ProofDetailInfo.builder()
                 .id(draftProof.getId())
@@ -350,7 +350,7 @@ public class ProofServiceTest {
                 "Publish Proof summary",
                 "Publish Proof content",
                 3,
-                ProofStatus.PUBLISHED.name(),
+                ContentStatus.PUBLISHED.name(),
                 List.of(javaSkill.getId(), pythonSkill.getId()));
 
         given(proofRepository.findById(publishedProof.getId()))
@@ -536,7 +536,7 @@ public class ProofServiceTest {
                 .content("Proof content")
                 .published(LocalDateTime.now())
                 .iconNumber(2)
-                .status(ProofStatus.PUBLISHED)
+                .status(ContentStatus.PUBLISHED)
                 .talent(anotherTalent)
                 .build();
 

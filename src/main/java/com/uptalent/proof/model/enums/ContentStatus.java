@@ -1,5 +1,5 @@
 package com.uptalent.proof.model.enums;
 
-public enum ProofStatus {
+public enum ContentStatus {
     DRAFT, PUBLISHED, HIDDEN
 }

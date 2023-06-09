@@ -13,7 +13,7 @@ import com.uptalent.proof.kudos.model.response.KudosSender;
 import com.uptalent.proof.kudos.model.response.UpdatedProofKudos;
 import com.uptalent.proof.kudos.repository.KudosHistoryRepository;
 import com.uptalent.proof.model.entity.Proof;
-import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.proof.model.response.ProofGeneralInfo;
@@ -36,7 +36,6 @@ import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -54,7 +53,7 @@ import java.util.stream.Collectors;
 
 import static com.uptalent.credentials.model.enums.Role.SPONSOR;
 import static com.uptalent.credentials.model.enums.Role.TALENT;
-import static com.uptalent.proof.model.enums.ProofStatus.*;
+import static com.uptalent.proof.model.enums.ContentStatus.*;
 
 @Service
 @RequiredArgsConstructor
@@ -150,15 +149,15 @@ public class ProofService {
     public PageWithMetadata<? extends ProofDetailInfo> getTalentProofs(int page, int size, String sort,
                                                              Long talentId, String status) {
 
-        ProofStatus proofStatus = ProofStatus.valueOf(status.toUpperCase());
-        Sort sortOrder = getSortByString(sort, proofStatus);
+        ContentStatus contentStatus = ContentStatus.valueOf(status.toUpperCase());
+        Sort sortOrder = getSortByString(sort, contentStatus);
         PageRequest pageRequest = PageRequest.of(page, size, sortOrder);
         Long principalId = accessVerifyService.getPrincipalId();
 
-        validateGetTalentProofs(talentId, proofStatus);
+        validateGetTalentProofs(talentId, contentStatus);
 
         Page<? extends ProofDetailInfo> proofsPage = getPageProofsWithDetailInfo(principalId, talentId,
-                proofStatus, pageRequest);
+                contentStatus, pageRequest);
 
         return new PageWithMetadata<>(proofsPage.getContent(), proofsPage.getTotalPages());
     }
@@ -301,16 +300,16 @@ public class ProofService {
 
     private Consumer<Proof> selectProofModifyStrategy(ProofModify proofModify,
                                                       Long proofId,
-                                                      ProofStatus currentStatus) {
+                                                      ContentStatus currentStatus) {
         Consumer<Proof> strategy;
-        ProofStatus modifyingStatus = ProofStatus.valueOf(proofModify.getStatus());
-        BiPredicate<ProofModify, ProofStatus> editCase = (proofEdit, status) ->
+        ContentStatus modifyingStatus = ContentStatus.valueOf(proofModify.getStatus());
+        BiPredicate<ProofModify, ContentStatus> editCase = (proofEdit, status) ->
                 modifyingStatus.equals(DRAFT) && status.equals(DRAFT);
-        BiPredicate<ProofModify, ProofStatus> publishCase = (proofEdit, status) ->
+        BiPredicate<ProofModify, ContentStatus> publishCase = (proofEdit, status) ->
                 modifyingStatus.equals(PUBLISHED) && status.equals(DRAFT);
-        BiPredicate<ProofModify, ProofStatus> hideCase = (proofEdit, status) ->
+        BiPredicate<ProofModify, ContentStatus> hideCase = (proofEdit, status) ->
                 modifyingStatus.equals(HIDDEN) && status.equals(PUBLISHED);
-        BiPredicate<ProofModify, ProofStatus> reopenCase = (proofEdit, status) ->
+        BiPredicate<ProofModify, ContentStatus> reopenCase = (proofEdit, status) ->
                 modifyingStatus.equals(PUBLISHED) && status.equals(HIDDEN);
 
         if (editCase.test(proofModify, currentStatus))
@@ -419,12 +418,12 @@ public class ProofService {
         }
         else
             return mapper.toProofGeneralInfos(proofRepository
-                    .findAllByStatus(ProofStatus.PUBLISHED, pageRequest, skills, skillsSize));
+                    .findAllByStatus(ContentStatus.PUBLISHED, pageRequest, skills, skillsSize));
     }
 
-    private void validateGetTalentProofs(Long talentId, ProofStatus proofStatus) {
+    private void validateGetTalentProofs(Long talentId, ContentStatus contentStatus) {
         verifyTalentExistsById(talentId);
-        if (!PUBLISHED.equals(proofStatus))
+        if (!PUBLISHED.equals(contentStatus))
             accessVerifyService.tryGetAccess(talentId, TALENT,
                     "You do not have permission to get list of proofs");
 
@@ -432,21 +431,21 @@ public class ProofService {
 
     private Page<? extends ProofDetailInfo> getPageProofsWithDetailInfo(Long principalId,
                                                                         Long talentId,
-                                                                        ProofStatus proofStatus,
+                                                                        ContentStatus contentStatus,
                                                                         PageRequest pageRequest) {
         if (accessVerifyService.hasRole(SPONSOR)){
             Page<Object[]> talentProofs = proofRepository
-                    .findAllTalentProofsBySponsorIdAndStatus(principalId, talentId, proofStatus, pageRequest);
+                    .findAllTalentProofsBySponsorIdAndStatus(principalId, talentId, contentStatus, pageRequest);
             return mapper.toProofSponsorDetailInfos(talentProofs, pageRequest);
         }
         else{
             Page<Object[]> talentProofs = proofRepository
-                    .findAllTalentProofsByTalentIdAndStatus(principalId, talentId, proofStatus, pageRequest);
+                    .findAllTalentProofsByTalentIdAndStatus(principalId, talentId, contentStatus, pageRequest);
             return mapper.toProofTalentDetailInfos(talentProofs, pageRequest);
         }
     }
 
-    private Sort getSortByString(String sort, ProofStatus status){
+    private Sort getSortByString(String sort, ContentStatus status){
         String sortField = status.equals(DRAFT) ? "id" : "published";
 
         if(sort.equals("desc"))

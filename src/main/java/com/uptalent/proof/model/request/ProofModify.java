@@ -1,6 +1,6 @@
 package com.uptalent.proof.model.request;
 
-import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.util.annotation.EnumValue;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -23,7 +23,7 @@ public class ProofModify {
     @NotNull(message = "Icon number should not be null")
     @Min(value = 0, message = "Icon number shouldn't be less than 0")
     private Integer iconNumber;
-    @EnumValue(enumClass = ProofStatus.class)
+    @EnumValue(enumClass = ContentStatus.class)
     private String status;
     @Size(max=30, message = "List of skills should be less than 30 items")
     private List<Long> skillIds;

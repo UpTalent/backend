@@ -1,7 +1,7 @@
 package com.uptalent.proof.model.entity;
 
 import com.uptalent.proof.kudos.model.entity.KudosHistory;
-import com.uptalent.proof.model.enums.ProofStatus;
+import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.skill.model.entity.SkillKudos;
 import com.uptalent.talent.model.entity.Talent;
 import jakarta.persistence.*;
@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
 
-import static jakarta.persistence.FetchType.EAGER;
 import static jakarta.persistence.FetchType.LAZY;
 
 @Entity(name = "proof")
@@ -44,7 +43,7 @@ public class Proof {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "status")
-    private ProofStatus status;
+    private ContentStatus status;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "talent_id", referencedColumnName = "id")
