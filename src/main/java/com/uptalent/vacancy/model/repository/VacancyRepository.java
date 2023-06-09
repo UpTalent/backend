@@ -1,5 +1,6 @@
-package com.uptalent.vacancy;
+package com.uptalent.vacancy.model.repository;
 
+import com.uptalent.vacancy.model.entity.Vacancy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

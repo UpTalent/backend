@@ -1,4 +1,4 @@
-package com.uptalent.vacancy;
+package com.uptalent.vacancy.model.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.uptalent.proof.model.enums.ContentStatus;

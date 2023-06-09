@@ -1,9 +1,9 @@
-package com.uptalent.vacancy;
+package com.uptalent.vacancy.exception.handler;
 
 import com.uptalent.payload.HttpResponse;
-import com.uptalent.proof.exception.*;
-import com.uptalent.proof.kudos.exception.IllegalPostingKudos;
 import com.uptalent.util.exception.handler.ExceptionHandlerController;
+import com.uptalent.vacancy.exception.IllegalVacancyModifyingException;
+import com.uptalent.vacancy.exception.VacancyNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;

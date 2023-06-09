@@ -1,8 +1,10 @@
-package com.uptalent.vacancy;
+package com.uptalent.vacancy.model.controller;
 
 import com.uptalent.payload.HttpResponse;
-import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.ProofDetailInfo;
+import com.uptalent.vacancy.model.service.VacancyService;
+import com.uptalent.vacancy.model.response.VacancyDetailInfo;
+import com.uptalent.vacancy.model.request.VacancyModify;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;

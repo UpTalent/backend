@@ -1,4 +1,4 @@
-package com.uptalent.vacancy;
+package com.uptalent.vacancy.model.entity;
 
 import com.uptalent.proof.kudos.model.entity.KudosHistory;
 import com.uptalent.proof.model.enums.ContentStatus;

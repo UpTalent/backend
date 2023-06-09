@@ -2,9 +2,9 @@ package com.uptalent.mapper;
 
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.skill.model.SkillVacancyInfo;
-import com.uptalent.vacancy.Vacancy;
-import com.uptalent.vacancy.VacancyDetailInfo;
-import com.uptalent.vacancy.VacancyModify;
+import com.uptalent.vacancy.model.entity.Vacancy;
+import com.uptalent.vacancy.model.response.VacancyDetailInfo;
+import com.uptalent.vacancy.model.request.VacancyModify;
 import org.mapstruct.Mapper;
 
 import java.util.stream.Collectors;

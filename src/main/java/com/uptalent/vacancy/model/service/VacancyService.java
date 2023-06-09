@@ -1,4 +1,4 @@
-package com.uptalent.vacancy;
+package com.uptalent.vacancy.model.service;
 
 import com.uptalent.mapper.VacancyMapper;
 import com.uptalent.proof.model.enums.ContentStatus;
@@ -9,6 +9,12 @@ import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.util.service.AccessVerifyService;
+import com.uptalent.vacancy.exception.IllegalVacancyModifyingException;
+import com.uptalent.vacancy.exception.VacancyNotFoundException;
+import com.uptalent.vacancy.model.entity.Vacancy;
+import com.uptalent.vacancy.model.repository.VacancyRepository;
+import com.uptalent.vacancy.model.response.VacancyDetailInfo;
+import com.uptalent.vacancy.model.request.VacancyModify;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;

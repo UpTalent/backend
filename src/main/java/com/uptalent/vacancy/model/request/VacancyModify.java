@@ -1,4 +1,4 @@
-package com.uptalent.vacancy;
+package com.uptalent.vacancy.model.request;
 
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.util.annotation.EnumValue;
