@@ -1,5 +1,5 @@
 # UpTalent
-Backend team repository for UpTalent project
+backend team repository for UpTalent project
 The UpTalent app that is a professional networking platform that also allows content creators to monetize their content.
 
 ## Getting Started
