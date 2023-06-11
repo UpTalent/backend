@@ -1,13 +1,10 @@
 package com.uptalent.proof.kudos.model.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.uptalent.proof.model.response.AuthorProof;
 import com.uptalent.skill.model.SkillInfo;
-import lombok.AllArgsConstructor;
+import com.uptalent.util.model.response.Author;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -18,5 +15,5 @@ public class KudosedProof {
     private final String title;
     private final Long totalSumKudos;
     private List<SkillInfo> skills;
-    private final AuthorProof author;
+    private final Author author;
 }
