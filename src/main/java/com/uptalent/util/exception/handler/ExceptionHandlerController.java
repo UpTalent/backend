@@ -2,7 +2,9 @@ package com.uptalent.util.exception.handler;
 
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.talent.exception.DeniedAccessException;
+import com.uptalent.util.exception.IllegalContentModifyingException;
 import com.uptalent.util.exception.InvalidEnumValueException;
+import com.uptalent.util.exception.UnrelatedContentException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -58,4 +60,15 @@ public class ExceptionHandlerController extends ResponseEntityExceptionHandler {
     }
 
 
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(UnrelatedContentException.class)
+    public HttpResponse handlerUnrelatedContentException(UnrelatedContentException e) {
+        return new HttpResponse(e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(IllegalContentModifyingException.class)
+    public HttpResponse handlerIllegalContentModifyingException(IllegalContentModifyingException e) {
+        return new HttpResponse(e.getMessage());
+    }
 }
