@@ -1,6 +1,7 @@
 package com.uptalent.proof.model.response;
 
 import com.uptalent.skill.model.SkillProofInfo;
+import com.uptalent.util.model.response.Author;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -13,7 +14,7 @@ public class ProofSponsorGeneralInfo extends ProofGeneralInfo {
 
     public ProofSponsorGeneralInfo(Long id, Integer iconNumber, String title,
                                    String summary, long kudos, LocalDateTime published, long sumKudosFromMe,
-                                   Set<SkillProofInfo> skills, AuthorProof author) {
+                                   Set<SkillProofInfo> skills, Author author) {
         super(id, iconNumber, title, summary, kudos, published, skills, author);
         this.sumKudosFromMe = sumKudosFromMe;
     }
