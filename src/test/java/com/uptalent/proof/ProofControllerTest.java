@@ -26,6 +26,8 @@ import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.talent.service.TalentService;
+import com.uptalent.util.exception.IllegalContentModifyingException;
+import com.uptalent.util.exception.UnrelatedContentException;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -327,7 +329,7 @@ public class ProofControllerTest {
     public void editProofOtherTalent() throws Exception {
         // given
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
-                .willThrow(new UnrelatedProofException("Proof not related to talent"));
+                .willThrow(new UnrelatedContentException("Proof not related to talent"));
 
         // when
         ResultActions response = mockMvc
@@ -400,7 +402,7 @@ public class ProofControllerTest {
                 List.of(javaSkill.getId()));
 
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
-                .willThrow(new IllegalProofModifyingException("Illegal operation for modifying status"));
+                .willThrow(new IllegalContentModifyingException("Illegal operation for modifying status"));
 
         // when
         ResultActions response = mockMvc
@@ -468,7 +470,7 @@ public class ProofControllerTest {
                 ContentStatus.PUBLISHED.name(),
                 List.of(javaSkill.getId(), pythonSkill.getId()));
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
-                .willThrow(new IllegalProofModifyingException("Illegal operation for modifying status"));
+                .willThrow(new IllegalContentModifyingException("Illegal operation for modifying status"));
 
         // when
         ResultActions response = mockMvc
@@ -535,7 +537,7 @@ public class ProofControllerTest {
                 List.of(javaSkill.getId()));
 
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
-                .willThrow(new IllegalProofModifyingException("Illegal operation for modifying status"));
+                .willThrow(new IllegalContentModifyingException("Illegal operation for modifying status"));
 
         // when
         ResultActions response = mockMvc
@@ -603,7 +605,7 @@ public class ProofControllerTest {
                 List.of(javaSkill.getId()));
 
         given(proofService.editProof(any(ProofModify.class), anyLong(), anyLong()))
-                .willThrow(new IllegalProofModifyingException("Illegal operation for modifying status"));
+                .willThrow(new IllegalContentModifyingException("Illegal operation for modifying status"));
 
         // when
         ResultActions response = mockMvc
@@ -702,7 +704,7 @@ public class ProofControllerTest {
                 .build();
 
         given(proofService.getProofDetailInfo(talent.getId(), unrelatedProof.getId()))
-                .willThrow(new UnrelatedProofException("This proof is not related to this talent's proofs"));
+                .willThrow(new UnrelatedContentException("This proof is not related to this talent's proofs"));
 
         ResultActions response = mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/v1/talents/{talentId}/proofs/{proofId}",
