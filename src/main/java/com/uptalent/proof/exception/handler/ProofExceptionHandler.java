@@ -18,16 +18,11 @@ public class ProofExceptionHandler extends ExceptionHandlerController {
         return new HttpResponse(e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    @ExceptionHandler(UnrelatedProofException.class)
-    public HttpResponse handlerUnrelatedProofException(UnrelatedProofException e) {
-        return new HttpResponse(e.getMessage());
-    }
-
     @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler({IllegalProofModifyingException.class,
+    @ExceptionHandler({
             IllegalCreatingProofException.class,
-            IllegalPostingKudos.class})
+            IllegalPostingKudos.class
+    })
     public HttpResponse handlerConflictException(RuntimeException e) {
         return new HttpResponse(e.getMessage());
     }

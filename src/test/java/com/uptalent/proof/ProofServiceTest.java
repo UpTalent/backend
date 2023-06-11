@@ -20,10 +20,10 @@ import com.uptalent.skill.repository.SkillRepository;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.talent.exception.DeniedAccessException;
+import com.uptalent.util.exception.IllegalContentModifyingException;
+import com.uptalent.util.exception.UnrelatedContentException;
 import com.uptalent.util.service.AccessVerifyService;
-import com.uptalent.proof.exception.IllegalProofModifyingException;
 import com.uptalent.proof.exception.ProofNotFoundException;
-import com.uptalent.proof.exception.UnrelatedProofException;
 import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.proof.model.request.ProofModify;
@@ -225,7 +225,7 @@ public class ProofServiceTest {
 
         given(talentRepository.existsById(anotherTalent.getId())).willReturn(true);
 
-        assertThrows(UnrelatedProofException.class,
+        assertThrows(UnrelatedContentException.class,
                 () -> proofService.editProof(proofModify, anotherTalent.getId(), proof.getId()));
     }
 
@@ -288,7 +288,7 @@ public class ProofServiceTest {
 
         given(talentRepository.existsById(talent.getId())).willReturn(true);
 
-        assertThrows(IllegalProofModifyingException.class,
+        assertThrows(IllegalContentModifyingException.class,
                 () -> proofService.editProof(editProofCase, talent.getId(), hiddenProof.getId()));
     }
 
@@ -358,7 +358,7 @@ public class ProofServiceTest {
 
         given(talentRepository.existsById(talent.getId())).willReturn(true);
 
-        assertThrows(IllegalProofModifyingException.class,
+        assertThrows(IllegalContentModifyingException.class,
                 () -> proofService.editProof(publishProofCase, talent.getId(), publishedProof.getId()));
     }
 
@@ -411,7 +411,7 @@ public class ProofServiceTest {
 
         given(talentRepository.existsById(talent.getId())).willReturn(true);
 
-        assertThrows(IllegalProofModifyingException.class,
+        assertThrows(IllegalContentModifyingException.class,
                 () -> proofService.editProof(hideProofCase, talent.getId(), draftProof.getId()));
     }
 
@@ -467,7 +467,7 @@ public class ProofServiceTest {
 
         given(talentRepository.existsById(talent.getId())).willReturn(true);
 
-        assertThrows(IllegalProofModifyingException.class,
+        assertThrows(IllegalContentModifyingException.class,
                 () -> proofService.editProof(reopenProofCase, talent.getId(), publishedProof.getId()));
     }
 
@@ -544,7 +544,7 @@ public class ProofServiceTest {
 
         when(talentRepository.existsById(talent.getId())).thenReturn(true);
 
-        assertThrows(UnrelatedProofException.class,
+        assertThrows(UnrelatedContentException.class,
                 () -> proofService.getProofDetailInfo(talent.getId(), unrelatedProof.getId()));
     }
 

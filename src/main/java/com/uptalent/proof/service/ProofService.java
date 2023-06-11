@@ -33,6 +33,8 @@ import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.talent.exception.TalentNotFoundException;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.repository.TalentRepository;
+import com.uptalent.util.exception.IllegalContentModifyingException;
+import com.uptalent.util.exception.UnrelatedContentException;
 import com.uptalent.util.service.AccessVerifyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -112,7 +114,7 @@ public class ProofService {
         proof.setTalent(talent);
         proof = proofRepository.save(proof);
 
-        setUpSkillsToProof(proofModify, proof);
+        setSkills(proofModify, proof);
 
         talent.getProofs().add(proof);
         talentRepository.save(talent);
@@ -321,7 +323,7 @@ public class ProofService {
         else if (reopenCase.test(proofModify, currentStatus))
             strategy = proof -> proof.setStatus(PUBLISHED);
         else
-            throw new IllegalProofModifyingException("Illegal operation for modifying status ["
+            throw new IllegalContentModifyingException("Illegal operation for modifying status ["
                     + currentStatus + " -> " + proofModify.getStatus() + "]");
 
         return strategy;
@@ -333,20 +335,20 @@ public class ProofService {
         proof.setContent(proofModify.getContent());
         proof.setIconNumber(proofModify.getIconNumber());
 
-        clearSkillsFromProof(proof);
-        setUpSkillsToProof(proofModify, proof);
+        clearSkills(proof);
+        setSkills(proofModify, proof);
     }
 
     private void publishProof(ProofModify proofModify, Proof proof) {
         if (proofModify.getSkillIds() != null && proofModify.getSkillIds().isEmpty()) {
-            throw new IllegalProofModifyingException("Skills should be set for publishing");
+            throw new IllegalContentModifyingException("Skills should be set for publishing");
         }
         updateProofData(proofModify, proof);
         proof.setPublished(LocalDateTime.now());
         proof.setStatus(PUBLISHED);
     }
 
-    private void clearSkillsFromProof(Proof proof) {
+    private void clearSkills(Proof proof) {
         skillKudosRepository.deleteAll(proof.getSkillKudos());
         if (proof.getSkillKudos() != null && !proof.getSkillKudos().isEmpty())
             proof.getSkillKudos().clear();
@@ -367,7 +369,7 @@ public class ProofService {
 
     private void verifyTalentContainProof(Long talentId, Proof proof) {
         if(!hasTalentProof(talentId, proof)) {
-            throw new UnrelatedProofException("This proof is not related to this talent's proofs");
+            throw new UnrelatedContentException("This proof is not related to this talent's proofs");
         }
     }
 
@@ -456,7 +458,7 @@ public class ProofService {
             throw new WrongSortOrderException("Unexpected input of sort order");
     }
 
-    private void setUpSkillsToProof(ProofModify proofModify, Proof proof) {
+    private void setSkills(ProofModify proofModify, Proof proof) {
         Set<Long> skillsIds = new HashSet<>(proofModify.getSkillIds());
         int uniqueSkillIds = skillsIds.size();
         validateNotContainsDuplicates(uniqueSkillIds, proofModify.getSkillIds().size());

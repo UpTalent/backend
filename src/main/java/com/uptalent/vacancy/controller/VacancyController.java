@@ -1,8 +1,8 @@
-package com.uptalent.vacancy.model.controller;
+package com.uptalent.vacancy.controller;
 
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.proof.model.response.ProofDetailInfo;
-import com.uptalent.vacancy.model.service.VacancyService;
+import com.uptalent.vacancy.service.VacancyService;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
 import com.uptalent.vacancy.model.request.VacancyModify;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +20,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,6 +60,7 @@ public class VacancyController {
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                             mediaType = "application/json") })})
     @PostMapping
+    @PreAuthorize("hasAuthority('SPONSOR')")
     public ResponseEntity<?> createVacancy(@Valid @RequestBody VacancyModify vacancyModify) {
         URI vacancyLocation = vacancyService.createVacancy(vacancyModify);
 
@@ -82,6 +84,36 @@ public class VacancyController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public VacancyDetailInfo getVacancyDetailInfo(@PathVariable Long id) {
-        return vacancyService.getVacancyById(id);
+        return vacancyService.getVacancy(id);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+            summary = "Edit/Publish/Hide/Reopen vacancy",
+            description = "As a sponsor, I want to be able to Edit/Publish/Hide/Reopen vacancy")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",
+                    content = { @Content(schema = @Schema(implementation = VacancyDetailInfo.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "400", description = "Invalid fields",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "403", description = "You cannot update vacancy for other sponsor",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Talent or vacancy by id was not found",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "409", description = "Illegal operation",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })})
+    @PatchMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('SPONSOR')")
+    public VacancyDetailInfo updateVacancy(@PathVariable Long id, @Valid @RequestBody VacancyModify vacancyModify) {
+        return vacancyService.updateVacancy(id, vacancyModify);
     }
 }
