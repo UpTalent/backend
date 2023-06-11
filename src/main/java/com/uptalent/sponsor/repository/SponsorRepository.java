@@ -2,7 +2,6 @@ package com.uptalent.sponsor.repository;
 
 import com.uptalent.proof.kudos.model.entity.KudosHistory;
 import com.uptalent.proof.kudos.model.response.KudosedProof;
-import com.uptalent.proof.kudos.model.response.KudosedProofHistory;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.model.response.SponsorRating;
 import org.springframework.data.domain.Page;
@@ -13,7 +12,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,8 +19,8 @@ import java.util.Optional;
 public interface SponsorRepository extends JpaRepository<Sponsor, Long> {
     @Query("select new com.uptalent.proof.kudos.model.response.KudosedProof(kh.proof.id, " +
             "kh.proof.iconNumber, kh.proof.title, sum(kh.totalKudos), " +
-            "new com.uptalent.proof.model.response.AuthorProof(kh.proof.talent.id, kh.proof.talent.lastname, " +
-            "kh.proof.talent.firstname, kh.proof.talent.avatar)) " +
+            "new com.uptalent.util.model.response.Author(kh.proof.talent.id, kh.proof.talent.firstname + ' ' + kh.proof.talent.lastname, " +
+            "kh.proof.talent.avatar)) " +
             "from kudos_history kh " +
             "where kh.sponsor.id = :sponsorId and kh.proof.status = 'PUBLISHED' " +
             "group by kh.proof.id, kh.proof.iconNumber, kh.proof.title, kh.proof.talent.id, kh.proof.talent.lastname, " +
