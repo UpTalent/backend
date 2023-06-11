@@ -5,6 +5,7 @@ import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.*;
 import com.uptalent.skill.model.SkillProofInfo;
+import com.uptalent.util.model.response.Author;
 import org.mapstruct.Mapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -55,7 +56,11 @@ public interface ProofMapper {
                 proof.getSkillKudos().stream()
                         .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
                         .collect(Collectors.toSet()),
-                new AuthorProof(proof.getTalent().getId(), proof.getTalent().getLastname(), proof.getTalent().getFirstname(), proof.getTalent().getAvatar())
+                Author.builder()
+                        .id(proof.getTalent().getId())
+                        .name(proof.getTalent().getFirstname() + " " + proof.getTalent().getLastname())
+                        .avatar(proof.getTalent().getAvatar())
+                        .build()
         );
     }
 
@@ -71,7 +76,12 @@ public interface ProofMapper {
                 proof.getSkillKudos().stream()
                         .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
                         .collect(Collectors.toSet()),
-                new AuthorProof(proof.getTalent().getId(), proof.getTalent().getLastname(), proof.getTalent().getFirstname(), proof.getTalent().getAvatar()));
+                Author.builder()
+                        .id(proof.getTalent().getId())
+                        .name(proof.getTalent().getFirstname() + " " + proof.getTalent().getLastname())
+                        .avatar(proof.getTalent().getAvatar())
+                        .build()
+        );
     }
 
     default ProofSponsorGeneralInfo toProofSponsorGeneralInfo(Proof proof, Long kudosSumFromMe) {
@@ -86,7 +96,11 @@ public interface ProofMapper {
                 proof.getSkillKudos().stream()
                         .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
                         .collect(Collectors.toSet()),
-                new AuthorProof(proof.getTalent().getId(), proof.getTalent().getLastname(), proof.getTalent().getFirstname(), proof.getTalent().getAvatar())
+                Author.builder()
+                        .id(proof.getTalent().getId())
+                        .name(proof.getTalent().getFirstname() + " " + proof.getTalent().getLastname())
+                        .avatar(proof.getTalent().getAvatar())
+                        .build()
         );
     }
 
