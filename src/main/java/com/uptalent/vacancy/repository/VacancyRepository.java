@@ -1,4 +1,4 @@
-package com.uptalent.vacancy.model.repository;
+package com.uptalent.vacancy.repository;
 
 import com.uptalent.vacancy.model.entity.Vacancy;
 import org.springframework.data.jpa.repository.JpaRepository;
