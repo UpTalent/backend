@@ -73,7 +73,7 @@ public class VacancyController {
             description = "As a user, I want to get vacancy detail.")
     @ApiResponses({
             @ApiResponse(responseCode = "200",
-                    content = { @Content(schema = @Schema(implementation = ProofDetailInfo.class),
+                    content = { @Content(schema = @Schema(implementation = VacancyDetailInfo.class),
                             mediaType = "application/json") }),
             @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
