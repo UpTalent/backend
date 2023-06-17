@@ -28,7 +28,7 @@ public interface VacancyMapper {
                 .published(vacancy.getPublished())
                 .status(vacancy.getStatus())
                 .skills(vacancy.getSkills().stream()
-                        .map(skill -> new SkillVacancyInfo(skill.getName()))
+                        .map(skill -> new SkillVacancyInfo(skill.getId(), skill.getName()))
                         .collect(Collectors.toSet()))
                 .author(Author.builder()
                         .id(vacancy.getSponsor().getId())
