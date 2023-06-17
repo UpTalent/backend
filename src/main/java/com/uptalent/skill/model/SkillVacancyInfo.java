@@ -10,5 +10,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SkillVacancyInfo {
+    private Long id;
     private String name;
 }
