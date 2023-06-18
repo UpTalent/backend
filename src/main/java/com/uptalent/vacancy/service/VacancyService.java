@@ -1,7 +1,10 @@
 package com.uptalent.vacancy.service;
 
 import com.uptalent.mapper.VacancyMapper;
+import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.proof.exception.WrongSortOrderException;
 import com.uptalent.proof.model.enums.ContentStatus;
+import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.skill.exception.SkillNotFoundException;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.skill.repository.SkillRepository;
@@ -17,6 +20,9 @@ import com.uptalent.vacancy.repository.VacancyRepository;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
 import com.uptalent.vacancy.model.request.VacancyModify;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -24,11 +30,14 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
+import static com.uptalent.credentials.model.enums.Role.SPONSOR;
+import static com.uptalent.credentials.model.enums.Role.TALENT;
 import static com.uptalent.proof.model.enums.ContentStatus.*;
 
 @Service
@@ -109,6 +118,24 @@ public class VacancyService {
         return strategy;
     }
 
+    public PageWithMetadata<VacancyDetailInfo> getSponsorVacancies(int page, int size, String sort,
+                                                                       Long sponsorId, String status) {
+
+        ContentStatus contentStatus = ContentStatus.valueOf(status.toUpperCase());
+        Sort sortOrder = getSortByString(sort, contentStatus);
+        PageRequest pageRequest = PageRequest.of(page, size, sortOrder);
+
+        if (!PUBLISHED.equals(contentStatus))
+            accessVerifyService.tryGetAccess(sponsorId, SPONSOR,
+                    "You do not have permission to get list of vacancies");
+
+        Page<Vacancy> vacanciesPage = vacancyRepository.findVacanciesBySponsorId(sponsorId, contentStatus, pageRequest);
+        List<VacancyDetailInfo> vacancyDetailInfos = vacanciesPage.getContent().stream()
+                .map(vacancyMapper::toVacancyDetailInfo).toList();
+
+        return new PageWithMetadata<>(vacancyDetailInfos, vacanciesPage.getTotalPages());
+    }
+
     private void publishVacancy(VacancyModify vacancyModify, Vacancy vacancy) {
         if (vacancyModify.getSkillIds().isEmpty()) {
             throw new IllegalContentModifyingException("Skills should be set for publishing");
@@ -153,5 +180,16 @@ public class VacancyService {
     private void verifySponsorContainVacancy(Long principalId, Vacancy vacancy) {
         if (!Objects.equals(principalId, vacancy.getSponsor().getId()))
             throw new UnrelatedContentException("You cannot update vacancy for other sponsor");
+    }
+
+    private Sort getSortByString(String sort, ContentStatus status){
+        String sortField = status.equals(DRAFT) ? "id" : "published";
+
+        if(sort.equals("desc"))
+            return Sort.by(sortField).descending();
+        else if (sort.equals("asc"))
+            return Sort.by(sortField).ascending();
+        else
+            throw new WrongSortOrderException("Unexpected input of sort order");
     }
 }
