@@ -78,6 +78,10 @@ public class VacancyService {
     @Transactional(readOnly = true)
     public VacancyDetailInfo getVacancy(Long id) {
         Vacancy vacancy = getVacancyById(id);
+
+        if (!PUBLISHED.equals(vacancy.getStatus()))
+            accessVerifyService.tryGetAccess(vacancy.getSponsor().getId(), SPONSOR,
+                    "You do not have permission to get vacancy");
         return vacancyMapper.toVacancyDetailInfo(vacancy);
     }
 
