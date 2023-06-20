@@ -260,7 +260,7 @@ public class ProofControllerTest {
         String errorMessage = "Proof status for creating should be DRAFT";
 
         given(proofService.createProof(any(ProofModify.class), anyLong()))
-                .willThrow(new IllegalCreatingProofException(errorMessage));
+                .willThrow(new IllegalCreatingContentException(errorMessage));
 
         proofModify.setStatus(ContentStatus.PUBLISHED.name());
 

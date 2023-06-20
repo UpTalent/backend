@@ -83,6 +83,9 @@ public class VacancyController {
             @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                             mediaType = "application/json") }),
+            @ApiResponse(responseCode = "403", description = "Do not have permission",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
             @ApiResponse(responseCode = "404", description = "Vacancy by id was not found",
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                             mediaType = "application/json") })})

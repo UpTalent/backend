@@ -1,0 +1,1 @@
+ALTER TABLE vacancy ADD COLUMN count_matched_skills int not null default 0;

@@ -2,24 +2,28 @@ package com.uptalent.vacancy.service;
 
 import com.uptalent.mapper.VacancyMapper;
 import com.uptalent.pagination.PageWithMetadata;
+import com.uptalent.proof.exception.IllegalCreatingContentException;
 import com.uptalent.proof.exception.WrongSortOrderException;
 import com.uptalent.proof.model.enums.ContentStatus;
-import com.uptalent.proof.model.response.ProofDetailInfo;
 import com.uptalent.skill.exception.SkillNotFoundException;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.skill.repository.SkillRepository;
 import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.repository.SponsorRepository;
+import com.uptalent.talent.model.entity.Talent;
+import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.util.exception.IllegalContentModifyingException;
 import com.uptalent.util.exception.UnrelatedContentException;
 import com.uptalent.util.service.AccessVerifyService;
+import com.uptalent.vacancy.exception.NoSuchMatchedSkillsException;
 import com.uptalent.vacancy.exception.VacancyNotFoundException;
 import com.uptalent.vacancy.model.entity.Vacancy;
 import com.uptalent.vacancy.repository.VacancyRepository;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
 import com.uptalent.vacancy.model.request.VacancyModify;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -43,16 +47,20 @@ import static com.uptalent.proof.model.enums.ContentStatus.*;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class VacancyService {
     private final VacancyRepository vacancyRepository;
     private final SponsorRepository sponsorRepository;
     private final SkillRepository skillRepository;
     private final VacancyMapper vacancyMapper;
     private final AccessVerifyService accessVerifyService;
+    private final TalentRepository talentRepository;
 
     public URI createVacancy(VacancyModify vacancyModify) {
         if (vacancyModify.getStatus().equals(ContentStatus.HIDDEN.name()))
             throw new VacancyNotFoundException("Vacancy cannot be HIDDEN");
+        if (vacancyModify.getCountMatchedSkills() > vacancyModify.getSkillIds().size())
+            throw new IllegalCreatingContentException("Count of matched skills should not be greater than count of skills of vacancy");
 
         Vacancy vacancy = vacancyMapper.toVacancy(vacancyModify);
         setSkills(vacancyModify, vacancy);
@@ -82,6 +90,10 @@ public class VacancyService {
         if (!PUBLISHED.equals(vacancy.getStatus()))
             accessVerifyService.tryGetAccess(vacancy.getSponsor().getId(), SPONSOR,
                     "You do not have permission to get vacancy");
+
+        if (accessVerifyService.hasRole(TALENT))
+            verifyMatchedSkills(vacancy);
+
         return vacancyMapper.toVacancyDetailInfo(vacancy);
     }
 
@@ -153,6 +165,9 @@ public class VacancyService {
         vacancy.setTitle(vacancyModify.getTitle());
         vacancy.setContent(vacancyModify.getContent());
 
+        if (vacancyModify.getCountMatchedSkills() > vacancyModify.getSkillIds().size())
+            throw new IllegalCreatingContentException("Count of matched skills should not be greater than count of skills of vacancy");
+
         clearSkills(vacancy);
         setSkills(vacancyModify, vacancy);
     }
@@ -195,5 +210,18 @@ public class VacancyService {
             return Sort.by(sortField).ascending();
         else
             throw new WrongSortOrderException("Unexpected input of sort order");
+    }
+
+    private void verifyMatchedSkills(Vacancy vacancy) {
+        Set<Skill> talentSkills = talentRepository
+                .findById(accessVerifyService.getPrincipalId())
+                .get().getSkills();
+        Set<Skill> matchedVacancySkills = new HashSet<>(Set.copyOf(vacancy.getSkills()));
+
+        matchedVacancySkills.retainAll(talentSkills);
+
+        if (matchedVacancySkills.size() < vacancy.getCountMatchedSkills())
+            throw new NoSuchMatchedSkillsException("You do not have permission to content");
+
     }
 }
