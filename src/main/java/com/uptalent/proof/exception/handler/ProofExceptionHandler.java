@@ -20,7 +20,7 @@ public class ProofExceptionHandler extends ExceptionHandlerController {
 
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler({
-            IllegalCreatingProofException.class,
+            IllegalCreatingContentException.class,
             IllegalPostingKudos.class
     })
     public HttpResponse handlerConflictException(RuntimeException e) {
