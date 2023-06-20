@@ -17,7 +17,7 @@ public interface VacancyMapper {
                 .title(vacancyModify.getTitle())
                 .content(vacancyModify.getContent())
                 .status(ContentStatus.valueOf(vacancyModify.getStatus()))
-                .countMatchedSkills(vacancyModify.getCountMatchedSkills())
+                .skillsMatchedPercent(vacancyModify.getSkillsMatchedPercent() == null ? 100 : vacancyModify.getSkillsMatchedPercent())
                 .build();
     }
 
