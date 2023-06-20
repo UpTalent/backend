@@ -2,10 +2,7 @@ package com.uptalent.vacancy.model.request;
 
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.util.annotation.EnumValue;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -25,7 +22,7 @@ public class VacancyModify {
     @NotNull(message = "List skills should not be null")
     @Size(max=30, message = "List of skills should be less than 30 items")
     private List<Long> skillIds;
-    @NotNull(message = "Min count of matched skills should not be null")
-    @Min(value = 0, message = "Min count of matched skills should not be negative")
-    private Integer countMatchedSkills;
+    @Min(value = 50, message = "Min percent of matched skills should be 50%")
+    @Max(value = 100, message = "Max percent of matched skills should be 100%")
+    private Integer skillsMatchedPercent;
 }
