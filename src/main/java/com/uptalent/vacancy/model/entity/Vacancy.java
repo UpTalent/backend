@@ -1,15 +1,12 @@
 package com.uptalent.vacancy.model.entity;
 
-import com.uptalent.proof.kudos.model.entity.KudosHistory;
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.skill.model.entity.Skill;
-import com.uptalent.skill.model.entity.SkillKudos;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 @Entity(name = "vacancy")
@@ -42,8 +39,8 @@ public class Vacancy {
     @JoinColumn(name = "sponsor_id", referencedColumnName = "id")
     private Sponsor sponsor;
 
-    @Column(name = "count_matched_skills", nullable = false)
-    private Integer countMatchedSkills;
+    @Column(name = "skills_matched_precent", nullable = false)
+    private Integer skillsMatchedPercent;
 
     @ManyToMany
     @JoinTable(
