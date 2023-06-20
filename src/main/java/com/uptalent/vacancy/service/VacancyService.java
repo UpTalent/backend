@@ -2,7 +2,6 @@ package com.uptalent.vacancy.service;
 
 import com.uptalent.mapper.VacancyMapper;
 import com.uptalent.pagination.PageWithMetadata;
-import com.uptalent.proof.exception.IllegalCreatingContentException;
 import com.uptalent.proof.exception.WrongSortOrderException;
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.skill.exception.SkillNotFoundException;
@@ -11,7 +10,6 @@ import com.uptalent.skill.repository.SkillRepository;
 import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.repository.SponsorRepository;
-import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.util.exception.IllegalContentModifyingException;
 import com.uptalent.util.exception.UnrelatedContentException;
@@ -59,8 +57,6 @@ public class VacancyService {
     public URI createVacancy(VacancyModify vacancyModify) {
         if (vacancyModify.getStatus().equals(ContentStatus.HIDDEN.name()))
             throw new VacancyNotFoundException("Vacancy cannot be HIDDEN");
-        if (vacancyModify.getCountMatchedSkills() > vacancyModify.getSkillIds().size())
-            throw new IllegalCreatingContentException("Count of matched skills should not be greater than count of skills of vacancy");
 
         Vacancy vacancy = vacancyMapper.toVacancy(vacancyModify);
         setSkills(vacancyModify, vacancy);
@@ -164,10 +160,6 @@ public class VacancyService {
     private void updateVacancyData(VacancyModify vacancyModify, Vacancy vacancy) {
         vacancy.setTitle(vacancyModify.getTitle());
         vacancy.setContent(vacancyModify.getContent());
-
-        if (vacancyModify.getCountMatchedSkills() > vacancyModify.getSkillIds().size())
-            throw new IllegalCreatingContentException("Count of matched skills should not be greater than count of skills of vacancy");
-
         clearSkills(vacancy);
         setSkills(vacancyModify, vacancy);
     }
@@ -216,12 +208,10 @@ public class VacancyService {
         Set<Skill> talentSkills = talentRepository
                 .findById(accessVerifyService.getPrincipalId())
                 .get().getSkills();
-        Set<Skill> matchedVacancySkills = new HashSet<>(Set.copyOf(vacancy.getSkills()));
 
-        matchedVacancySkills.retainAll(talentSkills);
+        int requiredSkillsNumber = (int) (((double) vacancy.getSkillsMatchedPercent()/100) * vacancy.getSkills().size());
 
-        if (matchedVacancySkills.size() < vacancy.getCountMatchedSkills())
-            throw new NoSuchMatchedSkillsException("You do not have permission to content");
-
+        if (talentSkills.size() < requiredSkillsNumber)
+            throw new NoSuchMatchedSkillsException("You do not have enough skills to watch this vacancy");
     }
 }
