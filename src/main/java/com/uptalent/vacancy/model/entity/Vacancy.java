@@ -42,6 +42,9 @@ public class Vacancy {
     @JoinColumn(name = "sponsor_id", referencedColumnName = "id")
     private Sponsor sponsor;
 
+    @Column(name = "count_matched_skills", nullable = false)
+    private Integer countMatchedSkills;
+
     @ManyToMany
     @JoinTable(
             name = "skill_vacancy",
