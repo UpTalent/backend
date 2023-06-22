@@ -4,7 +4,9 @@ import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.proof.model.response.ProofDetailInfo;
+import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.util.annotation.EnumValue;
+import com.uptalent.vacancy.model.response.VacancyGeneralInfo;
 import com.uptalent.vacancy.service.VacancyService;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
 import com.uptalent.vacancy.model.request.VacancyModify;
@@ -158,5 +160,21 @@ public class VacancyController {
             @RequestParam(defaultValue = "desc") String sort,
             @PathVariable("sponsor-id") Long sponsorId) {
         return vacancyService.getSponsorVacancies(page, size, sort, sponsorId, status);
+    }
+    @DeleteMapping("/{vacancyId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<?> deleteVacancy(@PathVariable Long vacancyId) {
+        vacancyService.deleteVacancy(vacancyId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public PageWithMetadata<VacancyGeneralInfo> getAllProofs(
+            @Min(value = 0, message = "Page should be greater or equals 0")
+            @RequestParam(defaultValue = "0") int page,
+            @Positive(message = "Size should be positive")
+            @RequestParam(defaultValue = "9") int size,
+            @RequestParam(defaultValue = "desc") String sort) {
+        return vacancyService.getVacancies(page, size, sort);
     }
 }

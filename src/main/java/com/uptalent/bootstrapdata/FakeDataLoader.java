@@ -12,6 +12,8 @@ import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.skill.model.entity.SkillKudos;
 import com.uptalent.skill.repository.SkillKudosRepository;
 import com.uptalent.skill.repository.SkillRepository;
+import com.uptalent.sponsor.model.entity.Sponsor;
+import com.uptalent.sponsor.repository.SponsorRepository;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.repository.TalentRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,7 @@ public class FakeDataLoader implements CommandLineRunner {
     public static final int SIZE = 20;
     private final TalentRepository talentRepository;
     private final ProofRepository proofRepository;
+    private final SponsorRepository sponsorRepository;
     private final CredentialsRepository credentialsRepository;
     private final SkillRepository skillRepository;
     private final SkillKudosRepository skillKudosRepository;
@@ -61,6 +64,7 @@ public class FakeDataLoader implements CommandLineRunner {
 
             talentRepository.save(talent);
         }
+        generateOneSponsor();
     }
 
     private Talent generateOneTalent() {
@@ -132,6 +136,29 @@ public class FakeDataLoader implements CommandLineRunner {
             skills.add(skill);
         }
         return skills;
+    }
+    private Sponsor generateOneSponsor() {
+        String fullname = "Andrii";
+        String email = "andrii@gmail.com";
+        String password = "1234567890";
+
+        Credentials credentials = Credentials.builder()
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .status(AccountStatus.ACTIVE)
+                .role(Role.SPONSOR)
+                .verified(true)
+                .build();
+        credentials = credentialsRepository.save(credentials);
+        Sponsor sponsor = Sponsor.builder()
+                .credentials(credentials)
+                .fullname(fullname)
+                .avatar(faker.avatar().image())
+                .kudos(50)
+                .build();
+        sponsor = sponsorRepository.save(sponsor);
+        credentials.setSponsor(sponsor);
+        return sponsor;
     }
 
 

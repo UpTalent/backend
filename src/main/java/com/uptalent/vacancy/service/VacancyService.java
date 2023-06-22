@@ -4,6 +4,7 @@ import com.uptalent.mapper.VacancyMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.exception.WrongSortOrderException;
 import com.uptalent.proof.model.enums.ContentStatus;
+import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.skill.exception.SkillNotFoundException;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.skill.repository.SkillRepository;
@@ -17,6 +18,7 @@ import com.uptalent.util.service.AccessVerifyService;
 import com.uptalent.vacancy.exception.NoSuchMatchedSkillsException;
 import com.uptalent.vacancy.exception.VacancyNotFoundException;
 import com.uptalent.vacancy.model.entity.Vacancy;
+import com.uptalent.vacancy.model.response.VacancyGeneralInfo;
 import com.uptalent.vacancy.repository.VacancyRepository;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
 import com.uptalent.vacancy.model.request.VacancyModify;
@@ -25,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -155,6 +158,22 @@ public class VacancyService {
         updateVacancyData(vacancyModify, vacancy);
         vacancy.setPublished(LocalDateTime.now());
         vacancy.setStatus(PUBLISHED);
+    }
+    public PageWithMetadata<VacancyGeneralInfo> getVacancies(int page, int size, String sort) {
+        Sort sortOrder = getSortByString(sort, PUBLISHED);
+        PageRequest pageRequest = PageRequest.of(page, size, sortOrder);
+        Long principalId = accessVerifyService.getPrincipalId();
+        Page<Vacancy> vacanciesPage = vacancyRepository.findVacancies(PUBLISHED, pageRequest);
+        List<Vacancy> retrievedVacancies = vacanciesPage.getContent();
+        List<VacancyGeneralInfo> proofGeneralInfos = vacancyMapper.toVacancyGeneralInfos(retrievedVacancies);
+        return new PageWithMetadata<>(proofGeneralInfos, vacanciesPage.getTotalPages());
+    }
+    @PreAuthorize("hasAuthority('SPONSOR')")
+    @Transactional
+    public void deleteVacancy(Long vacancyId) {
+        Vacancy vacancyToDelete = getVacancyById(vacancyId);
+        verifySponsorContainVacancy(accessVerifyService.getPrincipalId(), vacancyToDelete);
+        vacancyRepository.delete(vacancyToDelete);
     }
 
     private void updateVacancyData(VacancyModify vacancyModify, Vacancy vacancy) {
