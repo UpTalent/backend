@@ -1,8 +1,10 @@
 package com.uptalent.vacancy.repository;
 
+import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.vacancy.model.entity.Vacancy;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,4 +18,9 @@ public interface VacancyRepository extends JpaRepository<Vacancy, Long> {
     Page<Vacancy> findVacanciesBySponsorId(Long sponsorId,
                                                     ContentStatus contentStatus,
                                                     Pageable pageable);
+    @Query("SELECT v " +
+            "FROM vacancy v " +
+            "WHERE v.status = :contentStatus")
+    Page<Vacancy> findVacancies(ContentStatus contentStatus,
+                                           Pageable pageable);
 }
