@@ -19,12 +19,14 @@ import java.util.Optional;
 public interface SponsorRepository extends JpaRepository<Sponsor, Long> {
     @Query("select new com.uptalent.proof.kudos.model.response.KudosedProof(kh.proof.id, " +
             "kh.proof.iconNumber, kh.proof.title, sum(kh.totalKudos), " +
-            "new com.uptalent.util.model.response.Author(kh.proof.talent.id, kh.proof.talent.firstname + ' ' + kh.proof.talent.lastname, " +
+            "new com.uptalent.util.model.response.Author(kh.proof.talent.id, " +
+            "concat(kh.proof.talent.firstname, ' ', kh.proof.talent.lastname), " +
             "kh.proof.talent.avatar)) " +
             "from kudos_history kh " +
             "where kh.sponsor.id = :sponsorId and kh.proof.status = 'PUBLISHED' " +
-            "group by kh.proof.id, kh.proof.iconNumber, kh.proof.title, kh.proof.talent.id, kh.proof.talent.lastname, " +
-            "kh.proof.talent.firstname, kh.proof.talent.avatar " +
+            "group by kh.proof.id, kh.proof.iconNumber, kh.proof.title, " +
+            "kh.proof.talent.id, kh.proof.talent.lastname, kh.proof.talent.firstname, " +
+            "kh.proof.talent.avatar " +
             "order by sum(kh.totalKudos) desc ")
     Page<KudosedProof> findAllKudosedProofBySponsorId(Long sponsorId, PageRequest pageRequest);
 
