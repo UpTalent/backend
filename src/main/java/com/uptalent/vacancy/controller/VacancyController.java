@@ -169,12 +169,13 @@ public class VacancyController {
     }
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public PageWithMetadata<VacancyGeneralInfo> getAllProofs(
+    public PageWithMetadata<VacancyGeneralInfo> getAllVacancies(
             @Min(value = 0, message = "Page should be greater or equals 0")
             @RequestParam(defaultValue = "0") int page,
             @Positive(message = "Size should be positive")
             @RequestParam(defaultValue = "9") int size,
-            @RequestParam(defaultValue = "desc") String sort) {
-        return vacancyService.getVacancies(page, size, sort);
+            @RequestParam(defaultValue = "desc") String sort,
+            @RequestParam(required = false) String [] skills) {
+        return vacancyService.getVacancies(page, size, sort, skills);
     }
 }
