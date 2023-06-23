@@ -20,7 +20,8 @@ public interface VacancyRepository extends JpaRepository<Vacancy, Long> {
                                                     Pageable pageable);
     @Query("SELECT v " +
             "FROM vacancy v " +
-            "WHERE v.status = :contentStatus")
+            "WHERE v.status = :contentStatus AND " +
+            "coalesce((SELECT count(sk) FROM v.skills sk WHERE sk.name IN :skills GROUP BY v.id), 0) = :skillsSize")
     Page<Vacancy> findVacancies(ContentStatus contentStatus,
-                                           Pageable pageable);
+                                           Pageable pageable, String [] skills, int skillsSize);
 }

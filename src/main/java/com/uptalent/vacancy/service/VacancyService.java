@@ -159,11 +159,11 @@ public class VacancyService {
         vacancy.setPublished(LocalDateTime.now());
         vacancy.setStatus(PUBLISHED);
     }
-    public PageWithMetadata<VacancyGeneralInfo> getVacancies(int page, int size, String sort) {
+    public PageWithMetadata<VacancyGeneralInfo> getVacancies(int page, int size, String sort, String [] skills) {
         Sort sortOrder = getSortByString(sort, PUBLISHED);
         PageRequest pageRequest = PageRequest.of(page, size, sortOrder);
-        Long principalId = accessVerifyService.getPrincipalId();
-        Page<Vacancy> vacanciesPage = vacancyRepository.findVacancies(PUBLISHED, pageRequest);
+        int skillsSize = (skills == null) ? 0 : skills.length;
+        Page<Vacancy> vacanciesPage = vacancyRepository.findVacancies(PUBLISHED, pageRequest, skills, skillsSize);
         List<Vacancy> retrievedVacancies = vacanciesPage.getContent();
         List<VacancyGeneralInfo> proofGeneralInfos = vacancyMapper.toVacancyGeneralInfos(retrievedVacancies);
         return new PageWithMetadata<>(proofGeneralInfos, vacanciesPage.getTotalPages());
