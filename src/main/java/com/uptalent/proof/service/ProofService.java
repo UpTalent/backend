@@ -87,11 +87,6 @@ public class ProofService {
 
     public ProofDetailInfo getProofDetailInfo(Long talentId, Long proofId) {
         verifyTalentExistsById(talentId);
-        accessVerifyService.tryGetAccess(
-                talentId,
-                Role.TALENT,
-                "You cannot get proof detail info"
-        );
         Proof proof = getProofById(proofId);
 
         verifyTalentContainProof(talentId, proof);
