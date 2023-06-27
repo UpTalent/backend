@@ -86,11 +86,12 @@ public class SponsorService {
                 .fullname(sponsorRegistration.getFullname())
                 .kudos(INITIAL_KUDOS_NUMBER)
                 .build());
-
+        String link = "https://white-plant-071773303.3.azurestaticapps.net/";
         sender.sendMail(
                 credentials.getEmail(),
                 token,
-                request.getHeader(HttpHeaders.REFERER),
+                //request.getHeader(HttpHeaders.REFERER),
+                link,
                 savedSponsor.getFullname(),
                 credentials.getExpirationDeleting(),
                 EmailType.VERIFY
@@ -196,10 +197,12 @@ public class SponsorService {
             deletedSponsor.getCredentials().setExpirationDeleting(LocalDateTime.now().plusMinutes(10));
             deletedSponsor.getCredentials().setStatus(AccountStatus.TEMPORARY_DELETED);
             deletedSponsor.getCredentials().setDeleteToken(token);
+            String link = "https://white-plant-071773303.3.azurestaticapps.net/";
             sender.sendMail(
                     deletedSponsor.getCredentials().getEmail(),
                     token,
-                    request.getHeader(HttpHeaders.REFERER),
+                    //request.getHeader(HttpHeaders.REFERER),
+                    link,
                     deletedSponsor.getFullname(),
                     deletedSponsor.getCredentials().getExpirationDeleting(),
                     EmailType.RESTORE

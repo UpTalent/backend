@@ -105,11 +105,12 @@ public class TalentService {
                     .build());
 
         updateSkillsIfExists(talentRegistration.getSkills(), savedTalent);
-
+        String link = "https://white-plant-071773303.3.azurestaticapps.net/";
         sender.sendMail(
                 credentials.getEmail(),
                 token,
-                request.getHeader(HttpHeaders.REFERER),
+                //request.getHeader(HttpHeaders.REFERER),
+                link,
                 savedTalent.getFirstname(),
                 credentials.getExpirationDeleting(),
                 EmailType.VERIFY
@@ -176,10 +177,12 @@ public class TalentService {
         talentToDelete.getCredentials().setStatus(AccountStatus.TEMPORARY_DELETED);
         String token = UUID.randomUUID().toString();
         talentToDelete.getCredentials().setDeleteToken(token);
+        String link = "https://white-plant-071773303.3.azurestaticapps.net/";
         sender.sendMail(
                 talentToDelete.getCredentials().getEmail(),
                 token,
-                request.getHeader(HttpHeaders.REFERER),
+                //request.getHeader(HttpHeaders.REFERER),
+                link,
                 talentToDelete.getFirstname(),
                 talentToDelete.getCredentials().getExpirationDeleting(),
                 EmailType.RESTORE
