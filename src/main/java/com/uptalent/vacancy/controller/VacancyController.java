@@ -3,8 +3,6 @@ package com.uptalent.vacancy.controller;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.proof.model.enums.ContentStatus;
-import com.uptalent.proof.model.response.ProofDetailInfo;
-import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.util.annotation.EnumValue;
 import com.uptalent.vacancy.model.response.VacancyGeneralInfo;
 import com.uptalent.vacancy.service.VacancyService;
