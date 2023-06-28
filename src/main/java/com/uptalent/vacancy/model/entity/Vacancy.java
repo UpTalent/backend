@@ -24,7 +24,7 @@ public class Vacancy {
     @Column(nullable = false, name = "title")
     private String title;
 
-    @Column(length = 3000, nullable = false, name = "content")
+    @Column(length = 5000, nullable = false, name = "content")
     private String content;
 
     @Temporal(TemporalType.TIMESTAMP)
