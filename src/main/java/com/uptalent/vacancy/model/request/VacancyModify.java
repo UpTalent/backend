@@ -15,7 +15,7 @@ public class VacancyModify {
     @Size(max = 255, message = "Title must be less than 255 characters")
     private String title;
     @NotBlank(message = "Content should not be blank")
-    @Size(max = 3000, message = "Content must be less than 5000 characters")
+    @Size(max = 5000, message = "Content must be less than 5000 characters")
     private String content;
     @EnumValue(enumClass = ContentStatus.class)
     private String status;

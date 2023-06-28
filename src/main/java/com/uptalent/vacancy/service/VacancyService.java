@@ -4,7 +4,6 @@ import com.uptalent.mapper.VacancyMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.exception.WrongSortOrderException;
 import com.uptalent.proof.model.enums.ContentStatus;
-import com.uptalent.proof.model.response.ProofGeneralInfo;
 import com.uptalent.skill.exception.SkillNotFoundException;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.skill.repository.SkillRepository;
@@ -42,7 +41,6 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
 import static com.uptalent.credentials.model.enums.Role.SPONSOR;
-import static com.uptalent.credentials.model.enums.Role.TALENT;
 import static com.uptalent.proof.model.enums.ContentStatus.*;
 
 @Service
@@ -86,12 +84,9 @@ public class VacancyService {
     public VacancyDetailInfo getVacancy(Long id) {
         Vacancy vacancy = getVacancyById(id);
 
-        if (!PUBLISHED.equals(vacancy.getStatus()))
+        if(!vacancy.getStatus().equals(PUBLISHED))
             accessVerifyService.tryGetAccess(vacancy.getSponsor().getId(), SPONSOR,
                     "You do not have permission to get vacancy");
-
-        if (accessVerifyService.hasRole(TALENT))
-            verifyMatchedSkills(vacancy);
 
         return vacancyMapper.toVacancyDetailInfo(vacancy);
     }
