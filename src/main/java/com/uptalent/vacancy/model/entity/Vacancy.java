@@ -3,10 +3,12 @@ package com.uptalent.vacancy.model.entity;
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.sponsor.model.entity.Sponsor;
+import com.uptalent.vacancy.submission.model.entity.Submission;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Entity(name = "vacancy")
@@ -49,4 +51,7 @@ public class Vacancy {
             inverseJoinColumns = @JoinColumn(name = "skill_id")
     )
     private Set<Skill> skills;
+
+    @OneToMany(mappedBy = "vacancy")
+    private List<Submission> submissions;
 }
