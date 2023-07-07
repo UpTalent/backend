@@ -10,6 +10,8 @@ import com.uptalent.skill.repository.SkillRepository;
 import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.sponsor.repository.SponsorRepository;
+import com.uptalent.talent.exception.TalentNotFoundException;
+import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.talent.repository.TalentRepository;
 import com.uptalent.util.exception.IllegalContentModifyingException;
 import com.uptalent.util.exception.UnrelatedContentException;
@@ -21,17 +23,23 @@ import com.uptalent.vacancy.model.response.VacancyGeneralInfo;
 import com.uptalent.vacancy.repository.VacancyRepository;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
 import com.uptalent.vacancy.model.request.VacancyModify;
+import com.uptalent.vacancy.submission.exception.DuplicateSubmissionException;
+import com.uptalent.vacancy.submission.exception.InvalidContactInfoException;
+import com.uptalent.vacancy.submission.model.entity.Submission;
+import com.uptalent.vacancy.submission.model.request.SubmissionRequest;
+import com.uptalent.vacancy.submission.model.response.SubmissionResponse;
+import com.uptalent.vacancy.submission.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -42,10 +50,12 @@ import java.util.function.Consumer;
 
 import static com.uptalent.credentials.model.enums.Role.SPONSOR;
 import static com.uptalent.proof.model.enums.ContentStatus.*;
+import static com.uptalent.util.RegexValidation.*;
+import static com.uptalent.vacancy.submission.model.enums.SubmissionStatus.SENT;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 @Slf4j
 public class VacancyService {
     private final VacancyRepository vacancyRepository;
@@ -54,7 +64,9 @@ public class VacancyService {
     private final VacancyMapper vacancyMapper;
     private final AccessVerifyService accessVerifyService;
     private final TalentRepository talentRepository;
+    private final SubmissionRepository submissionRepository;
 
+    @Transactional
     public URI createVacancy(VacancyModify vacancyModify) {
         if (vacancyModify.getStatus().equals(ContentStatus.HIDDEN.name()))
             throw new VacancyNotFoundException("Vacancy cannot be HIDDEN");
@@ -80,7 +92,6 @@ public class VacancyService {
                 .toUri();
     }
 
-    @Transactional(readOnly = true)
     public VacancyDetailInfo getVacancy(Long id) {
         Vacancy vacancy = getVacancyById(id);
 
@@ -91,6 +102,7 @@ public class VacancyService {
         return vacancyMapper.toVacancyDetailInfo(vacancy);
     }
 
+    @Transactional
     public VacancyDetailInfo updateVacancy(Long id, VacancyModify vacancyModify) {
         Vacancy vacancy = getVacancyById(id);
         verifySponsorContainVacancy(accessVerifyService.getPrincipalId(), vacancy);
@@ -154,6 +166,7 @@ public class VacancyService {
         vacancy.setPublished(LocalDateTime.now());
         vacancy.setStatus(PUBLISHED);
     }
+
     public PageWithMetadata<VacancyGeneralInfo> getVacancies(int page, int size, String sort, String [] skills) {
         Sort sortOrder = getSortByString(sort, PUBLISHED);
         PageRequest pageRequest = PageRequest.of(page, size, sortOrder);
@@ -163,12 +176,33 @@ public class VacancyService {
         List<VacancyGeneralInfo> proofGeneralInfos = vacancyMapper.toVacancyGeneralInfos(retrievedVacancies);
         return new PageWithMetadata<>(proofGeneralInfos, vacanciesPage.getTotalPages());
     }
-    @PreAuthorize("hasAuthority('SPONSOR')")
+
     @Transactional
     public void deleteVacancy(Long vacancyId) {
         Vacancy vacancyToDelete = getVacancyById(vacancyId);
         verifySponsorContainVacancy(accessVerifyService.getPrincipalId(), vacancyToDelete);
         vacancyRepository.delete(vacancyToDelete);
+    }
+
+    @Transactional
+    public SubmissionResponse createSubmission(Long vacancyId, SubmissionRequest submissionRequest) {
+        Vacancy vacancy = getVacancyById(vacancyId);
+        Talent talent = getTalentById(accessVerifyService.getPrincipalId());
+
+        checkTalentSubmissionForVacancy(talent, vacancy);
+        verifyMatchedSkills(talent, vacancy);
+        String contactInfo = submissionRequest.getContactInfo();
+        if(!contactInfo.equals(talent.getCredentials().getEmail())) {
+            validateContactInfo(contactInfo);
+        }
+
+        Submission submission = vacancyMapper.toSubmission(submissionRequest);
+        submission.setTalent(talent);
+        submission.setVacancy(vacancy);
+        submission.setSent(LocalDateTime.now());
+        submission.setStatus(SENT);
+
+        return vacancyMapper.toSubmissionResponse(submissionRepository.save(submission));
     }
 
     private void updateVacancyData(VacancyModify vacancyModify, Vacancy vacancy) {
@@ -202,6 +236,11 @@ public class VacancyService {
                 .orElseThrow(() -> new VacancyNotFoundException("Vacancy was not found"));
     }
 
+    private Talent getTalentById(Long principalId) {
+        return talentRepository.findById(principalId)
+                .orElseThrow(() -> new TalentNotFoundException("Talent was not found"));
+    }
+
     private void verifySponsorContainVacancy(Long principalId, Vacancy vacancy) {
         if (!Objects.equals(principalId, vacancy.getSponsor().getId()))
             throw new UnrelatedContentException("You cannot update vacancy for other sponsor");
@@ -218,14 +257,28 @@ public class VacancyService {
             throw new WrongSortOrderException("Unexpected input of sort order");
     }
 
-    private void verifyMatchedSkills(Vacancy vacancy) {
-        Set<Skill> talentSkills = talentRepository
-                .findById(accessVerifyService.getPrincipalId())
-                .get().getSkills();
+    private void verifyMatchedSkills(Talent talent, Vacancy vacancy) {
+        Set<Skill> talentSkills = talent.getSkills();
 
         int requiredSkillsNumber = (int) (((double) vacancy.getSkillsMatchedPercent()/100) * vacancy.getSkills().size());
 
         if (talentSkills.size() < requiredSkillsNumber)
-            throw new NoSuchMatchedSkillsException("You do not have enough skills to watch this vacancy");
+            throw new NoSuchMatchedSkillsException("You don't have enough skills to apply submission for this vacancy");
+    }
+
+    private void checkTalentSubmissionForVacancy(Talent talent, Vacancy vacancy){
+        boolean hasSubmitted = talent.getSubmissions().stream()
+                .anyMatch(submission -> submission.getVacancy().getId().equals(vacancy.getId()));
+
+        if(hasSubmitted)
+            throw new DuplicateSubmissionException("You have already applied submission for this vacancy");
+    }
+
+    private void validateContactInfo(String contactInfo) {
+        if (isValidEmail(contactInfo) || isValidPhone(contactInfo)
+                || isValidTelegramUrl(contactInfo) || isValidLinkedInUrl(contactInfo)){
+            return;
+        }
+        throw new InvalidContactInfoException("Invalid contact info");
     }
 }
