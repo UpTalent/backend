@@ -5,6 +5,7 @@ import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.proof.model.entity.Proof;
 
 import com.uptalent.skill.model.entity.Skill;
+import com.uptalent.vacancy.submission.model.entity.Submission;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -67,6 +68,9 @@ public class Talent {
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     private List<Proof> proofs;
+
+    @OneToMany(mappedBy = "talent")
+    private List<Submission> submissions;
 
     @Override
     public boolean equals(Object o) {
