@@ -8,6 +8,8 @@ import com.uptalent.vacancy.model.response.VacancyGeneralInfo;
 import com.uptalent.vacancy.service.VacancyService;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
 import com.uptalent.vacancy.model.request.VacancyModify;
+import com.uptalent.vacancy.submission.model.request.SubmissionRequest;
+import com.uptalent.vacancy.submission.model.response.SubmissionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -159,12 +161,40 @@ public class VacancyController {
             @PathVariable("sponsor-id") Long sponsorId) {
         return vacancyService.getSponsorVacancies(page, size, sort, sponsorId, status);
     }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+            summary = "Delete vacancy",
+            description = "As a sponsor, I want to delete my vacancy.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "403", description = "Unrelated vacancy",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })
+    })
     @DeleteMapping("/{vacancyId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAuthority('SPONSOR')")
     public ResponseEntity<?> deleteVacancy(@PathVariable Long vacancyId) {
         vacancyService.deleteVacancy(vacancyId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+            summary = "Get all vacancies",
+            description = "As a user, I want to get a list of vacancies.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",
+                    content = { @Content(schema = @Schema(implementation = VacancyGeneralInfo.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })
+    })
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public PageWithMetadata<VacancyGeneralInfo> getAllVacancies(
@@ -175,5 +205,32 @@ public class VacancyController {
             @RequestParam(defaultValue = "desc") String sort,
             @RequestParam(required = false) String [] skills) {
         return vacancyService.getVacancies(page, size, sort, skills);
+    }
+
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+            summary = "Apply submission",
+            description = "As a talent, I want to apply submission for the vacancy.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201",
+                    content = { @Content(schema = @Schema(implementation = SubmissionResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "400", description = "Invalid fields",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page/No matched skills",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "409", description = "Duplicate submission",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })
+    })
+    @PostMapping("/{vacancyId}/submissions")
+    @PreAuthorize("hasAuthority('TALENT')")
+    @ResponseStatus(HttpStatus.CREATED)
+    public SubmissionResponse createSubmission(@PathVariable Long vacancyId,
+                                               @Valid @RequestBody SubmissionRequest submissionRequest){
+        return vacancyService.createSubmission(vacancyId, submissionRequest);
     }
 }
