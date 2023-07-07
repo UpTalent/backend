@@ -10,6 +10,9 @@ import com.uptalent.vacancy.model.entity.Vacancy;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
 import com.uptalent.vacancy.model.request.VacancyModify;
 import com.uptalent.vacancy.model.response.VacancyGeneralInfo;
+import com.uptalent.vacancy.submission.model.entity.Submission;
+import com.uptalent.vacancy.submission.model.request.SubmissionRequest;
+import com.uptalent.vacancy.submission.model.response.SubmissionResponse;
 import org.mapstruct.Mapper;
 import org.springframework.data.domain.Page;
 
@@ -64,4 +67,8 @@ public interface VacancyMapper {
                 .build();
 
     }
+
+    Submission toSubmission(SubmissionRequest submissionRequest);
+
+    SubmissionResponse toSubmissionResponse(Submission submission);
 }
