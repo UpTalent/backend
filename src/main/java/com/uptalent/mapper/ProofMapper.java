@@ -5,6 +5,8 @@ import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.proof.model.request.ProofModify;
 import com.uptalent.proof.model.response.*;
 import com.uptalent.skill.model.SkillProofInfo;
+import com.uptalent.sponsor.model.entity.Sponsor;
+import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.util.model.response.Author;
 import org.mapstruct.Mapper;
 import org.springframework.data.domain.Page;
@@ -56,11 +58,7 @@ public interface ProofMapper {
                 proof.getSkillKudos().stream()
                         .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
                         .collect(Collectors.toSet()),
-                Author.builder()
-                        .id(proof.getTalent().getId())
-                        .name(proof.getTalent().getFirstname() + " " + proof.getTalent().getLastname())
-                        .avatar(proof.getTalent().getAvatar())
-                        .build()
+                toAuthor(proof.getTalent())
         );
     }
 
@@ -76,11 +74,7 @@ public interface ProofMapper {
                 proof.getSkillKudos().stream()
                         .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
                         .collect(Collectors.toSet()),
-                Author.builder()
-                        .id(proof.getTalent().getId())
-                        .name(proof.getTalent().getFirstname() + " " + proof.getTalent().getLastname())
-                        .avatar(proof.getTalent().getAvatar())
-                        .build()
+                toAuthor(proof.getTalent())
         );
     }
 
@@ -96,11 +90,7 @@ public interface ProofMapper {
                 proof.getSkillKudos().stream()
                         .map(sk ->new SkillProofInfo(sk.getSkill().getId(),sk.getSkill().getName(), sk.getKudos()))
                         .collect(Collectors.toSet()),
-                Author.builder()
-                        .id(proof.getTalent().getId())
-                        .name(proof.getTalent().getFirstname() + " " + proof.getTalent().getLastname())
-                        .avatar(proof.getTalent().getAvatar())
-                        .build()
+                toAuthor(proof.getTalent())
         );
     }
 
@@ -184,5 +174,13 @@ public interface ProofMapper {
                 })
                 .collect(Collectors.toList());
         return new PageImpl<>(proofTalentDetailInfos, pageRequest, talentProofs.getTotalElements());
+    }
+
+    default Author toAuthor(Talent talent){
+        return Author.builder()
+                .id(talent.getId())
+                .name(talent.getFirstname() + " " + talent.getLastname())
+                .avatar(talent.getAvatar())
+                .build();
     }
 }

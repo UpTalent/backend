@@ -28,6 +28,7 @@ import com.uptalent.vacancy.submission.exception.InvalidContactInfoException;
 import com.uptalent.vacancy.submission.model.entity.Submission;
 import com.uptalent.vacancy.submission.model.request.SubmissionRequest;
 import com.uptalent.vacancy.submission.model.response.SubmissionResponse;
+import com.uptalent.vacancy.submission.model.response.TalentSubmission;
 import com.uptalent.vacancy.submission.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +47,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.uptalent.credentials.model.enums.Role.SPONSOR;
 import static com.uptalent.proof.model.enums.ContentStatus.*;
@@ -203,6 +204,22 @@ public class VacancyService {
         submission.setStatus(SENT);
 
         return vacancyMapper.toSubmissionResponse(submissionRepository.save(submission));
+    }
+
+    public PageWithMetadata<TalentSubmission> getTalentSubmissions(int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Long talentId = accessVerifyService.getPrincipalId();
+        Page<Submission> submissionsPage = submissionRepository.findSubmissionByTalentId(pageRequest, talentId);
+
+        List<TalentSubmission> talentSubmissions = submissionsPage
+                .stream()
+                .map(submission -> TalentSubmission.builder()
+                        .vacancySubmission(vacancyMapper.toVacancySubmission(submission.getVacancy()))
+                        .submissionResponse(vacancyMapper.toSubmissionResponse(submission))
+                        .build())
+                .collect(Collectors.toList());
+
+        return new PageWithMetadata<>(talentSubmissions, submissionsPage.getTotalPages());
     }
 
     private void updateVacancyData(VacancyModify vacancyModify, Vacancy vacancy) {
