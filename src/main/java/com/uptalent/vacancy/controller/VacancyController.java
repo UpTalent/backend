@@ -10,6 +10,7 @@ import com.uptalent.vacancy.model.response.VacancyDetailInfo;
 import com.uptalent.vacancy.model.request.VacancyModify;
 import com.uptalent.vacancy.submission.model.request.SubmissionRequest;
 import com.uptalent.vacancy.submission.model.response.SubmissionResponse;
+import com.uptalent.vacancy.submission.model.response.TalentSubmission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -232,5 +233,31 @@ public class VacancyController {
     public SubmissionResponse createSubmission(@PathVariable Long vacancyId,
                                                @Valid @RequestBody SubmissionRequest submissionRequest){
         return vacancyService.createSubmission(vacancyId, submissionRequest);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+            summary = "Get talent's submissions",
+            description = "As a talent, I want to view my submissions.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",
+                    content = { @Content(schema = @Schema(implementation = TalentSubmission.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "400", description = "Invalid query params",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })
+    })
+    @GetMapping("/submissions/my")
+    @PreAuthorize("hasAuthority('TALENT')")
+    @ResponseStatus(HttpStatus.OK)
+    public PageWithMetadata<TalentSubmission> getMySubmissions(
+            @Min(value = 0, message = "Page should be greater or equals 0")
+            @RequestParam(defaultValue = "0") int page,
+            @Positive(message = "Size should be positive")
+            @RequestParam(defaultValue = "9") int size){
+        return vacancyService.getTalentSubmissions(page, size);
     }
 }
