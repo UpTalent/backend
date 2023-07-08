@@ -1,10 +1,8 @@
 package com.uptalent.mapper;
 
-import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ContentStatus;
-import com.uptalent.proof.model.response.ProofGeneralInfo;
-import com.uptalent.skill.model.SkillProofInfo;
 import com.uptalent.skill.model.SkillVacancyInfo;
+import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.util.model.response.Author;
 import com.uptalent.vacancy.model.entity.Vacancy;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
@@ -13,8 +11,8 @@ import com.uptalent.vacancy.model.response.VacancyGeneralInfo;
 import com.uptalent.vacancy.submission.model.entity.Submission;
 import com.uptalent.vacancy.submission.model.request.SubmissionRequest;
 import com.uptalent.vacancy.submission.model.response.SubmissionResponse;
+import com.uptalent.vacancy.submission.model.response.VacancySubmission;
 import org.mapstruct.Mapper;
-import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,11 +38,7 @@ public interface VacancyMapper {
                 .skills(vacancy.getSkills().stream()
                         .map(skill -> new SkillVacancyInfo(skill.getId(), skill.getName()))
                         .collect(Collectors.toSet()))
-                .author(Author.builder()
-                        .id(vacancy.getSponsor().getId())
-                        .name(vacancy.getSponsor().getFullname())
-                        .avatar(vacancy.getSponsor().getAvatar())
-                        .build())
+                .author(toAuthor(vacancy.getSponsor()))
                 .build();
     }
     default List<VacancyGeneralInfo> toVacancyGeneralInfos(List<Vacancy> vacancies) {
@@ -59,11 +53,7 @@ public interface VacancyMapper {
                 .skills(vacancy.getSkills().stream()
                         .map(skill -> new SkillVacancyInfo(skill.getId(), skill.getName()))
                         .collect(Collectors.toSet()))
-                .author(Author.builder()
-                        .id(vacancy.getSponsor().getId())
-                        .name(vacancy.getSponsor().getFullname())
-                        .avatar(vacancy.getSponsor().getAvatar())
-                        .build())
+                .author(toAuthor(vacancy.getSponsor()))
                 .build();
 
     }
@@ -71,4 +61,20 @@ public interface VacancyMapper {
     Submission toSubmission(SubmissionRequest submissionRequest);
 
     SubmissionResponse toSubmissionResponse(Submission submission);
+
+    default VacancySubmission toVacancySubmission(Vacancy vacancy){
+        return VacancySubmission.builder()
+                .id(vacancy.getId())
+                .title(vacancy.getTitle())
+                .author(toAuthor(vacancy.getSponsor()))
+                .build();
+    }
+
+    default Author toAuthor(Sponsor sponsor){
+        return Author.builder()
+                .id(sponsor.getId())
+                .name(sponsor.getFullname())
+                .avatar(sponsor.getAvatar())
+                .build();
+    }
 }
