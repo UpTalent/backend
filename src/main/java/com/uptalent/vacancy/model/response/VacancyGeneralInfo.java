@@ -18,6 +18,4 @@ public class VacancyGeneralInfo {
     private LocalDateTime published;
     private Set<SkillVacancyInfo> skills;
     private Author author;
-
-
 }
