@@ -100,7 +100,11 @@ public class VacancyService {
             accessVerifyService.tryGetAccess(vacancy.getSponsor().getId(), SPONSOR,
                     "You do not have permission to get vacancy");
 
-        return vacancyMapper.toVacancyDetailInfo(vacancy);
+        Talent talent = getTalentById(accessVerifyService.getPrincipalId());
+        VacancyDetailInfo vacancyDetailInfo = vacancyMapper.toVacancyDetailInfo(vacancy);
+        vacancyDetailInfo.setCanSubmit(hasMatchedSkills(talent, vacancy));
+
+        return vacancyDetailInfo;
     }
 
     @Transactional
@@ -274,12 +278,14 @@ public class VacancyService {
             throw new WrongSortOrderException("Unexpected input of sort order");
     }
 
-    private void verifyMatchedSkills(Talent talent, Vacancy vacancy) {
+    private boolean hasMatchedSkills(Talent talent, Vacancy vacancy){
         Set<Skill> talentSkills = talent.getSkills();
-
         int requiredSkillsNumber = (int) (((double) vacancy.getSkillsMatchedPercent()/100) * vacancy.getSkills().size());
+        return talentSkills.size() >= requiredSkillsNumber;
+    }
 
-        if (talentSkills.size() < requiredSkillsNumber)
+    private void verifyMatchedSkills(Talent talent, Vacancy vacancy) {
+        if (hasMatchedSkills(talent, vacancy))
             throw new NoSuchMatchedSkillsException("You don't have enough skills to apply submission for this vacancy");
     }
 
