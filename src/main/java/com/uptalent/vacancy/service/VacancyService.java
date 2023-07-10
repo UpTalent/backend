@@ -285,7 +285,7 @@ public class VacancyService {
     }
 
     private void verifyMatchedSkills(Talent talent, Vacancy vacancy) {
-        if (hasMatchedSkills(talent, vacancy))
+        if (!hasMatchedSkills(talent, vacancy))
             throw new NoSuchMatchedSkillsException("You don't have enough skills to apply submission for this vacancy");
     }
 
