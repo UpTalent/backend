@@ -23,4 +23,5 @@ public class VacancyDetailInfo {
     private LocalDateTime published;
     private Set<SkillVacancyInfo> skills;
     private Author author;
+    private boolean canSubmit;
 }
