@@ -5,15 +5,15 @@ import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.skill.model.SkillVacancyInfo;
 import com.uptalent.util.model.response.Author;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class VacancyDetailInfo {
     private Long id;
     private String title;
@@ -23,5 +23,4 @@ public class VacancyDetailInfo {
     private LocalDateTime published;
     private Set<SkillVacancyInfo> skills;
     private Author author;
-    private boolean canSubmit;
 }
