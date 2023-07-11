@@ -1,5 +1,6 @@
 package com.uptalent.vacancy.service;
 
+import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.mapper.VacancyMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.exception.WrongSortOrderException;
@@ -19,6 +20,7 @@ import com.uptalent.util.service.AccessVerifyService;
 import com.uptalent.vacancy.exception.NoSuchMatchedSkillsException;
 import com.uptalent.vacancy.exception.VacancyNotFoundException;
 import com.uptalent.vacancy.model.entity.Vacancy;
+import com.uptalent.vacancy.model.response.TalentVacancyDetailInfo;
 import com.uptalent.vacancy.model.response.VacancyGeneralInfo;
 import com.uptalent.vacancy.repository.VacancyRepository;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
@@ -41,15 +43,13 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.uptalent.credentials.model.enums.Role.SPONSOR;
+import static com.uptalent.credentials.model.enums.Role.TALENT;
 import static com.uptalent.proof.model.enums.ContentStatus.*;
 import static com.uptalent.util.RegexValidation.*;
 import static com.uptalent.vacancy.submission.model.enums.SubmissionStatus.SENT;
@@ -100,11 +100,16 @@ public class VacancyService {
             accessVerifyService.tryGetAccess(vacancy.getSponsor().getId(), SPONSOR,
                     "You do not have permission to get vacancy");
 
-        Talent talent = getTalentById(accessVerifyService.getPrincipalId());
-        VacancyDetailInfo vacancyDetailInfo = vacancyMapper.toVacancyDetailInfo(vacancy);
-        vacancyDetailInfo.setCanSubmit(hasMatchedSkills(talent, vacancy));
-
-        return vacancyDetailInfo;
+        Role role = accessVerifyService.getRole();
+        if(role.equals(TALENT)){
+            TalentVacancyDetailInfo talentVacancyDetailInfo = vacancyMapper.toTalentVacancyDetailInfo(vacancy);
+            Talent talent = getTalentById(accessVerifyService.getPrincipalId());
+            boolean canSubmit = hasMatchedSkills(talent, vacancy);
+            talentVacancyDetailInfo.setCanSubmit(canSubmit);
+            return talentVacancyDetailInfo;
+        } else {
+            return vacancyMapper.toVacancyDetailInfo(vacancy);
+        }
     }
 
     @Transactional

@@ -5,6 +5,7 @@ import com.uptalent.skill.model.SkillVacancyInfo;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.util.model.response.Author;
 import com.uptalent.vacancy.model.entity.Vacancy;
+import com.uptalent.vacancy.model.response.TalentVacancyDetailInfo;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
 import com.uptalent.vacancy.model.request.VacancyModify;
 import com.uptalent.vacancy.model.response.VacancyGeneralInfo;
@@ -41,6 +42,22 @@ public interface VacancyMapper {
                 .author(toAuthor(vacancy.getSponsor()))
                 .build();
     }
+
+    default TalentVacancyDetailInfo toTalentVacancyDetailInfo(Vacancy vacancy){
+        VacancyDetailInfo vacancyDetailInfo = toVacancyDetailInfo(vacancy);
+
+        return TalentVacancyDetailInfo.builder()
+                .id(vacancyDetailInfo.getId())
+                .title(vacancyDetailInfo.getTitle())
+                .content(vacancyDetailInfo.getContent())
+                .published(vacancyDetailInfo.getPublished())
+                .status(vacancyDetailInfo.getStatus())
+                .skills(vacancyDetailInfo.getSkills())
+                .author(vacancyDetailInfo.getAuthor())
+                .canSubmit(false)
+                .build();
+    }
+
     default List<VacancyGeneralInfo> toVacancyGeneralInfos(List<Vacancy> vacancies) {
         return vacancies.stream().map(this::toVacancyGeneralInfo).toList();
     }
