@@ -93,8 +93,8 @@ public class VacancyService {
                 .toUri();
     }
 
-    public VacancyDetailInfo getVacancy(Long id) {
-        Vacancy vacancy = getVacancyById(id);
+    public VacancyDetailInfo getVacancy(Long vacancyId) {
+        Vacancy vacancy = getVacancyById(vacancyId);
 
         if(!vacancy.getStatus().equals(PUBLISHED))
             accessVerifyService.tryGetAccess(vacancy.getSponsor().getId(), SPONSOR,
@@ -106,9 +106,15 @@ public class VacancyService {
             Talent talent = getTalentById(accessVerifyService.getPrincipalId());
             boolean canSubmit = hasMatchedSkills(talent, vacancy);
             talentVacancyDetailInfo.setCanSubmit(canSubmit);
+
+            Optional<Submission> talentSubmission = submissionRepository.findSubmissionByTalentIdAndVacancyId(talent.getId(), vacancyId);
+            talentSubmission.ifPresent(submission -> talentVacancyDetailInfo
+                    .setMySubmission(vacancyMapper.toSubmissionResponse(submission))
+            );
+
             return talentVacancyDetailInfo;
         } else {
-            return vacancyMapper.toVacancyDetailInfo(vacancy);
+            return vacancyMapper.toSponsorVacancyDetailInfo(vacancy);
         }
     }
 
@@ -218,7 +224,7 @@ public class VacancyService {
     public PageWithMetadata<TalentSubmission> getTalentSubmissions(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Long talentId = accessVerifyService.getPrincipalId();
-        Page<Submission> submissionsPage = submissionRepository.findSubmissionByTalentId(pageRequest, talentId);
+        Page<Submission> submissionsPage = submissionRepository.findSubmissionsByTalentId(pageRequest, talentId);
 
         List<TalentSubmission> talentSubmissions = submissionsPage
                 .stream()

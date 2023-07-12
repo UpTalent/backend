@@ -2,9 +2,11 @@ package com.uptalent.mapper;
 
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.skill.model.SkillVacancyInfo;
+import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.sponsor.model.entity.Sponsor;
 import com.uptalent.util.model.response.Author;
 import com.uptalent.vacancy.model.entity.Vacancy;
+import com.uptalent.vacancy.model.response.SponsorVacancyDetailInfo;
 import com.uptalent.vacancy.model.response.TalentVacancyDetailInfo;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
 import com.uptalent.vacancy.model.request.VacancyModify;
@@ -14,11 +16,11 @@ import com.uptalent.vacancy.submission.model.request.SubmissionRequest;
 import com.uptalent.vacancy.submission.model.response.SubmissionResponse;
 import com.uptalent.vacancy.submission.model.response.VacancySubmission;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+@Mapper
 public interface VacancyMapper {
     default Vacancy toVacancy(VacancyModify vacancyModify) {
         return Vacancy.builder()
@@ -29,69 +31,38 @@ public interface VacancyMapper {
                 .build();
     }
 
-    default VacancyDetailInfo toVacancyDetailInfo(Vacancy vacancy) {
-        return VacancyDetailInfo.builder()
-                .id(vacancy.getId())
-                .title(vacancy.getTitle())
-                .content(vacancy.getContent())
-                .published(vacancy.getPublished())
-                .status(vacancy.getStatus())
-                .skills(vacancy.getSkills().stream()
-                        .map(skill -> new SkillVacancyInfo(skill.getId(), skill.getName()))
-                        .collect(Collectors.toSet()))
-                .author(toAuthor(vacancy.getSponsor()))
-                .build();
-    }
+    @Mapping(source = "vacancy.skills", target = "skills")
+    @Mapping(source = "vacancy.sponsor", target = "author")
+    VacancyDetailInfo toVacancyDetailInfo(Vacancy vacancy);
 
-    default TalentVacancyDetailInfo toTalentVacancyDetailInfo(Vacancy vacancy){
-        VacancyDetailInfo vacancyDetailInfo = toVacancyDetailInfo(vacancy);
+    @Mapping(source = "vacancy.skills", target = "skills")
+    @Mapping(source = "vacancy.sponsor", target = "author")
+    TalentVacancyDetailInfo toTalentVacancyDetailInfo(Vacancy vacancy);
 
-        return TalentVacancyDetailInfo.builder()
-                .id(vacancyDetailInfo.getId())
-                .title(vacancyDetailInfo.getTitle())
-                .content(vacancyDetailInfo.getContent())
-                .published(vacancyDetailInfo.getPublished())
-                .status(vacancyDetailInfo.getStatus())
-                .skills(vacancyDetailInfo.getSkills())
-                .author(vacancyDetailInfo.getAuthor())
-                .canSubmit(false)
-                .build();
-    }
+    @Mapping(source = "vacancy.skills", target = "skills")
+    @Mapping(source = "vacancy.sponsor", target = "author")
+    @Mapping(source = "vacancy.submissions", target = "submissions")
+    SponsorVacancyDetailInfo toSponsorVacancyDetailInfo(Vacancy vacancy);
 
-    default List<VacancyGeneralInfo> toVacancyGeneralInfos(List<Vacancy> vacancies) {
-        return vacancies.stream().map(this::toVacancyGeneralInfo).toList();
-    }
+    List<VacancyGeneralInfo> toVacancyGeneralInfos(List<Vacancy> vacancies);
 
-    default VacancyGeneralInfo toVacancyGeneralInfo(Vacancy vacancy) {
-        return VacancyGeneralInfo.builder()
-                .id(vacancy.getId())
-                .title(vacancy.getTitle())
-                .published(vacancy.getPublished())
-                .skills(vacancy.getSkills().stream()
-                        .map(skill -> new SkillVacancyInfo(skill.getId(), skill.getName()))
-                        .collect(Collectors.toSet()))
-                .author(toAuthor(vacancy.getSponsor()))
-                .build();
-
-    }
+    @Mapping(source = "vacancy.skills", target = "skills")
+    @Mapping(source = "vacancy.sponsor", target = "author")
+    VacancyGeneralInfo toVacancyGeneralInfo(Vacancy vacancy);
 
     Submission toSubmission(SubmissionRequest submissionRequest);
 
     SubmissionResponse toSubmissionResponse(Submission submission);
 
-    default VacancySubmission toVacancySubmission(Vacancy vacancy){
-        return VacancySubmission.builder()
-                .id(vacancy.getId())
-                .title(vacancy.getTitle())
-                .author(toAuthor(vacancy.getSponsor()))
-                .build();
-    }
+    @Mapping(source = "vacancy.sponsor", target = "author")
+    VacancySubmission toVacancySubmission(Vacancy vacancy);
 
-    default Author toAuthor(Sponsor sponsor){
-        return Author.builder()
-                .id(sponsor.getId())
-                .name(sponsor.getFullname())
-                .avatar(sponsor.getAvatar())
-                .build();
-    }
+    @Mapping(source = "sponsor.id", target = "id")
+    @Mapping(source = "sponsor.fullname", target = "name")
+    @Mapping(source = "sponsor.avatar", target = "avatar")
+    Author toAuthor(Sponsor sponsor);
+
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "name", target = "name")
+    SkillVacancyInfo toSkillVacancyInfo(Skill skill);
 }
