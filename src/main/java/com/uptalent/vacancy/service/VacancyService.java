@@ -106,9 +106,20 @@ public class VacancyService {
             Talent talent = getTalentById(accessVerifyService.getPrincipalId());
             boolean canSubmit = hasMatchedSkills(talent, vacancy);
             talentVacancyDetailInfo.setCanSubmit(canSubmit);
+
+            Long talentId = talent.getId();
+            Optional<Submission> talentSubmission = vacancy.getSubmissions()
+                    .stream()
+                    .filter(submission -> submission.getTalent().getId().equals(talentId))
+                    .findFirst();
+
+            talentSubmission.ifPresent(submission -> talentVacancyDetailInfo
+                    .setMySubmission(vacancyMapper.toSubmissionResponse(submission))
+            );
+
             return talentVacancyDetailInfo;
         } else {
-            return vacancyMapper.toVacancyDetailInfo(vacancy);
+            return vacancyMapper.toSponsorVacancyDetailInfo(vacancy);
         }
     }
 
