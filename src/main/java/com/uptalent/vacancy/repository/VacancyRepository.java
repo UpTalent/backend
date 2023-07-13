@@ -1,10 +1,8 @@
 package com.uptalent.vacancy.repository;
 
-import com.uptalent.proof.model.entity.Proof;
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.vacancy.model.entity.Vacancy;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -24,4 +22,8 @@ public interface VacancyRepository extends JpaRepository<Vacancy, Long> {
             "coalesce((SELECT count(sk) FROM v.skills sk WHERE sk.name IN :skills GROUP BY v.id), 0) = :skillsSize")
     Page<Vacancy> findVacancies(ContentStatus contentStatus,
                                            Pageable pageable, String [] skills, int skillsSize);
+
+    @Query("SELECT CASE WHEN count(v) > 0 THEN TRUE ELSE FALSE END from vacancy v join v.submissions s " +
+            "where v.id = :vacancyId and s.id = :submissionId")
+    boolean verifyVacancyAndSubmission(Long vacancyId, Long submissionId);
 }

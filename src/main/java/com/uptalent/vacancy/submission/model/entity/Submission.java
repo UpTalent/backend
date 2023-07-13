@@ -1,5 +1,6 @@
 package com.uptalent.vacancy.submission.model.entity;
 
+import com.uptalent.answer.model.entity.Answer;
 import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.vacancy.model.entity.Vacancy;
 import com.uptalent.vacancy.submission.model.enums.SubmissionStatus;
@@ -40,4 +41,8 @@ public class Submission {
     @ManyToOne
     @JoinColumn(name = "talent_id", referencedColumnName = "id")
     private Talent talent;
+
+    @OneToOne
+    @JoinColumn(name = "answer_id", referencedColumnName = "id")
+    private Answer answer;
 }

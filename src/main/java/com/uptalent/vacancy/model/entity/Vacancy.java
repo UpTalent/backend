@@ -41,7 +41,7 @@ public class Vacancy {
     @JoinColumn(name = "sponsor_id", referencedColumnName = "id")
     private Sponsor sponsor;
 
-    @Column(name = "skills_matched_precent", nullable = false)
+    @Column(name = "skills_matched_percent", nullable = false)
     private Integer skillsMatchedPercent;
 
     @ManyToMany
