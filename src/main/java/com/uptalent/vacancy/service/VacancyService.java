@@ -307,12 +307,4 @@ public class VacancyService {
         if(hasSubmitted)
             throw new DuplicateSubmissionException("You have already applied submission for this vacancy");
     }
-
-    private void validateContactInfo(String contactInfo) {
-        if (isValidEmail(contactInfo) || isValidPhone(contactInfo)
-                || isValidTelegramUrl(contactInfo) || isValidLinkedInUrl(contactInfo)){
-            return;
-        }
-        throw new InvalidContactInfoException("Invalid contact info");
-    }
 }
