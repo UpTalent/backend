@@ -1,5 +1,8 @@
 package com.uptalent.vacancy.service;
 
+import com.uptalent.answer.model.entity.Answer;
+import com.uptalent.answer.model.request.FeedbackContent;
+import com.uptalent.answer.repository.AnswerRepository;
 import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.mapper.VacancyMapper;
 import com.uptalent.pagination.PageWithMetadata;
@@ -26,7 +29,8 @@ import com.uptalent.vacancy.repository.VacancyRepository;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
 import com.uptalent.vacancy.model.request.VacancyModify;
 import com.uptalent.vacancy.submission.exception.DuplicateSubmissionException;
-import com.uptalent.vacancy.submission.exception.InvalidContactInfoException;
+import com.uptalent.vacancy.submission.exception.IllegalSubmissionException;
+import com.uptalent.vacancy.submission.exception.SubmissionNotFoundException;
 import com.uptalent.vacancy.submission.model.entity.Submission;
 import com.uptalent.vacancy.submission.model.request.SubmissionRequest;
 import com.uptalent.vacancy.submission.model.response.SubmissionResponse;
@@ -37,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -46,7 +51,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static com.uptalent.credentials.model.enums.Role.SPONSOR;
 import static com.uptalent.credentials.model.enums.Role.TALENT;
@@ -66,6 +70,7 @@ public class VacancyService {
     private final AccessVerifyService accessVerifyService;
     private final TalentRepository talentRepository;
     private final SubmissionRepository submissionRepository;
+    private final AnswerRepository answerRepository;
 
     @Transactional
     public URI createVacancy(VacancyModify vacancyModify) {
@@ -113,8 +118,10 @@ public class VacancyService {
             );
 
             return talentVacancyDetailInfo;
-        } else {
+        } else if (vacancy.getSponsor().getId().equals(accessVerifyService.getPrincipalId())) {
             return vacancyMapper.toSponsorVacancyDetailInfo(vacancy);
+        } else {
+            return vacancyMapper.toVacancyDetailInfo(vacancy);
         }
     }
 
@@ -231,10 +238,54 @@ public class VacancyService {
                 .map(submission -> TalentSubmission.builder()
                         .vacancySubmission(vacancyMapper.toVacancySubmission(submission.getVacancy()))
                         .submissionResponse(vacancyMapper.toSubmissionResponse(submission))
-                        .build())
-                .collect(Collectors.toList());
+                        .build()).toList();
 
         return new PageWithMetadata<>(talentSubmissions, submissionsPage.getTotalPages());
+    }
+
+    @Transactional
+    public void sendFeedback(FeedbackContent feedback, Long vacancyId, Long submissionId) {
+        Vacancy vacancy = vacancyRepository.findById(vacancyId)
+                .orElseThrow(() -> new VacancyNotFoundException("Vacancy was not found"));
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new SubmissionNotFoundException("Submission was not found"));
+
+        if (!accessVerifyService.getPrincipalId().equals(vacancy.getSponsor().getId())) {
+            throw new AccessDeniedException("You have not access to the vacancy");
+        } else if (!vacancyRepository.verifyVacancyAndSubmission(vacancyId, submissionId)) {
+            throw new IllegalSubmissionException("Submission is unrelated to the vacancy");
+        }
+
+        if (!Objects.isNull(feedback.getFeedbackId())) {
+            Answer answer = answerRepository.findById(feedback.getFeedbackId())
+                    .orElseThrow();
+
+            if (!accessVerifyService.getPrincipalId().equals(answer.getSponsor().getId()))
+                throw new AccessDeniedException("You have not access to the answer");
+
+            submission.setAnswer(answer);
+        } else if (!Objects.isNull(feedback.getFeedback())) {
+            String contactInfo = feedback.getFeedback().getContactInfo();
+
+            if(!contactInfo.equals(vacancy.getSponsor().getCredentials().getEmail())) {
+                validateContactInfo(contactInfo);
+            }
+
+            Answer answer = Answer.builder()
+                    .isTemplatedMessage(false)
+                    .status(feedback.getFeedback().getStatus())
+                    .message(feedback.getFeedback().getMessage())
+                    .contactInfo(contactInfo)
+                    .sponsor(vacancy.getSponsor())
+                    .title("")
+                    .build();
+
+            answer = answerRepository.save(answer);
+            submission.setAnswer(answer);
+        } else {
+            throw new IllegalSubmissionException("Cannot send feedback to submission");
+        }
+
     }
 
     private void updateVacancyData(VacancyModify vacancyModify, Vacancy vacancy) {
