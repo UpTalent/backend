@@ -1,5 +1,6 @@
 package com.uptalent.vacancy.service;
 
+import com.uptalent.answer.exception.AnswerNotFoundException;
 import com.uptalent.answer.model.entity.Answer;
 import com.uptalent.answer.model.request.FeedbackContent;
 import com.uptalent.answer.repository.AnswerRepository;
@@ -258,7 +259,7 @@ public class VacancyService {
 
         if (!Objects.isNull(feedback.getFeedbackId())) {
             Answer answer = answerRepository.findById(feedback.getFeedbackId())
-                    .orElseThrow();
+                    .orElseThrow(() -> new AnswerNotFoundException("Answer was not found"));
 
             if (!accessVerifyService.getPrincipalId().equals(answer.getSponsor().getId()))
                 throw new AccessDeniedException("You have not access to the answer");
