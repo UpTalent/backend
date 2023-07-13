@@ -1,5 +1,6 @@
 package com.uptalent.vacancy.controller;
 
+import com.uptalent.answer.model.request.FeedbackContent;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.proof.model.enums.ContentStatus;
@@ -259,5 +260,33 @@ public class VacancyController {
             @Positive(message = "Size should be positive")
             @RequestParam(defaultValue = "9") int size){
         return vacancyService.getTalentSubmissions(page, size);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+            summary = "As sponsor I want to send feedback to submission",
+            description = "As a talent, I want to view my submissions.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successfully sent"),
+            @ApiResponse(responseCode = "400", description = "Invalid query params",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Not found submission, templated answer or vacancy",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "409", description = "Illegal action with sending feedback to submission",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })
+    })
+    @GetMapping("/{vacancy-id}/submissions/{submission-id}")
+    @PreAuthorize("hasAuthority('SPONSOR')")
+    @ResponseStatus(HttpStatus.OK)
+    public void sendFeedback(@RequestBody FeedbackContent feedback,
+                             @PathVariable("vacancy-id") Long vacancyId,
+                             @PathVariable("submission-id") Long submissionId ){
+        vacancyService.sendFeedback(feedback, vacancyId, submissionId);
     }
 }
