@@ -1,11 +1,14 @@
 package com.uptalent.sponsor.model.entity;
 
+import com.uptalent.answer.model.entity.Answer;
 import com.uptalent.credentials.model.entity.Credentials;
 import com.uptalent.proof.kudos.model.entity.KudosHistory;
+import com.uptalent.vacancy.submission.model.entity.Submission;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Entity(name = "sponsor")
@@ -39,4 +42,7 @@ public class Sponsor {
 
     @OneToMany(mappedBy = "sponsor")
     private Set<KudosHistory> kudosHistory;
+
+    @OneToMany(mappedBy = "sponsor")
+    private List<Answer> answers;
 }
