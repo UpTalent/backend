@@ -18,7 +18,7 @@ public class Answer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, name = "contact_info", length = 100)
+    @Column(name = "contact_info", length = 100)
     private String contactInfo;
 
     @Column(nullable = false, name = "message", length = 1000)

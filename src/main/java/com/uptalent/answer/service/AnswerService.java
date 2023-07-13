@@ -38,7 +38,7 @@ public class AnswerService {
         Sponsor sponsor = sponsorRepository.findById(sponsorId)
                 .orElseThrow(() -> new SponsorNotFoundException("Sponsor was not found"));
 
-        isValidContactInfo(templateMessageRequest.getContactInfo());
+        validateContactInfo(templateMessageRequest.getContactInfo());
 
         var answer = Answer.builder()
                 .contactInfo(templateMessageRequest.getContactInfo())
@@ -50,14 +50,5 @@ public class AnswerService {
                 .build();
 
         answerRepository.save(answer);
-    }
-    private void isValidContactInfo(String contactInfo) {
-        if(isValidEmail(contactInfo)
-                || isValidPhone(contactInfo)
-                || isValidTelegramUrl(contactInfo)
-                || isValidLinkedInUrl(contactInfo)){
-            return;
-        }
-        throw new InvalidContactInfoException("Invalid contact info");
     }
 }

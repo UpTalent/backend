@@ -14,7 +14,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class TemplateMessageRequest {
-    @NotBlank(message = "Contact info should not be blank")
     @Size(max = 100, message = "Contact info must be less than 100 characters")
     private String contactInfo;
     @NotBlank(message = "Message should not be blank")
