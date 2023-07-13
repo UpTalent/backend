@@ -1,5 +1,7 @@
 package com.uptalent.mapper;
 
+import com.uptalent.answer.model.entity.Answer;
+import com.uptalent.answer.model.request.FeedbackResponse;
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.skill.model.SkillVacancyInfo;
 import com.uptalent.skill.model.entity.Skill;
@@ -52,6 +54,9 @@ public interface VacancyMapper {
 
     Submission toSubmission(SubmissionRequest submissionRequest);
 
+    @Mapping(source = "talent.id", target = "author.id")
+    @Mapping(source = "talent.firstname", target = "author.name")
+    @Mapping(source = "talent.avatar", target = "author.avatar")
     SubmissionResponse toSubmissionResponse(Submission submission);
 
     @Mapping(source = "vacancy.sponsor", target = "author")
@@ -65,4 +70,8 @@ public interface VacancyMapper {
     @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
     SkillVacancyInfo toSkillVacancyInfo(Skill skill);
+
+    @Mapping(source = "contactInfo", target = "contactInfo")
+    @Mapping(source = "message", target = "message")
+    FeedbackResponse toFeedbackResponse(Answer answer);
 }
