@@ -33,6 +33,7 @@ import com.uptalent.vacancy.submission.exception.DuplicateSubmissionException;
 import com.uptalent.vacancy.submission.exception.IllegalSubmissionException;
 import com.uptalent.vacancy.submission.exception.SubmissionNotFoundException;
 import com.uptalent.vacancy.submission.model.entity.Submission;
+import com.uptalent.vacancy.submission.model.enums.SubmissionStatus;
 import com.uptalent.vacancy.submission.model.request.SubmissionRequest;
 import com.uptalent.vacancy.submission.model.response.SubmissionResponse;
 import com.uptalent.vacancy.submission.model.response.TalentSubmission;
@@ -239,6 +240,7 @@ public class VacancyService {
                 .map(submission -> TalentSubmission.builder()
                         .vacancySubmission(vacancyMapper.toVacancySubmission(submission.getVacancy()))
                         .submissionResponse(vacancyMapper.toSubmissionResponse(submission))
+                        .feedbackResponse(vacancyMapper.toFeedbackResponse(submission.getAnswer()))
                         .build()).toList();
 
         return new PageWithMetadata<>(talentSubmissions, submissionsPage.getTotalPages());
@@ -265,6 +267,7 @@ public class VacancyService {
                 throw new AccessDeniedException("You have not access to the answer");
 
             submission.setAnswer(answer);
+            submission.setStatus(SubmissionStatus.valueOf(answer.getStatus().name()));
         } else if (!Objects.isNull(feedback.getFeedback())) {
             String contactInfo = feedback.getFeedback().getContactInfo();
 
@@ -282,6 +285,8 @@ public class VacancyService {
                     .build();
 
             answer = answerRepository.save(answer);
+
+            submission.setStatus(SubmissionStatus.valueOf(answer.getStatus().name()));
             submission.setAnswer(answer);
         } else {
             throw new IllegalSubmissionException("Cannot send feedback to submission");
