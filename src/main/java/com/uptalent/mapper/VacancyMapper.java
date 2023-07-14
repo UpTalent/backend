@@ -6,6 +6,7 @@ import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.skill.model.SkillVacancyInfo;
 import com.uptalent.skill.model.entity.Skill;
 import com.uptalent.sponsor.model.entity.Sponsor;
+import com.uptalent.talent.model.entity.Talent;
 import com.uptalent.util.model.response.Author;
 import com.uptalent.vacancy.model.entity.Vacancy;
 import com.uptalent.vacancy.model.response.SponsorVacancyDetailInfo;
@@ -54,9 +55,7 @@ public interface VacancyMapper {
 
     Submission toSubmission(SubmissionRequest submissionRequest);
 
-    @Mapping(source = "talent.id", target = "author.id")
-    @Mapping(source = "talent.firstname", target = "author.name")
-    @Mapping(source = "talent.avatar", target = "author.avatar")
+    @Mapping(source = "submission.talent", target = "author")
     SubmissionResponse toSubmissionResponse(Submission submission);
 
     @Mapping(source = "vacancy.sponsor", target = "author")
@@ -66,6 +65,11 @@ public interface VacancyMapper {
     @Mapping(source = "sponsor.fullname", target = "name")
     @Mapping(source = "sponsor.avatar", target = "avatar")
     Author toAuthor(Sponsor sponsor);
+
+    @Mapping(source = "talent.id", target = "id")
+    @Mapping(source = "talent.firstname", target = "name")
+    @Mapping(source = "talent.avatar", target = "avatar")
+    Author toAuthor(Talent talent);
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
