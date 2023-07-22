@@ -10,6 +10,7 @@ import com.uptalent.vacancy.service.VacancyService;
 import com.uptalent.vacancy.model.response.VacancyDetailInfo;
 import com.uptalent.vacancy.model.request.VacancyModify;
 import com.uptalent.vacancy.submission.model.request.SubmissionRequest;
+import com.uptalent.vacancy.submission.model.response.FullSubmissionResponse;
 import com.uptalent.vacancy.submission.model.response.SubmissionResponse;
 import com.uptalent.vacancy.submission.model.response.TalentSubmission;
 import io.swagger.v3.oas.annotations.Operation;
@@ -216,7 +217,7 @@ public class VacancyController {
             description = "As a talent, I want to apply submission for the vacancy.")
     @ApiResponses({
             @ApiResponse(responseCode = "201",
-                    content = { @Content(schema = @Schema(implementation = SubmissionResponse.class),
+                    content = { @Content(schema = @Schema(implementation = FullSubmissionResponse.class),
                             mediaType = "application/json") }),
             @ApiResponse(responseCode = "400", description = "Invalid fields",
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
@@ -231,8 +232,8 @@ public class VacancyController {
     @PostMapping("/{vacancyId}/submissions")
     @PreAuthorize("hasAuthority('TALENT')")
     @ResponseStatus(HttpStatus.CREATED)
-    public SubmissionResponse createSubmission(@PathVariable Long vacancyId,
-                                               @Valid @RequestBody SubmissionRequest submissionRequest){
+    public FullSubmissionResponse createSubmission(@PathVariable Long vacancyId,
+                                                                      @Valid @RequestBody SubmissionRequest submissionRequest){
         return vacancyService.createSubmission(vacancyId, submissionRequest);
     }
 
@@ -281,7 +282,7 @@ public class VacancyController {
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                             mediaType = "application/json") })
     })
-    @GetMapping("/{vacancy-id}/submissions/{submission-id}")
+    @PostMapping("/{vacancy-id}/submissions/{submission-id}")
     @PreAuthorize("hasAuthority('SPONSOR')")
     @ResponseStatus(HttpStatus.OK)
     public void sendFeedback(@RequestBody FeedbackContent feedback,

@@ -35,7 +35,7 @@ import com.uptalent.vacancy.submission.exception.SubmissionNotFoundException;
 import com.uptalent.vacancy.submission.model.entity.Submission;
 import com.uptalent.vacancy.submission.model.enums.SubmissionStatus;
 import com.uptalent.vacancy.submission.model.request.SubmissionRequest;
-import com.uptalent.vacancy.submission.model.response.SubmissionResponse;
+import com.uptalent.vacancy.submission.model.response.FullSubmissionResponse;
 import com.uptalent.vacancy.submission.model.response.TalentSubmission;
 import com.uptalent.vacancy.submission.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
@@ -210,7 +210,7 @@ public class VacancyService {
     }
 
     @Transactional
-    public SubmissionResponse createSubmission(Long vacancyId, SubmissionRequest submissionRequest) {
+    public FullSubmissionResponse createSubmission(Long vacancyId, SubmissionRequest submissionRequest) {
         Vacancy vacancy = getVacancyById(vacancyId);
         Talent talent = getTalentById(accessVerifyService.getPrincipalId());
 
@@ -227,7 +227,7 @@ public class VacancyService {
         submission.setSent(LocalDateTime.now());
         submission.setStatus(SENT);
 
-        return vacancyMapper.toSubmissionResponse(submissionRepository.save(submission));
+        return vacancyMapper.toFullSubmissionResponse(submissionRepository.save(submission));
     }
 
     public PageWithMetadata<TalentSubmission> getTalentSubmissions(int page, int size) {
@@ -259,8 +259,8 @@ public class VacancyService {
             throw new IllegalSubmissionException("Submission is unrelated to the vacancy");
         }
 
-        if (!Objects.isNull(feedback.getFeedbackId())) {
-            Answer answer = answerRepository.findById(feedback.getFeedbackId())
+        if (!Objects.isNull(feedback.getTemplateMessageId())) {
+            Answer answer = answerRepository.findById(feedback.getTemplateMessageId())
                     .orElseThrow(() -> new AnswerNotFoundException("Answer was not found"));
 
             if (!accessVerifyService.getPrincipalId().equals(answer.getSponsor().getId()))

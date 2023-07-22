@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class FeedbackContent {
-    private Long feedbackId;
+    private Long templateMessageId;
     private Feedback feedback;
 }
