@@ -16,6 +16,7 @@ import com.uptalent.vacancy.model.request.VacancyModify;
 import com.uptalent.vacancy.model.response.VacancyGeneralInfo;
 import com.uptalent.vacancy.submission.model.entity.Submission;
 import com.uptalent.vacancy.submission.model.request.SubmissionRequest;
+import com.uptalent.vacancy.submission.model.response.FullSubmissionResponse;
 import com.uptalent.vacancy.submission.model.response.SubmissionResponse;
 import com.uptalent.vacancy.submission.model.response.VacancySubmission;
 import org.mapstruct.Mapper;
@@ -69,6 +70,9 @@ public interface VacancyMapper {
     @Mapping(source = "talent.firstname", target = "name")
     @Mapping(source = "talent.avatar", target = "avatar")
     Author toAuthor(Talent talent);
+
+    @Mapping(source = "submission.talent", target = "author")
+    FullSubmissionResponse toFullSubmissionResponse(Submission submission);
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
