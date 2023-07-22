@@ -55,7 +55,6 @@ public interface VacancyMapper {
 
     Submission toSubmission(SubmissionRequest submissionRequest);
 
-    @Mapping(source = "submission.talent", target = "author")
     SubmissionResponse toSubmissionResponse(Submission submission);
 
     @Mapping(source = "vacancy.sponsor", target = "author")
