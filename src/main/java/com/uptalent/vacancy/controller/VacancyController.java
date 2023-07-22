@@ -282,7 +282,7 @@ public class VacancyController {
                     content = { @Content(schema = @Schema(implementation = HttpResponse.class),
                             mediaType = "application/json") })
     })
-    @GetMapping("/{vacancy-id}/submissions/{submission-id}")
+    @PostMapping("/{vacancy-id}/submissions/{submission-id}")
     @PreAuthorize("hasAuthority('SPONSOR')")
     @ResponseStatus(HttpStatus.OK)
     public void sendFeedback(@RequestBody FeedbackContent feedback,
