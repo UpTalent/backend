@@ -116,7 +116,7 @@ public class VacancyService {
 
             Optional<Submission> talentSubmission = submissionRepository.findSubmissionByTalentIdAndVacancyId(talent.getId(), vacancyId);
             talentSubmission.ifPresent(submission -> talentVacancyDetailInfo
-                    .setMySubmission(vacancyMapper.toSubmissionResponse(submission))
+                    .setMySubmission(vacancyMapper.toFullSubmissionResponse(submission))
             );
 
             return talentVacancyDetailInfo;
