@@ -4,7 +4,7 @@ import com.uptalent.answer.model.entity.Answer;
 import com.uptalent.answer.model.enums.MessageStatus;
 import com.uptalent.answer.model.request.TemplateMessageRequest;
 import com.uptalent.answer.model.response.FeedbackInfo;
-import com.uptalent.answer.repository.AnswerRepository;
+import com.uptalent.answer.repository.FeedbackRepository;
 import com.uptalent.mapper.FeedbackMapper;
 import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.sponsor.model.entity.Sponsor;
@@ -25,7 +25,7 @@ import static com.uptalent.util.RegexValidation.*;
 @Transactional(readOnly = true)
 @Slf4j
 public class FeedbackService {
-    private final AnswerRepository answerRepository;
+    private final FeedbackRepository feedbackRepository;
     private final AccessVerifyService accessVerifyService;
     private final SponsorRepository sponsorRepository;
     private final FeedbackMapper feedbackMapper;
@@ -48,7 +48,7 @@ public class FeedbackService {
                 .sponsor(sponsor)
                 .build();
 
-        answerRepository.save(answer);
+        feedbackRepository.save(answer);
     }
 
     @PreAuthorize("hasAuthority('SPONSOR')")
@@ -58,8 +58,8 @@ public class FeedbackService {
         Sponsor sponsor = sponsorRepository.findById(sponsorId)
                 .orElseThrow(() -> new SponsorNotFoundException("Sponsor was not found"));
 
-        List<Answer> answers = answerRepository.findAllBySponsor(sponsor);
-        return feedbackMapper.toAnswerInfos(answers);
+        List<Answer> answers = feedbackRepository.findAllBySponsor(sponsor);
+        return feedbackMapper.toFeedbackInfos(answers);
 
 
     }

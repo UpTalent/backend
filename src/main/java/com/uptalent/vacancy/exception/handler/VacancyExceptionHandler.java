@@ -1,6 +1,6 @@
 package com.uptalent.vacancy.exception.handler;
 
-import com.uptalent.answer.exception.AnswerNotFoundException;
+import com.uptalent.answer.exception.FeedbackNotFoundException;
 import com.uptalent.payload.HttpResponse;
 import com.uptalent.util.exception.handler.ExceptionHandlerController;
 import com.uptalent.vacancy.exception.NoSuchMatchedSkillsException;
@@ -19,7 +19,7 @@ public class VacancyExceptionHandler extends ExceptionHandlerController {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler({VacancyNotFoundException.class,
             SubmissionNotFoundException.class,
-            AnswerNotFoundException.class})
+            FeedbackNotFoundException.class})
     public HttpResponse handlerVacancyNotFoundException(RuntimeException e) {
         return new HttpResponse(e.getMessage());
     }

@@ -1,9 +1,9 @@
 package com.uptalent.vacancy.service;
 
-import com.uptalent.answer.exception.AnswerNotFoundException;
+import com.uptalent.answer.exception.FeedbackNotFoundException;
 import com.uptalent.answer.model.entity.Answer;
 import com.uptalent.answer.model.request.FeedbackContent;
-import com.uptalent.answer.repository.AnswerRepository;
+import com.uptalent.answer.repository.FeedbackRepository;
 import com.uptalent.credentials.model.enums.Role;
 import com.uptalent.mapper.VacancyMapper;
 import com.uptalent.pagination.PageWithMetadata;
@@ -72,7 +72,7 @@ public class VacancyService {
     private final AccessVerifyService accessVerifyService;
     private final TalentRepository talentRepository;
     private final SubmissionRepository submissionRepository;
-    private final AnswerRepository answerRepository;
+    private final FeedbackRepository feedbackRepository;
 
     @Transactional
     public URI createVacancy(VacancyModify vacancyModify) {
@@ -260,8 +260,8 @@ public class VacancyService {
         }
 
         if (!Objects.isNull(feedback.getTemplateMessageId())) {
-            Answer answer = answerRepository.findById(feedback.getTemplateMessageId())
-                    .orElseThrow(() -> new AnswerNotFoundException("Answer was not found"));
+            Answer answer = feedbackRepository.findById(feedback.getTemplateMessageId())
+                    .orElseThrow(() -> new FeedbackNotFoundException("Feedback was not found"));
 
             if (!accessVerifyService.getPrincipalId().equals(answer.getSponsor().getId()))
                 throw new AccessDeniedException("You have not access to the answer");
@@ -284,7 +284,7 @@ public class VacancyService {
                     .title("")
                     .build();
 
-            answer = answerRepository.save(answer);
+            answer = feedbackRepository.save(answer);
 
             submission.setStatus(SubmissionStatus.valueOf(answer.getStatus().name()));
             submission.setAnswer(answer);

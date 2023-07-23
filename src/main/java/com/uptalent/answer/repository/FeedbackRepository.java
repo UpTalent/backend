@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface AnswerRepository extends JpaRepository<Answer, Long> {
+public interface FeedbackRepository extends JpaRepository<Answer, Long> {
 
     @Query("SELECT a FROM answer a WHERE a.sponsor = :sponsor AND a.isTemplatedMessage = true")
     List<Answer> findAllBySponsor(Sponsor sponsor);
