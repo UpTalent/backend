@@ -1,6 +1,7 @@
 package com.uptalent.answer.controller;
 
 import com.uptalent.answer.model.request.TemplateMessageRequest;
+import com.uptalent.answer.model.response.AnswerInfo;
 import com.uptalent.answer.service.AnswerService;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,4 +37,9 @@ public class AnswerController {
         answerService.createTemplate(templateMessageRequest);
     }
 
+    @GetMapping("/my")
+    @ResponseStatus(HttpStatus.OK)
+    List<AnswerInfo> getAllTemplateMessage(){
+        return answerService.getTemplates();
+    }
 }

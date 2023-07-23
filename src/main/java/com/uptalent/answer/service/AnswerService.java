@@ -3,7 +3,9 @@ package com.uptalent.answer.service;
 import com.uptalent.answer.model.entity.Answer;
 import com.uptalent.answer.model.enums.MessageStatus;
 import com.uptalent.answer.model.request.TemplateMessageRequest;
+import com.uptalent.answer.model.response.AnswerInfo;
 import com.uptalent.answer.repository.AnswerRepository;
+import com.uptalent.mapper.AnswerMapper;
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.sponsor.exception.SponsorNotFoundException;
 import com.uptalent.sponsor.model.entity.Sponsor;
@@ -17,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 import static com.uptalent.util.RegexValidation.*;
@@ -30,6 +33,7 @@ public class AnswerService {
     private final AnswerRepository answerRepository;
     private final AccessVerifyService accessVerifyService;
     private final SponsorRepository sponsorRepository;
+    private final AnswerMapper answerMapper;
     @PreAuthorize("hasAuthority('SPONSOR')")
     @Transactional
     public void createTemplate(TemplateMessageRequest templateMessageRequest) {
@@ -50,5 +54,18 @@ public class AnswerService {
                 .build();
 
         answerRepository.save(answer);
+    }
+
+    @PreAuthorize("hasAuthority('SPONSOR')")
+    public List<AnswerInfo> getTemplates() {
+        Long sponsorId = accessVerifyService.getPrincipalId();
+
+        Sponsor sponsor = sponsorRepository.findById(sponsorId)
+                .orElseThrow(() -> new SponsorNotFoundException("Sponsor was not found"));
+
+        List<Answer> answers = answerRepository.findAllBySponsor(sponsor);
+        return answerMapper.toAnswerInfos(answers);
+
+
     }
 }
