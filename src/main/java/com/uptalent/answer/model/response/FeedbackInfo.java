@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AnswerInfo {
+public class FeedbackInfo {
     private Long id;
     private String contactInfo;
     private String message;

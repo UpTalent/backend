@@ -1,12 +1,12 @@
 package com.uptalent.mapper;
 
 import com.uptalent.answer.model.entity.Answer;
-import com.uptalent.answer.model.response.AnswerInfo;
+import com.uptalent.answer.model.response.FeedbackInfo;
 import org.mapstruct.Mapper;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
-public interface AnswerMapper {
-    List<AnswerInfo> toAnswerInfos(List<Answer> answers);
+public interface FeedbackMapper {
+    List<FeedbackInfo> toAnswerInfos(List<Answer> answers);
 }
