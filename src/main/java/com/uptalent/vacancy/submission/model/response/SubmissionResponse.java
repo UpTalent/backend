@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SubmissionResponse {
+    private long id;
     private LocalDateTime sent;
     private SubmissionStatus status;
 }
