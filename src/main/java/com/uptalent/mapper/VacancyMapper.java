@@ -2,6 +2,7 @@ package com.uptalent.mapper;
 
 import com.uptalent.answer.model.entity.Answer;
 import com.uptalent.answer.model.request.FeedbackResponse;
+import com.uptalent.answer.model.response.FeedbackInfo;
 import com.uptalent.proof.model.enums.ContentStatus;
 import com.uptalent.skill.model.SkillVacancyInfo;
 import com.uptalent.skill.model.entity.Skill;
@@ -23,6 +24,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper
 public interface VacancyMapper {
@@ -34,7 +36,45 @@ public interface VacancyMapper {
                 .skillsMatchedPercent(vacancyModify.getSkillsMatchedPercent() == null ? 100 : vacancyModify.getSkillsMatchedPercent())
                 .build();
     }
-
+    default List<FullSubmissionResponse> toFullSubmissionResponses(Vacancy vacancy, FeedbackMapper feedbackMapper){
+        return vacancy
+                .getSubmissions()
+                .stream()
+                .map(s ->
+                        FullSubmissionResponse.builder()
+                                .feedbackInfo(feedbackMapper.toFeedbackInfo(s.getAnswer()))
+                                .author(toAuthor(s.getTalent()))
+                                .message(s.getMessage())
+                                .contactInfo(s.getContactInfo())
+                                .sent(s.getSent())
+                                .status(s.getStatus())
+                                .id(s.getId())
+                                .build()
+                ).collect(Collectors.toList());
+    }
+    default SponsorVacancyDetailInfo toSponsorVacancyDetailInfo(Vacancy vacancy, List<FullSubmissionResponse> fullSubmissionResponses){
+        return SponsorVacancyDetailInfo.builder()
+                .id(vacancy.getId())
+                .title(vacancy.getTitle())
+                .content(vacancy.getContent())
+                .status(vacancy.getStatus())
+                .published(vacancy.getPublished())
+                .skills(vacancy.getSkills().stream().map(this::toSkillVacancyInfo).collect(Collectors.toSet()))
+                .author(toAuthor(vacancy.getSponsor()))
+                .submissions(fullSubmissionResponses)
+                .build();
+    }
+    default FullSubmissionResponse toFullSubmissionResponse(Submission submission, FeedbackInfo feedbackInfo){
+        return FullSubmissionResponse.builder()
+                .feedbackInfo(feedbackInfo)
+                .author(toAuthor(submission.getTalent()))
+                .message(submission.getMessage())
+                .contactInfo(submission.getContactInfo())
+                .sent(submission.getSent())
+                .status(submission.getStatus())
+                .id(submission.getId())
+                .build();
+    }
     @Mapping(source = "vacancy.skills", target = "skills")
     @Mapping(source = "vacancy.sponsor", target = "author")
     VacancyDetailInfo toVacancyDetailInfo(Vacancy vacancy);
@@ -42,11 +82,6 @@ public interface VacancyMapper {
     @Mapping(source = "vacancy.skills", target = "skills")
     @Mapping(source = "vacancy.sponsor", target = "author")
     TalentVacancyDetailInfo toTalentVacancyDetailInfo(Vacancy vacancy);
-
-    @Mapping(source = "vacancy.skills", target = "skills")
-    @Mapping(source = "vacancy.sponsor", target = "author")
-    @Mapping(source = "vacancy.submissions", target = "submissions")
-    SponsorVacancyDetailInfo toSponsorVacancyDetailInfo(Vacancy vacancy);
 
     List<VacancyGeneralInfo> toVacancyGeneralInfos(List<Vacancy> vacancies);
 

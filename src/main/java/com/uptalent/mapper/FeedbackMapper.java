@@ -9,4 +9,5 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface FeedbackMapper {
     List<FeedbackInfo> toFeedbackInfos(List<Answer> answers);
+    FeedbackInfo toFeedbackInfo(Answer answer);
 }
