@@ -290,4 +290,28 @@ public class VacancyController {
                              @PathVariable("submission-id") Long submissionId ){
         vacancyService.sendFeedback(feedback, vacancyId, submissionId);
     }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+            summary = "Delete submission",
+            description = "As a talent, I want to delete my submission, which not be marked by sponsor.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "401", description = "Log in to get access to the page",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "404", description = "Not found submission or vacancy",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") }),
+            @ApiResponse(responseCode = "403", description = "Unrelated vacancy or submission",
+                    content = { @Content(schema = @Schema(implementation = HttpResponse.class),
+                            mediaType = "application/json") })
+    })
+    @DeleteMapping("/{vacancy-id}/submissions/{submission-id}")
+    @PreAuthorize("hasAuthority('TALENT')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteResponse(@PathVariable("vacancy-id") Long vacancyId,
+                               @PathVariable("submission-id") Long submissionId ){
+        vacancyService.deleteSubmission(vacancyId, submissionId);
+    }
 }

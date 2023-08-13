@@ -293,6 +293,20 @@ public class VacancyService {
         }
 
     }
+    @Transactional
+    public void deleteSubmission(Long vacancyId, Long submissionId) {
+        Long talentId = accessVerifyService.getPrincipalId();
+        Vacancy vacancy = getVacancyById(vacancyId);
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new SubmissionNotFoundException("Submission was not found"));
+        if(!talentId.equals(submission.getTalent().getId()))
+            throw new AccessDeniedException("You have not access to the submission");
+        if(!submission.getVacancy().getId().equals(vacancy.getId()))
+            throw new IllegalSubmissionException("Cannot delete submission from this vacancy");
+        if(!submission.getStatus().equals(SENT))
+            throw new IllegalSubmissionException("Cannot delete approved or denied submissions");
+        submissionRepository.delete(submission);
+    }
 
     private void updateVacancyData(VacancyModify vacancyModify, Vacancy vacancy) {
         vacancy.setTitle(vacancyModify.getTitle());
