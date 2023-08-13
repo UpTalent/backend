@@ -5,6 +5,7 @@ import com.uptalent.answer.model.entity.Answer;
 import com.uptalent.answer.model.request.FeedbackContent;
 import com.uptalent.answer.repository.FeedbackRepository;
 import com.uptalent.credentials.model.enums.Role;
+import com.uptalent.mapper.FeedbackMapper;
 import com.uptalent.mapper.VacancyMapper;
 import com.uptalent.pagination.PageWithMetadata;
 import com.uptalent.proof.exception.WrongSortOrderException;
@@ -73,6 +74,7 @@ public class VacancyService {
     private final TalentRepository talentRepository;
     private final SubmissionRepository submissionRepository;
     private final FeedbackRepository feedbackRepository;
+    private final FeedbackMapper feedbackMapper;
 
     @Transactional
     public URI createVacancy(VacancyModify vacancyModify) {
@@ -113,15 +115,16 @@ public class VacancyService {
             Talent talent = getTalentById(accessVerifyService.getPrincipalId());
             boolean canSubmit = hasMatchedSkills(talent, vacancy);
             talentVacancyDetailInfo.setCanSubmit(canSubmit);
-
             Optional<Submission> talentSubmission = submissionRepository.findSubmissionByTalentIdAndVacancyId(talent.getId(), vacancyId);
             talentSubmission.ifPresent(submission -> talentVacancyDetailInfo
-                    .setMySubmission(vacancyMapper.toFullSubmissionResponse(submission))
+                    .setMySubmission(vacancyMapper.toFullSubmissionResponse(submission, feedbackMapper.toFeedbackInfo(submission.getAnswer())))
             );
 
             return talentVacancyDetailInfo;
         } else if (vacancy.getSponsor().getId().equals(accessVerifyService.getPrincipalId())) {
-            return vacancyMapper.toSponsorVacancyDetailInfo(vacancy);
+            List<FullSubmissionResponse> fullSubmissions = vacancyMapper.toFullSubmissionResponses(vacancy, feedbackMapper);
+
+            return vacancyMapper.toSponsorVacancyDetailInfo(vacancy, fullSubmissions);
         } else {
             return vacancyMapper.toVacancyDetailInfo(vacancy);
         }
@@ -258,6 +261,9 @@ public class VacancyService {
         } else if (!vacancyRepository.verifyVacancyAndSubmission(vacancyId, submissionId)) {
             throw new IllegalSubmissionException("Submission is unrelated to the vacancy");
         }
+
+        if (!submission.getStatus().equals(SENT))
+            throw new IllegalSubmissionException("Cannot change submission's 'APPROVED' or 'DENIED' status");
 
         if (!Objects.isNull(feedback.getTemplateMessageId())) {
             Answer answer = feedbackRepository.findById(feedback.getTemplateMessageId())
