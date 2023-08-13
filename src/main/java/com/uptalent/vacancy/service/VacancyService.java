@@ -259,6 +259,9 @@ public class VacancyService {
             throw new IllegalSubmissionException("Submission is unrelated to the vacancy");
         }
 
+        if (!submission.getStatus().equals(SENT))
+            throw new IllegalSubmissionException("Cannot change submission's 'APPROVED' or 'DENIED' status");
+
         if (!Objects.isNull(feedback.getTemplateMessageId())) {
             Answer answer = feedbackRepository.findById(feedback.getTemplateMessageId())
                     .orElseThrow(() -> new FeedbackNotFoundException("Feedback was not found"));
